@@ -169,7 +169,15 @@
     return output;
   }
 
+  function applySortPreference(snapshot) {
+    var prefs = snapshot && snapshot.prefs || {};
+    var sort = prefs.discoverySort;
+    model.sort = sort === "date" || sort === "comments" ? sort : "";
+    model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
+  }
+
   model.snapshot = canonicalSnapshot(storage.load());
+  applySortPreference(model.snapshot);
 
   function refreshSnapshot() {
     model.snapshot = canonicalSnapshot(storage.load());
@@ -849,6 +857,7 @@
   function onStorageChange(next) {
     if (model.destroyed) return;
     model.snapshot = canonicalSnapshot(next);
+    applySortPreference(model.snapshot);
     if (model.panelOpen) render();
   }
 
@@ -867,7 +876,10 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    renderDiscovery();
+    storage.setPreferences({
+      discoverySort: model.sort,
+      discoverySortAscending: model.sortAscending
+    });
   }
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }

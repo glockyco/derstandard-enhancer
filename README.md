@@ -19,7 +19,7 @@ The userscript declares GitHub `@downloadURL` and `@updateURL` metadata for futu
 ## Features
 
 - Main-page article discovery in a compact table.
-- Three-state sorting by date or visible comment count: descending, ascending, then original page order.
+- Remembered three-state sorting by date or visible comment count: descending, ascending, then original page order.
 - Search plus read, saved, and ignored filters.
 - Reading progress, visited state, one-shot resume, and JSON export/import inside the enhancer panel.
 - A panel-local article outline that leaves article markup unchanged.

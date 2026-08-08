@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://github.com/glockyco/derstandard-enhancer
-// @version      0.1.6
+// @version      0.1.7
 // @description  Panel für Artikelsuche und Lesefortschritt auf derStandard.at
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
@@ -24,6 +24,7 @@
   var MAX_TITLE_LENGTH = 500;
   var MAX_PREF_LENGTH = 40;
   var COMMENT_MODES = { native: true, positive: true, negative: true, total: true };
+  var DISCOVERY_SORTS = { date: true, comments: true };
 
   function emptyMap() {
     return Object.create(null);
@@ -36,7 +37,13 @@
       saved: emptyMap(),
       ignored: emptyMap(),
       progress: emptyMap(),
-      prefs: { fontScale: 1, lineWidth: "medium", commentSort: "native" }
+      prefs: {
+        fontScale: 1,
+        lineWidth: "medium",
+        commentSort: "native",
+        discoverySort: "",
+        discoverySortAscending: false
+      }
     };
   }
 
@@ -181,6 +188,11 @@
       var commentSort = text(prefs.commentSort, MAX_PREF_LENGTH);
       if (lineWidth) output.prefs.lineWidth = lineWidth;
       if (commentSort && COMMENT_MODES[commentSort]) output.prefs.commentSort = commentSort;
+      var discoverySort = text(prefs.discoverySort, MAX_PREF_LENGTH);
+      if (discoverySort && DISCOVERY_SORTS[discoverySort]) {
+        output.prefs.discoverySort = discoverySort;
+        output.prefs.discoverySortAscending = prefs.discoverySortAscending === true;
+      }
     }
     return output;
   }
@@ -248,6 +260,14 @@
   }
 
   function save(nextState) { return commit(nextState); }
+
+  function setPreferences(patch) {
+    ensureLoaded();
+    if (!isRecord(patch)) return cloneState(state);
+    var next = cloneState(state);
+    Object.keys(patch).forEach(function (key) { next.prefs[key] = patch[key]; });
+    return commit(next);
+  }
 
   function markVisited(url, title) {
     ensureLoaded();
@@ -354,6 +374,7 @@
   root.DSUXStorage = {
     load: load,
     save: save,
+    setPreferences: setPreferences,
     markVisited: markVisited,
     setProgress: setProgress,
     toggleSaved: toggleSaved,
@@ -823,7 +844,15 @@
     return output;
   }
 
+  function applySortPreference(snapshot) {
+    var prefs = snapshot && snapshot.prefs || {};
+    var sort = prefs.discoverySort;
+    model.sort = sort === "date" || sort === "comments" ? sort : "";
+    model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
+  }
+
   model.snapshot = canonicalSnapshot(storage.load());
+  applySortPreference(model.snapshot);
 
   function refreshSnapshot() {
     model.snapshot = canonicalSnapshot(storage.load());
@@ -1503,6 +1532,7 @@
   function onStorageChange(next) {
     if (model.destroyed) return;
     model.snapshot = canonicalSnapshot(next);
+    applySortPreference(model.snapshot);
     if (model.panelOpen) render();
   }
 
@@ -1521,7 +1551,10 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    renderDiscovery();
+    storage.setPreferences({
+      discoverySort: model.sort,
+      discoverySortAscending: model.sortAscending
+    });
   }
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
