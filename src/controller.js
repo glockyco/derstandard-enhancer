@@ -234,6 +234,7 @@
   var discoverView = panel.querySelector("[data-view='discover']");
   var articleView = panel.querySelector("[data-view='article']");
   var discoverTab = panel.querySelector("[data-tab='discover']");
+  var articleTab = panel.querySelector("[data-tab='article']");
   var search = doc.createElement("input");
   search.type = "search";
   search.placeholder = "Titel oder Bereich suchen";
@@ -314,7 +315,9 @@
   }
   function updateDiscoverAvailability() {
     discoverTab.hidden = currentArticle();
+    articleTab.hidden = !currentArticle();
     if (currentArticle() && activeTab === "discover") setTab("article");
+    if (!currentArticle() && activeTab === "article") setTab("discover");
   }
   function setTab(tabName) {
     activeTab = tabName === "article" ? "article" : "discover";
