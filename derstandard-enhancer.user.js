@@ -12,7 +12,7 @@
 // ==/UserScript==
 
 
-(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n.dsux-comment-controls {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 0.5rem 0.65rem;\n  margin-top: 0.75rem;\n}\n\n.dsux-comment-controls label {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.45rem;\n  color: var(--dsux-ink);\n  font-size: 0.82rem;\n  font-weight: 700;\n}\n\n.dsux-comment-sort {\n  min-height: 2rem;\n  box-sizing: border-box;\n  padding: 0.3rem 0.5rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.82rem;\n}\n\n.dsux-comment-sort:hover {\n  border-color: var(--dsux-accent);\n}\n\n.dsux-comment-status {\n  margin: 0 0 0 auto;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n  font-variant-numeric: tabular-nums;\n}\n\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n  .dsux-comment-controls {\n    align-items: stretch;\n  }\n\n  .dsux-comment-controls label {\n    flex: 1 1 100%;\n    align-items: stretch;\n    flex-direction: column;\n  }\n\n  .dsux-comment-status {\n    margin-left: 0;\n  }\n\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
+(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-danger: #9c2f21;\n  --dsux-danger-surface: #fcebea;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n.dsux-data-view .dsux-help {\n  padding-top: 0;\n  border-top: 0;\n}\n\n.dsux-data-view .dsux-help p,\n.dsux-import-preview p,\n.dsux-clear-confirmation p {\n  margin: 0.4rem 0 0;\n}\n\n.dsux-import-preview,\n.dsux-clear-confirmation {\n  margin-top: 0.85rem;\n  padding: 0.85rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface-muted);\n  color: var(--dsux-ink);\n}\n\n.dsux-import-summary {\n  display: grid;\n  grid-template-columns: auto auto;\n  justify-content: start;\n  gap: 0.25rem 1.25rem;\n  margin: 0.75rem 0 0;\n}\n\n.dsux-import-summary dt {\n  font-weight: 700;\n}\n\n.dsux-import-summary dd {\n  margin: 0;\n  font-variant-numeric: tabular-nums;\n}\n\n.dsux-storage-error {\n  margin: 0 0 0.85rem;\n  padding: 0.75rem;\n  border: 1px solid var(--dsux-danger);\n  border-radius: 0.25rem;\n  background: var(--dsux-danger-surface);\n  color: var(--dsux-danger);\n  font-size: 0.9rem;\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button {\n  border-color: var(--dsux-danger);\n  color: var(--dsux-danger);\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button:hover {\n  border-color: var(--dsux-danger);\n  background: var(--dsux-danger-surface);\n}\n\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n.dsux-comment-controls {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 0.5rem 0.65rem;\n  margin-top: 0.75rem;\n}\n\n.dsux-comment-controls label {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.45rem;\n  color: var(--dsux-ink);\n  font-size: 0.82rem;\n  font-weight: 700;\n}\n\n.dsux-comment-sort {\n  min-height: 2rem;\n  box-sizing: border-box;\n  padding: 0.3rem 0.5rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.82rem;\n}\n\n.dsux-comment-sort:hover {\n  border-color: var(--dsux-accent);\n}\n\n.dsux-comment-status {\n  margin: 0 0 0 auto;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n  font-variant-numeric: tabular-nums;\n}\n\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n  .dsux-comment-controls {\n    align-items: stretch;\n  }\n\n  .dsux-comment-controls label {\n    flex: 1 1 100%;\n    align-items: stretch;\n    flex-direction: column;\n  }\n\n  .dsux-comment-status {\n    margin-left: 0;\n  }\n\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
 
 (function () {
   "use strict";
@@ -1529,6 +1529,10 @@
     commentAvailable: false,
     commentCount: 0,
     lastError: "",
+    pendingImport: null,
+    clearPending: false,
+    importReader: null,
+    importGeneration: 0,
     destroyed: false
   };
 
@@ -1618,16 +1622,35 @@
   model.snapshot = storage.load();
   applySortPreference(model.snapshot);
 
+  function renderStorageState() {
+    if (!model.destroyed) renderData();
+  }
+
+  function setStorageError(error) {
+    model.lastError = error ? String(error) : "storage-operation-failed";
+    renderStorageState();
+  }
+
+  function storageResult(operation, fallbackError) {
+    try {
+      return operation();
+    } catch (_) {
+      return { ok: false, error: fallbackError || "storage-operation-failed" };
+    }
+  }
+
   function applyMutationResult(result, successMessage, failureMessage) {
     if (!result || result.ok !== true) {
-      model.lastError = result && result.error ? String(result.error) : "mutation_failed";
+      setStorageError(result && result.error ? result.error : "mutation-failed");
       showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
       return false;
     }
+    model.lastError = "";
     if (result.state && typeof result.state === "object") {
       model.snapshot = result.state;
       applySortPreference(model.snapshot);
     }
+    renderStorageState();
     if (successMessage) showToast(successMessage);
     return true;
   }
@@ -1668,6 +1691,7 @@
   fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
   fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
   fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
+  fallbackStyle += ".dsux-data-view .dsux-help{border-top:0}.dsux-import-preview,.dsux-clear-confirmation,.dsux-storage-error{margin-top:.75rem;padding:.75rem;border:1px solid #8b8f94}.dsux-storage-error{color:#8b1e14}.dsux-import-summary{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.25rem 1rem}.dsux-import-summary dt{font-weight:700}.dsux-import-summary dd{margin:0}";
 
   var host = doc.createElement("div");
   var shadow;
@@ -1706,18 +1730,42 @@
 
   var tabs = make("nav", "dsux-tabs");
   tabs.setAttribute("aria-label", "Enhancer-Bereiche");
+  tabs.setAttribute("role", "tablist");
   var discoverTab = button("Entdecken");
+  discoverTab.id = "dsux-tab-discover";
   discoverTab.setAttribute("data-tab", "discover");
+  discoverTab.setAttribute("role", "tab");
+  discoverTab.setAttribute("aria-controls", "dsux-view-discover");
   var articleTab = button("Artikel");
+  articleTab.id = "dsux-tab-article";
   articleTab.setAttribute("data-tab", "article");
+  articleTab.setAttribute("role", "tab");
+  articleTab.setAttribute("aria-controls", "dsux-view-article");
+  var dataTab = button("Daten");
+  dataTab.id = "dsux-tab-data";
+  dataTab.setAttribute("data-tab", "data");
+  dataTab.setAttribute("role", "tab");
+  dataTab.setAttribute("aria-controls", "dsux-view-data");
   tabs.appendChild(discoverTab);
   tabs.appendChild(articleTab);
+  tabs.appendChild(dataTab);
   panel.appendChild(tabs);
 
   var discoverView = make("div", "dsux-view");
+  discoverView.id = "dsux-view-discover";
+  discoverView.setAttribute("role", "tabpanel");
+  discoverView.setAttribute("aria-labelledby", "dsux-tab-discover");
   var articleView = make("div", "dsux-view");
+  articleView.id = "dsux-view-article";
+  articleView.setAttribute("role", "tabpanel");
+  articleView.setAttribute("aria-labelledby", "dsux-tab-article");
+  var dataView = make("div", "dsux-view dsux-data-view");
+  dataView.id = "dsux-view-data";
+  dataView.setAttribute("role", "tabpanel");
+  dataView.setAttribute("aria-labelledby", "dsux-tab-data");
   panel.appendChild(discoverView);
   panel.appendChild(articleView);
+  panel.appendChild(dataView);
 
   var controls = make("div", "dsux-controls");
   var search = make("input");
@@ -1766,24 +1814,65 @@
   table.appendChild(list);
   discoverView.appendChild(table);
 
+  var storageError = make("p", "dsux-storage-error");
+  storageError.hidden = true;
+  storageError.setAttribute("role", "alert");
+  storageError.setAttribute("aria-live", "assertive");
+  dataView.appendChild(storageError);
+
   var help = make("div", "dsux-help");
   help.appendChild(make("strong", "", "Lokale Daten"));
-  help.appendChild(make("br"));
-  help.appendChild(doc.createTextNode("Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  help.appendChild(make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
   var dataActions = make("div", "dsux-actions");
   var exportButton = button("Daten exportieren");
-  var importLabel = make("label", "", "Daten importieren");
+  var importLabel = make("label", "", "JSON-Datei auswählen");
   var importInput = make("input");
   importInput.type = "file";
   importInput.accept = "application/json,.json";
-  importInput.setAttribute("aria-label", "JSON-Daten importieren");
+  importInput.setAttribute("aria-label", "Lokale Daten aus einer JSON-Datei vorbereiten");
   importLabel.appendChild(importInput);
   var clearButton = button("Verlauf löschen");
   dataActions.appendChild(exportButton);
   dataActions.appendChild(importLabel);
   dataActions.appendChild(clearButton);
   help.appendChild(dataActions);
-  discoverView.appendChild(help);
+  dataView.appendChild(help);
+
+  var importPreview = make("section", "dsux-import-preview");
+  importPreview.hidden = true;
+  importPreview.setAttribute("aria-label", "Importvorschau");
+  importPreview.appendChild(make("strong", "", "Importvorschau"));
+  importPreview.appendChild(make("p", "", "Der Import ersetzt alle lokalen Daten."));
+  var importSummary = make("dl", "dsux-import-summary");
+  var importVisited = make("dd");
+  var importSaved = make("dd");
+  var importIgnored = make("dd");
+  var importProgress = make("dd");
+  [["Besuche", importVisited], ["Lesezeichen", importSaved], ["Ignorierte", importIgnored], ["Fortschritte", importProgress]].forEach(function (entry) {
+    importSummary.appendChild(make("dt", "", entry[0]));
+    importSummary.appendChild(entry[1]);
+  });
+  importPreview.appendChild(importSummary);
+  var importActions = make("div", "dsux-actions dsux-confirm-actions");
+  var importCancelButton = button("Abbrechen", "dsux-import-cancel");
+  var importConfirmButton = button("Import bestätigen", "dsux-import-confirm dsux-danger-button");
+  importActions.appendChild(importCancelButton);
+  importActions.appendChild(importConfirmButton);
+  importPreview.appendChild(importActions);
+  dataView.appendChild(importPreview);
+
+  var clearConfirmation = make("section", "dsux-clear-confirmation");
+  clearConfirmation.hidden = true;
+  clearConfirmation.setAttribute("aria-label", "Löschen bestätigen");
+  clearConfirmation.appendChild(make("strong", "", "Verlauf wirklich löschen?"));
+  clearConfirmation.appendChild(make("p", "", "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."));
+  var clearActions = make("div", "dsux-actions dsux-confirm-actions");
+  var clearCancelButton = button("Abbrechen", "dsux-clear-cancel");
+  var clearConfirmButton = button("Endgültig löschen", "dsux-clear-confirm dsux-danger-button");
+  clearActions.appendChild(clearCancelButton);
+  clearActions.appendChild(clearConfirmButton);
+  clearConfirmation.appendChild(clearActions);
+  dataView.appendChild(clearConfirmation);
 
   var articleTitle = make("h3", "dsux-article-title");
   articleView.appendChild(articleTitle);
@@ -1967,7 +2056,7 @@
     save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      var result = storage.toggleSaved(key, item.title || "");
+      var result = storageResult(function () { return storage.toggleSaved(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
       renderDiscovery();
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
@@ -1982,7 +2071,7 @@
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      var result = storage.toggleIgnored(key, item.title || "");
+      var result = storageResult(function () { return storage.toggleIgnored(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
       renderDiscovery();
       restorePanelScroll(scrollTop);
@@ -2030,16 +2119,63 @@
       result.forEach(function (item) { list.appendChild(renderRow(item)); });
     }
   }
+  function storageErrorMessage(error) {
+    var messages = {
+      "file-too-large": "Die Datei ist größer als 1 MiB und wurde nicht gelesen.",
+      "file-read-failed": "Die Datei konnte nicht gelesen werden.",
+      "file-reader-unavailable": "Dateien können in diesem Browser nicht gelesen werden.",
+      "invalid-json": "Die Datei enthält kein gültiges JSON.",
+      "invalid-import": "Die Datei enthält keine gültigen Enhancer-Daten.",
+      "unrelated-import": "Die Datei enthält keine erkennbaren Enhancer-Daten.",
+      "empty-import": "Die Datei enthält keine importierbaren Daten.",
+      "unsupported-version": "Diese Datenversion wird nicht unterstützt.",
+      "invalid-prepared-import": "Der vorbereitete Import ist nicht mehr gültig.",
+      "storage-unavailable": "Der lokale Speicher ist nicht verfügbar.",
+      "storage-read-failed": "Lokale Daten konnten nicht gelesen werden.",
+      "storage-write-failed": "Lokale Daten konnten nicht gespeichert werden.",
+      "export-unavailable": "Der Datenexport ist in diesem Browser nicht verfügbar.",
+      "export-failed": "Die Daten konnten nicht exportiert werden.",
+      "prepare-import-failed": "Die Importdatei konnte nicht geprüft werden.",
+      "import-failed": "Die Daten konnten nicht importiert werden.",
+      "clear-visited-failed": "Der Besuchsverlauf konnte nicht gelöscht werden.",
+      "mutation-failed": "Die Änderung konnte nicht gespeichert werden.",
+      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen."
+    };
+    return messages[error] || "Der lokale Speichervorgang ist fehlgeschlagen.";
+  }
+
+  function renderData() {
+    if (model.destroyed || !storageError) return;
+    storageError.hidden = !model.lastError;
+    storageError.textContent = model.lastError ? storageErrorMessage(model.lastError) : "";
+    var pending = model.pendingImport;
+    importPreview.hidden = !pending;
+    if (pending) {
+      var summary = pending.summary || {};
+      importVisited.textContent = String(finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited)));
+      importSaved.textContent = String(finite(summary.saved) === null ? 0 : Math.max(0, Math.floor(summary.saved)));
+      importIgnored.textContent = String(finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored)));
+      importProgress.textContent = String(finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress)));
+    }
+    clearConfirmation.hidden = !model.clearPending;
+  }
+
 
   function updateTabs() {
     var available = !!currentArticle();
     articleTab.hidden = !available;
     discoverTab.hidden = false;
+    dataTab.hidden = false;
     if (!available && model.activeTab === "article") model.activeTab = "discover";
     discoverTab.setAttribute("aria-selected", model.activeTab === "discover" ? "true" : "false");
     articleTab.setAttribute("aria-selected", model.activeTab === "article" ? "true" : "false");
+    dataTab.setAttribute("aria-selected", model.activeTab === "data" ? "true" : "false");
+    discoverTab.tabIndex = model.activeTab === "discover" ? 0 : -1;
+    articleTab.tabIndex = model.activeTab === "article" ? 0 : -1;
+    dataTab.tabIndex = model.activeTab === "data" ? 0 : -1;
     discoverView.hidden = model.activeTab !== "discover";
     articleView.hidden = model.activeTab !== "article";
+    dataView.hidden = model.activeTab !== "data";
   }
   function renderComments() {
     var article = currentArticle();
@@ -2170,6 +2306,7 @@
     updateTabs();
     renderDiscovery();
     renderArticle();
+    renderData();
   }
 
   function focusWithoutScroll(node) {
@@ -2196,10 +2333,12 @@
   }
 
   function setTab(name) {
-    if (name === "article" && currentArticle()) model.activeTab = "article";
+    if (name === "data") model.activeTab = "data";
+    else if (name === "article" && currentArticle()) model.activeTab = "article";
     else model.activeTab = "discover";
     updateTabs();
     if (model.panelOpen && model.activeTab === "article") renderArticle();
+    if (model.panelOpen && model.activeTab === "data") renderData();
   }
 
   function articleBounds() {
@@ -2247,7 +2386,7 @@
       if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
       var value = progressNow();
       if (value === progressFor(capturedKey)) return;
-      applyMutationResult(storage.setProgress(capturedKey, value));
+      applyMutationResult(storageResult(function () { return storage.setProgress(capturedKey, value); }));
     }, 250);
   }
 
@@ -2318,7 +2457,7 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
-    var result = storage.markVisited(key, article.title || "");
+    var result = storageResult(function () { return storage.markVisited(key, article.title || ""); });
     if (applyMutationResult(result)) model.markedEntry = model.routeEntry;
   }
 
@@ -2399,9 +2538,11 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    var result = storage.setPreferences({
-      discoverySort: model.sort,
-      discoverySortAscending: model.sortAscending
+    var result = storageResult(function () {
+      return storage.setPreferences({
+        discoverySort: model.sort,
+        discoverySortAscending: model.sortAscending
+      });
     });
     if (!applyMutationResult(result)) applySortPreference(model.snapshot);
     if (model.panelOpen) renderDiscovery();
@@ -2421,7 +2562,7 @@
     }
     model.commentSort = mode;
     commentSortSelect.value = mode;
-    var result = storage.setPreferences({ commentSort: mode });
+    var result = storageResult(function () { return storage.setPreferences({ commentSort: mode }); });
     if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
       model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
       comments.sort(model.commentSort);
@@ -2433,61 +2574,163 @@
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
+      setStorageError("export-unavailable");
       showToast("Export nicht verfügbar");
       return;
     }
-    var blob = new global.Blob([storage.exportJson()], { type: "application/json" });
-    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
-    var url = global.URL.createObjectURL(blob);
-    model.exportUrl = url;
-    var download = make("a");
-    download.href = url;
-    download.download = "derstandard-enhancer-daten.json";
-    shadow.appendChild(download);
-    download.click();
-    shadow.removeChild(download);
+    var url = "";
+    var download = null;
+    try {
+      var json = storage.exportJson();
+      var blob = new global.Blob([json], { type: "application/json" });
+      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+      url = global.URL.createObjectURL(blob);
+      model.exportUrl = url;
+      download = make("a");
+      download.href = url;
+      download.download = "derstandard-enhancer-daten.json";
+      shadow.appendChild(download);
+      download.click();
+      shadow.removeChild(download);
+    } catch (_) {
+      if (download && download.parentNode) download.parentNode.removeChild(download);
+      if (url && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (model.exportUrl === url) model.exportUrl = null;
+      setStorageError("export-failed");
+      showToast("Export fehlgeschlagen");
+      return;
+    }
+    model.lastError = "";
+    renderData();
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
     model.exportTimer = global.setTimeout(function () {
       model.exportTimer = null;
-      if (global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
     }, 0);
     showToast("Daten exportiert");
   }
 
+  function discardImportRead() {
+    model.importGeneration += 1;
+    var reader = model.importReader;
+    model.importReader = null;
+    if (!reader) return;
+    reader.onload = null;
+    reader.onerror = null;
+    try {
+      if (reader.readyState === 1 && typeof reader.abort === "function") reader.abort();
+    } catch (_) {}
+  }
+
   function onImportChange() {
+    discardImportRead();
+    model.pendingImport = null;
+    model.clearPending = false;
     var file = importInput.files && importInput.files[0];
-    if (!file) return;
+    if (!file) {
+      renderData();
+      return;
+    }
     if (file.size > 1048576) {
-      model.lastError = "file_too_large";
+      setStorageError("file-too-large");
       showToast("Import abgelehnt: Datei zu groß");
       importInput.value = "";
       return;
     }
-    if (typeof global.FileReader !== "function") return;
+    if (typeof global.FileReader !== "function") {
+      setStorageError("file-reader-unavailable");
+      importInput.value = "";
+      return;
+    }
+    var generation = model.importGeneration;
     var reader = new global.FileReader();
+    model.importReader = reader;
     reader.onload = function () {
-      if (model.destroyed) return;
+      if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
+      model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
       var prepared;
       try {
         prepared = storage.prepareImport(reader.result);
       } catch (_) {
-        prepared = { ok: false, error: "invalid_import" };
+        prepared = { ok: false, error: "prepare-import-failed" };
       }
       if (!prepared || prepared.ok !== true) {
-        model.lastError = prepared && prepared.error ? String(prepared.error) : "invalid_import";
-        showToast("Import abgelehnt: ungültige JSON-Daten");
-      } else {
-        var result = storage.importPrepared(prepared.state);
-        if (applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) render();
+        model.pendingImport = null;
+        setStorageError(prepared && prepared.error ? prepared.error : "invalid-import");
+        showToast("Import abgelehnt");
+        importInput.value = "";
+        return;
       }
+      model.lastError = "";
+      model.clearPending = false;
+      model.pendingImport = { state: prepared.state, summary: prepared.summary };
+      renderData();
+      focusWithoutScroll(importCancelButton);
+    };
+    reader.onerror = function () {
+      if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
+      model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
+      model.pendingImport = null;
+      setStorageError("file-read-failed");
       importInput.value = "";
     };
-    reader.readAsText(file);
+    try {
+      reader.readAsText(file);
+    } catch (_) {
+      if (model.importReader === reader) model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
+      setStorageError("file-read-failed");
+      importInput.value = "";
+    }
   }
+
+  function onImportConfirm() {
+    if (!model.pendingImport) return;
+    var prepared = model.pendingImport;
+    var result = storageResult(function () { return storage.importPrepared(prepared.state); }, "import-failed");
+    if (!applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) return;
+    model.pendingImport = null;
+    importInput.value = "";
+    render();
+    focusWithoutScroll(importInput);
+  }
+
+  function onImportCancel() {
+    discardImportRead();
+    model.pendingImport = null;
+    importInput.value = "";
+    renderData();
+    focusWithoutScroll(importInput);
+  }
+
   function onClearClick() {
-    var result = storage.clearVisited();
-    if (applyMutationResult(result, "Besuchsverlauf gelöscht")) render();
+    discardImportRead();
+    model.pendingImport = null;
+    model.clearPending = true;
+    importInput.value = "";
+    renderData();
+    focusWithoutScroll(clearCancelButton);
+  }
+
+  function onClearConfirm() {
+    if (!model.clearPending) return;
+    var result = storageResult(function () { return storage.clearVisited(); }, "clear-visited-failed");
+    if (!applyMutationResult(result, "Besuchsverlauf gelöscht")) return;
+    model.clearPending = false;
+    render();
+    focusWithoutScroll(clearButton);
+  }
+
+  function onClearCancel() {
+    model.clearPending = false;
+    renderData();
+    focusWithoutScroll(clearButton);
   }
 
   function onKeydown(event) {
@@ -2513,6 +2756,7 @@
     if (model.destroyed) return;
     model.destroyed = true;
     model.generation += 1;
+    discardImportRead();
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
     if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
@@ -2527,6 +2771,7 @@
     closeButton.removeEventListener("click", onCloseClick);
     discoverTab.removeEventListener("click", onTabClick);
     articleTab.removeEventListener("click", onTabClick);
+    dataTab.removeEventListener("click", onTabClick);
     search.removeEventListener("input", onSearchInput);
     filter.removeEventListener("change", onFilterChange);
     dateSort.removeEventListener("click", onDateSort);
@@ -2535,7 +2780,11 @@
     commentSortSelect.removeEventListener("change", onCommentOrderChange);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
+    importConfirmButton.removeEventListener("click", onImportConfirm);
+    importCancelButton.removeEventListener("click", onImportCancel);
     clearButton.removeEventListener("click", onClearClick);
+    clearConfirmButton.removeEventListener("click", onClearConfirm);
+    clearCancelButton.removeEventListener("click", onClearCancel);
     global.removeEventListener("scroll", onScroll);
     global.removeEventListener("popstate", onRouteEvent);
     global.removeEventListener("hashchange", onRouteEvent);
@@ -2549,6 +2798,7 @@
   closeButton.addEventListener("click", onCloseClick);
   discoverTab.addEventListener("click", onTabClick);
   articleTab.addEventListener("click", onTabClick);
+  dataTab.addEventListener("click", onTabClick);
   search.addEventListener("input", onSearchInput);
   filter.addEventListener("change", onFilterChange);
   dateSort.addEventListener("click", onDateSort);
@@ -2557,7 +2807,11 @@
   commentSortSelect.addEventListener("change", onCommentOrderChange);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
+  importConfirmButton.addEventListener("click", onImportConfirm);
+  importCancelButton.addEventListener("click", onImportCancel);
   clearButton.addEventListener("click", onClearClick);
+  clearConfirmButton.addEventListener("click", onClearConfirm);
+  clearCancelButton.addEventListener("click", onClearCancel);
   global.addEventListener("scroll", onScroll, { passive: true });
   global.addEventListener("popstate", onRouteEvent);
   global.addEventListener("hashchange", onRouteEvent);

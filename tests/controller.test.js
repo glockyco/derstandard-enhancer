@@ -250,7 +250,8 @@ test("browser rejects imports over 1 MiB before constructing FileReader", async 
 
   const enhancer = host(page);
   await enhancer.locator(".dsux-launcher").click();
-  const input = enhancer.locator('input[type="file"]');
+  await enhancer.locator('[data-tab="data"]').click();
+  const input = enhancer.locator('.dsux-data-view input[type="file"]');
   const durableBefore = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
   await page.evaluate(() => {
     window.__dsuxFileReaderConstructed = false;
@@ -268,29 +269,77 @@ test("browser rejects imports over 1 MiB before constructing FileReader", async 
   await page.waitForTimeout(50);
   expect(await page.evaluate(() => window.__dsuxFileReaderConstructed)).toBe(false);
   await expect(input).toHaveValue("");
+  const rejection = enhancer.locator(".dsux-storage-error[role='alert']");
+  await expect(rejection).toBeVisible();
+  await expect(rejection).toHaveText("Die Datei ist größer als 1 MiB und wurde nicht gelesen.");
+  const rejectionText = await rejection.innerText();
+  expect(rejectionText.trim()).not.toBe("");
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+
+  await enhancer.locator('[data-tab="discover"]').click();
+  await enhancer.locator('[data-tab="data"]').click();
+  await expect(rejection).toBeVisible();
+  await expect(rejection).toHaveText(rejectionText);
   expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
 });
 
-test("browser imports a valid v2 backup into durable storage and discovery", async ({ page }) => {
+test("browser previews a valid v2 backup, cancels without mutation, then confirms replacement", async ({ page }) => {
   await fixture(page);
+  const oldKey = "https://derstandard.at/story/111/alte-daten";
+  const oldSavedKey = "https://derstandard.at/story/222/alter-merker";
+  const oldIgnoredKey = "https://derstandard.at/story/333/alter-ausschluss";
+  const oldProgressKey = "https://derstandard.at/story/444/alter-fortschritt";
+  const initial = {
+    version: 2,
+    visited: {
+      [oldKey]: { url: oldKey, title: "Alte Daten", visitedAt: 1600000000000 },
+    },
+    saved: {
+      [oldSavedKey]: { url: oldSavedKey, title: "Alter Merker", savedAt: 1600000000001 },
+    },
+    ignored: {
+      [oldIgnoredKey]: { url: oldIgnoredKey, title: "Alter Ausschluss", ignoredAt: 1600000000002 },
+    },
+    progress: {
+      [oldProgressKey]: { value: 0.25, updatedAt: 1600000000003 },
+    },
+    prefs: {
+      commentSort: "native",
+      discoverySort: "",
+      discoverySortAscending: false,
+    },
+  };
+  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
   await installEnhancer(page);
 
   const enhancer = host(page);
   await enhancer.locator(".dsux-launcher").click();
-  const input = enhancer.locator('input[type="file"]');
-  const importedKey = "https://derstandard.at/story/987/importierte-sicherung";
+  const dataTab = enhancer.locator('[data-tab="data"]');
+  await expect(dataTab).toBeVisible();
+  await dataTab.click();
+  const input = enhancer.locator('.dsux-data-view input[type="file"]');
+  const importedVisitedA = "https://derstandard.at/story/987/importierte-sicherung";
+  const importedVisitedB = "https://derstandard.at/story/988/zweite-sicherung";
+  const importedSaved = "https://derstandard.at/story/989/gespeicherte-sicherung";
+  const importedIgnored = "https://derstandard.at/story/990/ignorierte-sicherung";
+  const importedProgressA = "https://derstandard.at/story/991/fortschritt-a";
+  const importedProgressB = "https://derstandard.at/story/992/fortschritt-b";
   const backup = {
     version: 2,
     visited: {
-      [importedKey]: {
-        url: importedKey,
-        title: "Importierte Sicherung",
-        visitedAt: 1700000000000,
-      },
+      [importedVisitedA]: { url: importedVisitedA, title: "Importierte Sicherung", visitedAt: 1700000000000 },
+      [importedVisitedB]: { url: importedVisitedB, title: "Zweite Sicherung", visitedAt: 1700000000001 },
     },
-    saved: {},
-    ignored: {},
-    progress: {},
+    saved: {
+      [importedSaved]: { url: importedSaved, title: "Gespeicherte Sicherung", savedAt: 1700000000002 },
+    },
+    ignored: {
+      [importedIgnored]: { url: importedIgnored, title: "Ignorierte Sicherung", ignoredAt: 1700000000003 },
+    },
+    progress: {
+      [importedProgressA]: { value: 0.5, updatedAt: 1700000000004 },
+      [importedProgressB]: { value: 0.75, updatedAt: 1700000000005 },
+    },
     prefs: {
       commentSort: "native",
       discoverySort: "",
@@ -299,22 +348,164 @@ test("browser imports a valid v2 backup into durable storage and discovery", asy
   };
   const backupBuffer = Buffer.from(JSON.stringify(backup));
   expect(backupBuffer.byteLength).toBeLessThanOrEqual(1024 * 1024);
+  const durableBefore = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
 
   await input.setInputFiles({
     name: "backup.json",
     mimeType: "application/json",
     buffer: backupBuffer,
   });
+  const preview = enhancer.locator(".dsux-import-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText(/Besuche\s*:?\s*2/);
+  await expect(preview).toContainText(/Lesezeichen\s*:?\s*1/);
+  await expect(preview).toContainText(/Ignorierte\s*:?\s*1/);
+  await expect(preview).toContainText(/Fortschritte\s*:?\s*2/);
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
 
-  await expect.poll(async () => page.evaluate((key) => {
-    const raw = window.localStorage.getItem("derstandard-enhancer-state");
-    if (!raw) return null;
-    const state = JSON.parse(raw);
-    return state.visited && state.visited[key] || null;
-  }, importedKey)).toEqual(backup.visited[importedKey]);
+  await enhancer.getByRole("button", { name: "Verlauf löschen" }).click();
+  const confirmation = enhancer.locator(".dsux-clear-confirmation");
+  await expect(confirmation).toBeVisible();
+  await expect(preview).toBeHidden();
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+  await enhancer.locator(".dsux-clear-cancel").click();
+  await expect(confirmation).toBeHidden();
+  await expect(preview).toBeHidden();
 
-  const importedRow = enhancer.locator(".dsux-table tbody tr").filter({ hasText: "Importierte Sicherung" });
-  await expect(importedRow).toHaveCount(1);
+  await input.setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: backupBuffer,
+  });
+  await expect(preview).toBeVisible();
+  await enhancer.locator(".dsux-import-cancel").click();
+  await expect(preview).toBeHidden();
+  await expect(input).toBeFocused();
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+
+  await input.setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: backupBuffer,
+  });
+  await expect(preview).toBeVisible();
+  await enhancer.locator(".dsux-import-confirm").click();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state")))).toEqual(backup);
+  await expect(input).toBeFocused();
+});
+
+test("Daten is a separate panel tab and its controls are absent from Entdecken", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await expect(enhancer.locator('[data-tab="discover"]')).toBeVisible();
+  await expect(enhancer.locator('[data-tab="data"]')).toBeVisible();
+  await expect(enhancer.locator(".dsux-data-view")).toBeHidden();
+  await expect(enhancer.locator('.dsux-data-view input[type="file"]')).toBeHidden();
+
+  await enhancer.locator('[data-tab="data"]').click();
+  await expect(enhancer.locator(".dsux-data-view")).toBeVisible();
+  await expect(enhancer.locator(".dsux-data-view")).toContainText("Lokale Daten");
+  await expect(enhancer.locator('.dsux-data-view input[type="file"]')).toHaveCount(1);
+  await expect(enhancer.locator(".dsux-data-view").getByRole("button", { name: "Daten exportieren" })).toBeVisible();
+  await expect(enhancer.locator(".dsux-data-view").getByRole("button", { name: "Verlauf löschen" })).toBeVisible();
+});
+
+test("Verlauf löschen confirms, cancels safely, and preserves non-visited durable data", async ({ page }) => {
+  await fixture(page);
+  const visitedKey = "https://derstandard.at/story/111/zu-besuchen";
+  const savedKey = "https://derstandard.at/story/222/gespeichert";
+  const ignoredKey = "https://derstandard.at/story/333/ignoriert";
+  const progressKey = "https://derstandard.at/story/444/fortschritt";
+  const initial = {
+    version: 2,
+    visited: { [visitedKey]: { url: visitedKey, title: "Besuch", visitedAt: 1700000000000 } },
+    saved: { [savedKey]: { url: savedKey, title: "Lesezeichen", savedAt: 1700000000001 } },
+    ignored: { [ignoredKey]: { url: ignoredKey, title: "Ignoriert", ignoredAt: 1700000000002 } },
+    progress: { [progressKey]: { value: 0.4, updatedAt: 1700000000003 } },
+    prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
+  };
+  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await enhancer.locator('[data-tab="data"]').click();
+  const clear = enhancer.getByRole("button", { name: "Verlauf löschen" });
+  const durableBefore = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
+  await clear.click();
+  const confirmation = enhancer.locator(".dsux-clear-confirmation");
+  await expect(confirmation).toBeVisible();
+  const confirmationText = await confirmation.innerText();
+  expect(confirmationText).toMatch(/Verlauf|Besuch/i);
+  expect(confirmationText).toMatch(/Fortschritt/i);
+  expect(confirmationText).toMatch(/Lesezeichen/i);
+  expect(confirmationText).toMatch(/ignoriert/i);
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+
+  await enhancer.locator(".dsux-clear-cancel").click();
+  await expect(confirmation).toBeHidden();
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+
+  await clear.click();
+  await enhancer.locator(".dsux-clear-confirm").click();
+  await expect.poll(async () => page.evaluate(() => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return { visited: Object.keys(state.visited), saved: state.saved, ignored: state.ignored, progress: state.progress };
+  })).toEqual({ visited: [], saved: initial.saved, ignored: initial.ignored, progress: initial.progress });
+});
+
+test("storage failures remain visible across data rerenders and clear after a later success", async ({ page }) => {
+  await fixture(page);
+  const visitedKey = "https://derstandard.at/story/111/fehlerfall";
+  const initial = {
+    version: 2,
+    visited: { [visitedKey]: { url: visitedKey, title: "Fehlerfall", visitedAt: 1700000000000 } },
+    saved: {},
+    ignored: {},
+    progress: {},
+    prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
+  };
+  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await enhancer.locator('[data-tab="data"]').click();
+  await page.evaluate(() => {
+    window.__dsuxOriginalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function () { throw new Error("forced localStorage failure"); };
+  });
+
+  await enhancer.getByRole("button", { name: "Verlauf löschen" }).click();
+  const durableBeforeFinalDelete = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
+  await enhancer.locator(".dsux-clear-confirm").click();
+  const error = enhancer.locator(".dsux-storage-error[role='alert']");
+  await expect(error).toBeVisible();
+  await expect(error).toHaveText(/Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./);
+  const failureText = await error.innerText();
+  expect(failureText.trim()).not.toBe("");
+  expect(failureText).toMatch(/Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./);
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBeforeFinalDelete);
+
+  await enhancer.locator('[data-tab="discover"]').click();
+  await enhancer.locator('[data-tab="data"]').click();
+  await expect(error).toBeVisible();
+  await expect(error).toHaveText(failureText);
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBeforeFinalDelete);
+
+  await enhancer.locator(".dsux-clear-cancel").click();
+  await expect(error).toBeVisible();
+  await page.evaluate(() => {
+    Storage.prototype.setItem = window.__dsuxOriginalSetItem;
+    delete window.__dsuxOriginalSetItem;
+  });
+  await enhancer.getByRole("button", { name: "Verlauf löschen" }).click();
+  await enhancer.locator(".dsux-clear-confirm").click();
+  await expect(error).toBeHidden();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state")).visited)).toEqual({});
 });
 
 test("article initialization persists visited state and scrolling persists separate progress", async ({ page }) => {

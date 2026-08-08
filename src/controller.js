@@ -44,6 +44,10 @@
     commentAvailable: false,
     commentCount: 0,
     lastError: "",
+    pendingImport: null,
+    clearPending: false,
+    importReader: null,
+    importGeneration: 0,
     destroyed: false
   };
 
@@ -133,16 +137,35 @@
   model.snapshot = storage.load();
   applySortPreference(model.snapshot);
 
+  function renderStorageState() {
+    if (!model.destroyed) renderData();
+  }
+
+  function setStorageError(error) {
+    model.lastError = error ? String(error) : "storage-operation-failed";
+    renderStorageState();
+  }
+
+  function storageResult(operation, fallbackError) {
+    try {
+      return operation();
+    } catch (_) {
+      return { ok: false, error: fallbackError || "storage-operation-failed" };
+    }
+  }
+
   function applyMutationResult(result, successMessage, failureMessage) {
     if (!result || result.ok !== true) {
-      model.lastError = result && result.error ? String(result.error) : "mutation_failed";
+      setStorageError(result && result.error ? result.error : "mutation-failed");
       showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
       return false;
     }
+    model.lastError = "";
     if (result.state && typeof result.state === "object") {
       model.snapshot = result.state;
       applySortPreference(model.snapshot);
     }
+    renderStorageState();
     if (successMessage) showToast(successMessage);
     return true;
   }
@@ -183,6 +206,7 @@
   fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
   fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
   fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
+  fallbackStyle += ".dsux-data-view .dsux-help{border-top:0}.dsux-import-preview,.dsux-clear-confirmation,.dsux-storage-error{margin-top:.75rem;padding:.75rem;border:1px solid #8b8f94}.dsux-storage-error{color:#8b1e14}.dsux-import-summary{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.25rem 1rem}.dsux-import-summary dt{font-weight:700}.dsux-import-summary dd{margin:0}";
 
   var host = doc.createElement("div");
   var shadow;
@@ -221,18 +245,42 @@
 
   var tabs = make("nav", "dsux-tabs");
   tabs.setAttribute("aria-label", "Enhancer-Bereiche");
+  tabs.setAttribute("role", "tablist");
   var discoverTab = button("Entdecken");
+  discoverTab.id = "dsux-tab-discover";
   discoverTab.setAttribute("data-tab", "discover");
+  discoverTab.setAttribute("role", "tab");
+  discoverTab.setAttribute("aria-controls", "dsux-view-discover");
   var articleTab = button("Artikel");
+  articleTab.id = "dsux-tab-article";
   articleTab.setAttribute("data-tab", "article");
+  articleTab.setAttribute("role", "tab");
+  articleTab.setAttribute("aria-controls", "dsux-view-article");
+  var dataTab = button("Daten");
+  dataTab.id = "dsux-tab-data";
+  dataTab.setAttribute("data-tab", "data");
+  dataTab.setAttribute("role", "tab");
+  dataTab.setAttribute("aria-controls", "dsux-view-data");
   tabs.appendChild(discoverTab);
   tabs.appendChild(articleTab);
+  tabs.appendChild(dataTab);
   panel.appendChild(tabs);
 
   var discoverView = make("div", "dsux-view");
+  discoverView.id = "dsux-view-discover";
+  discoverView.setAttribute("role", "tabpanel");
+  discoverView.setAttribute("aria-labelledby", "dsux-tab-discover");
   var articleView = make("div", "dsux-view");
+  articleView.id = "dsux-view-article";
+  articleView.setAttribute("role", "tabpanel");
+  articleView.setAttribute("aria-labelledby", "dsux-tab-article");
+  var dataView = make("div", "dsux-view dsux-data-view");
+  dataView.id = "dsux-view-data";
+  dataView.setAttribute("role", "tabpanel");
+  dataView.setAttribute("aria-labelledby", "dsux-tab-data");
   panel.appendChild(discoverView);
   panel.appendChild(articleView);
+  panel.appendChild(dataView);
 
   var controls = make("div", "dsux-controls");
   var search = make("input");
@@ -281,24 +329,65 @@
   table.appendChild(list);
   discoverView.appendChild(table);
 
+  var storageError = make("p", "dsux-storage-error");
+  storageError.hidden = true;
+  storageError.setAttribute("role", "alert");
+  storageError.setAttribute("aria-live", "assertive");
+  dataView.appendChild(storageError);
+
   var help = make("div", "dsux-help");
   help.appendChild(make("strong", "", "Lokale Daten"));
-  help.appendChild(make("br"));
-  help.appendChild(doc.createTextNode("Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  help.appendChild(make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
   var dataActions = make("div", "dsux-actions");
   var exportButton = button("Daten exportieren");
-  var importLabel = make("label", "", "Daten importieren");
+  var importLabel = make("label", "", "JSON-Datei auswählen");
   var importInput = make("input");
   importInput.type = "file";
   importInput.accept = "application/json,.json";
-  importInput.setAttribute("aria-label", "JSON-Daten importieren");
+  importInput.setAttribute("aria-label", "Lokale Daten aus einer JSON-Datei vorbereiten");
   importLabel.appendChild(importInput);
   var clearButton = button("Verlauf löschen");
   dataActions.appendChild(exportButton);
   dataActions.appendChild(importLabel);
   dataActions.appendChild(clearButton);
   help.appendChild(dataActions);
-  discoverView.appendChild(help);
+  dataView.appendChild(help);
+
+  var importPreview = make("section", "dsux-import-preview");
+  importPreview.hidden = true;
+  importPreview.setAttribute("aria-label", "Importvorschau");
+  importPreview.appendChild(make("strong", "", "Importvorschau"));
+  importPreview.appendChild(make("p", "", "Der Import ersetzt alle lokalen Daten."));
+  var importSummary = make("dl", "dsux-import-summary");
+  var importVisited = make("dd");
+  var importSaved = make("dd");
+  var importIgnored = make("dd");
+  var importProgress = make("dd");
+  [["Besuche", importVisited], ["Lesezeichen", importSaved], ["Ignorierte", importIgnored], ["Fortschritte", importProgress]].forEach(function (entry) {
+    importSummary.appendChild(make("dt", "", entry[0]));
+    importSummary.appendChild(entry[1]);
+  });
+  importPreview.appendChild(importSummary);
+  var importActions = make("div", "dsux-actions dsux-confirm-actions");
+  var importCancelButton = button("Abbrechen", "dsux-import-cancel");
+  var importConfirmButton = button("Import bestätigen", "dsux-import-confirm dsux-danger-button");
+  importActions.appendChild(importCancelButton);
+  importActions.appendChild(importConfirmButton);
+  importPreview.appendChild(importActions);
+  dataView.appendChild(importPreview);
+
+  var clearConfirmation = make("section", "dsux-clear-confirmation");
+  clearConfirmation.hidden = true;
+  clearConfirmation.setAttribute("aria-label", "Löschen bestätigen");
+  clearConfirmation.appendChild(make("strong", "", "Verlauf wirklich löschen?"));
+  clearConfirmation.appendChild(make("p", "", "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."));
+  var clearActions = make("div", "dsux-actions dsux-confirm-actions");
+  var clearCancelButton = button("Abbrechen", "dsux-clear-cancel");
+  var clearConfirmButton = button("Endgültig löschen", "dsux-clear-confirm dsux-danger-button");
+  clearActions.appendChild(clearCancelButton);
+  clearActions.appendChild(clearConfirmButton);
+  clearConfirmation.appendChild(clearActions);
+  dataView.appendChild(clearConfirmation);
 
   var articleTitle = make("h3", "dsux-article-title");
   articleView.appendChild(articleTitle);
@@ -482,7 +571,7 @@
     save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      var result = storage.toggleSaved(key, item.title || "");
+      var result = storageResult(function () { return storage.toggleSaved(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
       renderDiscovery();
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
@@ -497,7 +586,7 @@
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      var result = storage.toggleIgnored(key, item.title || "");
+      var result = storageResult(function () { return storage.toggleIgnored(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
       renderDiscovery();
       restorePanelScroll(scrollTop);
@@ -545,16 +634,63 @@
       result.forEach(function (item) { list.appendChild(renderRow(item)); });
     }
   }
+  function storageErrorMessage(error) {
+    var messages = {
+      "file-too-large": "Die Datei ist größer als 1 MiB und wurde nicht gelesen.",
+      "file-read-failed": "Die Datei konnte nicht gelesen werden.",
+      "file-reader-unavailable": "Dateien können in diesem Browser nicht gelesen werden.",
+      "invalid-json": "Die Datei enthält kein gültiges JSON.",
+      "invalid-import": "Die Datei enthält keine gültigen Enhancer-Daten.",
+      "unrelated-import": "Die Datei enthält keine erkennbaren Enhancer-Daten.",
+      "empty-import": "Die Datei enthält keine importierbaren Daten.",
+      "unsupported-version": "Diese Datenversion wird nicht unterstützt.",
+      "invalid-prepared-import": "Der vorbereitete Import ist nicht mehr gültig.",
+      "storage-unavailable": "Der lokale Speicher ist nicht verfügbar.",
+      "storage-read-failed": "Lokale Daten konnten nicht gelesen werden.",
+      "storage-write-failed": "Lokale Daten konnten nicht gespeichert werden.",
+      "export-unavailable": "Der Datenexport ist in diesem Browser nicht verfügbar.",
+      "export-failed": "Die Daten konnten nicht exportiert werden.",
+      "prepare-import-failed": "Die Importdatei konnte nicht geprüft werden.",
+      "import-failed": "Die Daten konnten nicht importiert werden.",
+      "clear-visited-failed": "Der Besuchsverlauf konnte nicht gelöscht werden.",
+      "mutation-failed": "Die Änderung konnte nicht gespeichert werden.",
+      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen."
+    };
+    return messages[error] || "Der lokale Speichervorgang ist fehlgeschlagen.";
+  }
+
+  function renderData() {
+    if (model.destroyed || !storageError) return;
+    storageError.hidden = !model.lastError;
+    storageError.textContent = model.lastError ? storageErrorMessage(model.lastError) : "";
+    var pending = model.pendingImport;
+    importPreview.hidden = !pending;
+    if (pending) {
+      var summary = pending.summary || {};
+      importVisited.textContent = String(finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited)));
+      importSaved.textContent = String(finite(summary.saved) === null ? 0 : Math.max(0, Math.floor(summary.saved)));
+      importIgnored.textContent = String(finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored)));
+      importProgress.textContent = String(finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress)));
+    }
+    clearConfirmation.hidden = !model.clearPending;
+  }
+
 
   function updateTabs() {
     var available = !!currentArticle();
     articleTab.hidden = !available;
     discoverTab.hidden = false;
+    dataTab.hidden = false;
     if (!available && model.activeTab === "article") model.activeTab = "discover";
     discoverTab.setAttribute("aria-selected", model.activeTab === "discover" ? "true" : "false");
     articleTab.setAttribute("aria-selected", model.activeTab === "article" ? "true" : "false");
+    dataTab.setAttribute("aria-selected", model.activeTab === "data" ? "true" : "false");
+    discoverTab.tabIndex = model.activeTab === "discover" ? 0 : -1;
+    articleTab.tabIndex = model.activeTab === "article" ? 0 : -1;
+    dataTab.tabIndex = model.activeTab === "data" ? 0 : -1;
     discoverView.hidden = model.activeTab !== "discover";
     articleView.hidden = model.activeTab !== "article";
+    dataView.hidden = model.activeTab !== "data";
   }
   function renderComments() {
     var article = currentArticle();
@@ -685,6 +821,7 @@
     updateTabs();
     renderDiscovery();
     renderArticle();
+    renderData();
   }
 
   function focusWithoutScroll(node) {
@@ -711,10 +848,12 @@
   }
 
   function setTab(name) {
-    if (name === "article" && currentArticle()) model.activeTab = "article";
+    if (name === "data") model.activeTab = "data";
+    else if (name === "article" && currentArticle()) model.activeTab = "article";
     else model.activeTab = "discover";
     updateTabs();
     if (model.panelOpen && model.activeTab === "article") renderArticle();
+    if (model.panelOpen && model.activeTab === "data") renderData();
   }
 
   function articleBounds() {
@@ -762,7 +901,7 @@
       if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
       var value = progressNow();
       if (value === progressFor(capturedKey)) return;
-      applyMutationResult(storage.setProgress(capturedKey, value));
+      applyMutationResult(storageResult(function () { return storage.setProgress(capturedKey, value); }));
     }, 250);
   }
 
@@ -833,7 +972,7 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
-    var result = storage.markVisited(key, article.title || "");
+    var result = storageResult(function () { return storage.markVisited(key, article.title || ""); });
     if (applyMutationResult(result)) model.markedEntry = model.routeEntry;
   }
 
@@ -914,9 +1053,11 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    var result = storage.setPreferences({
-      discoverySort: model.sort,
-      discoverySortAscending: model.sortAscending
+    var result = storageResult(function () {
+      return storage.setPreferences({
+        discoverySort: model.sort,
+        discoverySortAscending: model.sortAscending
+      });
     });
     if (!applyMutationResult(result)) applySortPreference(model.snapshot);
     if (model.panelOpen) renderDiscovery();
@@ -936,7 +1077,7 @@
     }
     model.commentSort = mode;
     commentSortSelect.value = mode;
-    var result = storage.setPreferences({ commentSort: mode });
+    var result = storageResult(function () { return storage.setPreferences({ commentSort: mode }); });
     if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
       model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
       comments.sort(model.commentSort);
@@ -948,61 +1089,163 @@
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
+      setStorageError("export-unavailable");
       showToast("Export nicht verfügbar");
       return;
     }
-    var blob = new global.Blob([storage.exportJson()], { type: "application/json" });
-    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
-    var url = global.URL.createObjectURL(blob);
-    model.exportUrl = url;
-    var download = make("a");
-    download.href = url;
-    download.download = "derstandard-enhancer-daten.json";
-    shadow.appendChild(download);
-    download.click();
-    shadow.removeChild(download);
+    var url = "";
+    var download = null;
+    try {
+      var json = storage.exportJson();
+      var blob = new global.Blob([json], { type: "application/json" });
+      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+      url = global.URL.createObjectURL(blob);
+      model.exportUrl = url;
+      download = make("a");
+      download.href = url;
+      download.download = "derstandard-enhancer-daten.json";
+      shadow.appendChild(download);
+      download.click();
+      shadow.removeChild(download);
+    } catch (_) {
+      if (download && download.parentNode) download.parentNode.removeChild(download);
+      if (url && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (model.exportUrl === url) model.exportUrl = null;
+      setStorageError("export-failed");
+      showToast("Export fehlgeschlagen");
+      return;
+    }
+    model.lastError = "";
+    renderData();
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
     model.exportTimer = global.setTimeout(function () {
       model.exportTimer = null;
-      if (global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
     }, 0);
     showToast("Daten exportiert");
   }
 
+  function discardImportRead() {
+    model.importGeneration += 1;
+    var reader = model.importReader;
+    model.importReader = null;
+    if (!reader) return;
+    reader.onload = null;
+    reader.onerror = null;
+    try {
+      if (reader.readyState === 1 && typeof reader.abort === "function") reader.abort();
+    } catch (_) {}
+  }
+
   function onImportChange() {
+    discardImportRead();
+    model.pendingImport = null;
+    model.clearPending = false;
     var file = importInput.files && importInput.files[0];
-    if (!file) return;
+    if (!file) {
+      renderData();
+      return;
+    }
     if (file.size > 1048576) {
-      model.lastError = "file_too_large";
+      setStorageError("file-too-large");
       showToast("Import abgelehnt: Datei zu groß");
       importInput.value = "";
       return;
     }
-    if (typeof global.FileReader !== "function") return;
+    if (typeof global.FileReader !== "function") {
+      setStorageError("file-reader-unavailable");
+      importInput.value = "";
+      return;
+    }
+    var generation = model.importGeneration;
     var reader = new global.FileReader();
+    model.importReader = reader;
     reader.onload = function () {
-      if (model.destroyed) return;
+      if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
+      model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
       var prepared;
       try {
         prepared = storage.prepareImport(reader.result);
       } catch (_) {
-        prepared = { ok: false, error: "invalid_import" };
+        prepared = { ok: false, error: "prepare-import-failed" };
       }
       if (!prepared || prepared.ok !== true) {
-        model.lastError = prepared && prepared.error ? String(prepared.error) : "invalid_import";
-        showToast("Import abgelehnt: ungültige JSON-Daten");
-      } else {
-        var result = storage.importPrepared(prepared.state);
-        if (applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) render();
+        model.pendingImport = null;
+        setStorageError(prepared && prepared.error ? prepared.error : "invalid-import");
+        showToast("Import abgelehnt");
+        importInput.value = "";
+        return;
       }
+      model.lastError = "";
+      model.clearPending = false;
+      model.pendingImport = { state: prepared.state, summary: prepared.summary };
+      renderData();
+      focusWithoutScroll(importCancelButton);
+    };
+    reader.onerror = function () {
+      if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
+      model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
+      model.pendingImport = null;
+      setStorageError("file-read-failed");
       importInput.value = "";
     };
-    reader.readAsText(file);
+    try {
+      reader.readAsText(file);
+    } catch (_) {
+      if (model.importReader === reader) model.importReader = null;
+      reader.onload = null;
+      reader.onerror = null;
+      setStorageError("file-read-failed");
+      importInput.value = "";
+    }
   }
+
+  function onImportConfirm() {
+    if (!model.pendingImport) return;
+    var prepared = model.pendingImport;
+    var result = storageResult(function () { return storage.importPrepared(prepared.state); }, "import-failed");
+    if (!applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) return;
+    model.pendingImport = null;
+    importInput.value = "";
+    render();
+    focusWithoutScroll(importInput);
+  }
+
+  function onImportCancel() {
+    discardImportRead();
+    model.pendingImport = null;
+    importInput.value = "";
+    renderData();
+    focusWithoutScroll(importInput);
+  }
+
   function onClearClick() {
-    var result = storage.clearVisited();
-    if (applyMutationResult(result, "Besuchsverlauf gelöscht")) render();
+    discardImportRead();
+    model.pendingImport = null;
+    model.clearPending = true;
+    importInput.value = "";
+    renderData();
+    focusWithoutScroll(clearCancelButton);
+  }
+
+  function onClearConfirm() {
+    if (!model.clearPending) return;
+    var result = storageResult(function () { return storage.clearVisited(); }, "clear-visited-failed");
+    if (!applyMutationResult(result, "Besuchsverlauf gelöscht")) return;
+    model.clearPending = false;
+    render();
+    focusWithoutScroll(clearButton);
+  }
+
+  function onClearCancel() {
+    model.clearPending = false;
+    renderData();
+    focusWithoutScroll(clearButton);
   }
 
   function onKeydown(event) {
@@ -1028,6 +1271,7 @@
     if (model.destroyed) return;
     model.destroyed = true;
     model.generation += 1;
+    discardImportRead();
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
     if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
@@ -1042,6 +1286,7 @@
     closeButton.removeEventListener("click", onCloseClick);
     discoverTab.removeEventListener("click", onTabClick);
     articleTab.removeEventListener("click", onTabClick);
+    dataTab.removeEventListener("click", onTabClick);
     search.removeEventListener("input", onSearchInput);
     filter.removeEventListener("change", onFilterChange);
     dateSort.removeEventListener("click", onDateSort);
@@ -1050,7 +1295,11 @@
     commentSortSelect.removeEventListener("change", onCommentOrderChange);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
+    importConfirmButton.removeEventListener("click", onImportConfirm);
+    importCancelButton.removeEventListener("click", onImportCancel);
     clearButton.removeEventListener("click", onClearClick);
+    clearConfirmButton.removeEventListener("click", onClearConfirm);
+    clearCancelButton.removeEventListener("click", onClearCancel);
     global.removeEventListener("scroll", onScroll);
     global.removeEventListener("popstate", onRouteEvent);
     global.removeEventListener("hashchange", onRouteEvent);
@@ -1064,6 +1313,7 @@
   closeButton.addEventListener("click", onCloseClick);
   discoverTab.addEventListener("click", onTabClick);
   articleTab.addEventListener("click", onTabClick);
+  dataTab.addEventListener("click", onTabClick);
   search.addEventListener("input", onSearchInput);
   filter.addEventListener("change", onFilterChange);
   dateSort.addEventListener("click", onDateSort);
@@ -1072,7 +1322,11 @@
   commentSortSelect.addEventListener("change", onCommentOrderChange);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
+  importConfirmButton.addEventListener("click", onImportConfirm);
+  importCancelButton.addEventListener("click", onImportCancel);
   clearButton.addEventListener("click", onClearClick);
+  clearConfirmButton.addEventListener("click", onClearConfirm);
+  clearCancelButton.addEventListener("click", onClearCancel);
   global.addEventListener("scroll", onScroll, { passive: true });
   global.addEventListener("popstate", onRouteEvent);
   global.addEventListener("hashchange", onRouteEvent);
