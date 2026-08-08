@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://www.derstandard.at/
-// @version      1.4.0
+// @version      1.5.0
 // @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
@@ -1532,10 +1532,12 @@
     row.appendChild(countCell);
     var statusCell = doc.createElement("td");
     statusCell.className = "dsux-status-cell";
-    if (read(key)) {
-      statusCell.textContent = "✓";
-      statusCell.setAttribute("aria-label", "Gelesen");
-      statusCell.title = "Gelesen";
+    var progressValue = progressFor(key);
+    if (progressValue > 0) {
+      var progressPercent = pct(progressValue);
+      statusCell.textContent = progressPercent >= 100 ? "✓" : progressPercent + "%";
+      statusCell.setAttribute("aria-label", progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%");
+      statusCell.title = progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%";
     }
     row.appendChild(statusCell);
     var actionsCell = doc.createElement("td");
@@ -1697,8 +1699,16 @@
     if (global.scrollTo) global.scrollTo({ top: max * value, behavior: reduced() ? "auto" : "smooth" });
   }
   function scrollProgress() {
-    var max = Math.max(0, doc.documentElement.scrollHeight - global.innerHeight);
-    return max ? Math.max(0, Math.min(1, (global.pageYOffset || doc.documentElement.scrollTop || 0) / max)) : 0;
+    var article = doc.querySelector("article.story-article");
+    var start = article ? article.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
+    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
+    var forum = doc.querySelector("#forum, dst-forum");
+    var articleEnd = body ? body.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : article ? article.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
+    var forumStart = forum ? forum.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
+    var end = forumStart > start ? forumStart : articleEnd;
+    var range = Math.max(0, end - start);
+    var viewportBottom = (global.pageYOffset || doc.documentElement.scrollTop || 0) + global.innerHeight;
+    return range ? Math.max(0, Math.min(1, (viewportBottom - start) / range)) : 0;
   }
   function saveScroll() {
     scrollTimer = null;
