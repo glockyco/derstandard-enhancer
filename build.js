@@ -1,7 +1,7 @@
 const header = `// ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://github.com/glockyco/derstandard-enhancer
-// @version      0.1.7
+// @version      0.1.8
 // @description  Panel für Artikelsuche und Lesefortschritt auf derStandard.at
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
