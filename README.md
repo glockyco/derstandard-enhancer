@@ -16,16 +16,16 @@ The userscript declares GitHub `@downloadURL` and `@updateURL` metadata for futu
 
 ## Features
 
-- Current-page and newest-RSS discovery.
+- Main-page article discovery in a compact table.
+- Sorting by date or visible comment count.
 - Search plus read, saved, and ignored filters.
-- Tabular listings sortable by date or comment count.
 - Visited markers, scroll progress, resume reading, and JSON export/import.
 - Font scaling, text-width preferences, and an article outline.
 - Reversible sorting of loaded top-level comments by rating.
 - Keyboard shortcuts: `Alt+Shift+O` opens the panel; `Alt+Shift+R` resumes reading.
 - Local-only state via `localStorage`; no posting, voting, private API calls, or external sync.
 
-Comment counts are based on data visible on the current page. Comment sorting affects loaded top-level comments only; RSS discovery falls back safely when unavailable.
+The discovery view is available on the main page. Article pages expose only reading and comment tools. Comment counts are based on data visible on the current page; comment sorting affects loaded top-level comments only.
 
 ## Development
 

@@ -14,10 +14,6 @@
   var state = storage.load();
   var pageArticle = null;
   var domItems = [];
-  var rssItems = [];
-  var rssCache = null;
-  var rssRequest = null;
-  var sourceMode = "page";
   var sortMode = "date";
   var panelOpen = false;
   var activeTab = "discover";
@@ -125,13 +121,6 @@
     var heading = cardNode && cardNode.querySelector ? cardNode.querySelector("h1, h2, h3, [data-testid='headline']") : null;
     return heading ? clean(heading.textContent) : "";
   }
-  function sourceLabel(value) {
-    if (value === "rss") return "Neueste RSS";
-    if (value === "page" || value === "card") return "Aktuelle Seite";
-    if (value === "saved") return "Gespeichert";
-    if (value === "ignored") return "Ignoriert";
-    return "Beobachtet";
-  }
   function copyItem(item, source) {
     return {
       key: item.key,
@@ -165,12 +154,8 @@
   }
   function baseItems() {
     var list = [];
-    if (sourceMode === "rss") {
-      rssItems.forEach(function (item) { list.push(item); });
-    } else if (sourceMode === "page") {
-      if (pageArticle) list.push(pageArticle);
-      domItems.forEach(function (item) { list.push(item); });
-    }
+    if (pageArticle) list.push(pageArticle);
+    domItems.forEach(function (item) { list.push(item); });
     return list;
   }
   function localRecords() {
@@ -248,19 +233,7 @@
   root.appendChild(toast);
   var discoverView = panel.querySelector("[data-view='discover']");
   var articleView = panel.querySelector("[data-view='article']");
-  var sourceLabelNode = doc.createElement("label");
-  sourceLabelNode.className = "dsux-source-label";
-  sourceLabelNode.textContent = "Quelle";
-  var sourceSelect = doc.createElement("select");
-  sourceSelect.id = "dsux-source";
-  sourceSelect.setAttribute("aria-label", "Entdeckungsquelle");
-  [["page", "Aktuelle Seite"], ["rss", "Neueste RSS"]].forEach(function (entry) {
-    var option = doc.createElement("option");
-    option.value = entry[0];
-    option.textContent = entry[1];
-    sourceSelect.appendChild(option);
-  });
-  sourceLabelNode.htmlFor = sourceSelect.id;
+  var discoverTab = panel.querySelector("[data-tab='discover']");
   var search = doc.createElement("input");
   search.type = "search";
   search.placeholder = "Titel oder Bereich suchen";
@@ -273,16 +246,11 @@
     option.textContent = entry[1];
     filter.appendChild(option);
   });
-  var sourceStatus = doc.createElement("span");
-  sourceStatus.className = "dsux-status";
   var controls = doc.createElement("div");
   controls.className = "dsux-controls";
   controls.appendChild(search);
   controls.appendChild(filter);
-  discoverView.appendChild(sourceLabelNode);
-  discoverView.appendChild(sourceSelect);
   discoverView.appendChild(controls);
-  discoverView.appendChild(sourceStatus);
   var table = doc.createElement("table");
   table.className = "dsux-table";
   table.setAttribute("aria-label", "Artikelübersicht");
@@ -344,6 +312,10 @@
     if (toastTimer !== null) global.clearTimeout(toastTimer);
     toastTimer = global.setTimeout(function hideToast() { toast.hidden = true; }, 3200);
   }
+  function updateDiscoverAvailability() {
+    discoverTab.hidden = currentArticle();
+    if (currentArticle() && activeTab === "discover") setTab("article");
+  }
   function setTab(tabName) {
     activeTab = tabName === "article" ? "article" : "discover";
     panel.querySelectorAll("[data-tab]").forEach(function (node) {
@@ -358,6 +330,7 @@
     var next = !!opened;
     if (next === panelOpen) {
       if (next) {
+        updateDiscoverAvailability();
         renderDiscovery();
         renderArticle();
       }
@@ -393,10 +366,12 @@
     link.href = key;
     link.textContent = item.title || key;
     titleCell.appendChild(link);
-    var rowMeta = doc.createElement("div");
-    rowMeta.className = "dsux-row-meta";
-    rowMeta.textContent = [sourceLabel(item.source), item.section].filter(Boolean).join(" · ");
-    titleCell.appendChild(rowMeta);
+    if (item.section) {
+      var rowMeta = doc.createElement("div");
+      rowMeta.className = "dsux-row-meta";
+      rowMeta.textContent = item.section;
+      titleCell.appendChild(rowMeta);
+    }
     if (item.subtitle) {
       var subtitle = doc.createElement("div");
       subtitle.className = "dsux-subtitle";
@@ -489,8 +464,7 @@
       emptyCell.colSpan = 4;
       if (selected === "ignored") empty.textContent = "Keine ignorierten Artikel.";
       else if (query || selected !== "all") empty.textContent = "Keine passenden Artikel.";
-      else if (!sourceItems.length && sourceMode === "rss") empty.textContent = "Keine RSS-Artikel.";
-      else if (!sourceItems.length) empty.textContent = "Keine Artikel gefunden.";
+        else if (!sourceItems.length) empty.textContent = "Keine Artikel gefunden.";
       else empty.textContent = "Keine Artikel verfügbar.";
       emptyCell.textContent = empty.textContent;
       empty.textContent = "";
@@ -504,62 +478,11 @@
     });
   }
   function renderDiscovery() {
-    sourceSelect.value = sourceMode;
     if (commentSortButton) {
       commentSortButton.textContent = sortMode === "comments" ? "Kommentare ↓" : "Kommentare";
       commentSortButton.setAttribute("aria-pressed", sortMode === "comments" ? "true" : "false");
     }
-    if (sourceMode === "rss") sourceStatus.textContent = rssItems.length ? "Neueste RSS" : "RSS wird geladen…";
-    else sourceStatus.textContent = "Aktuelle Seite";
     renderList();
-  }
-  function fallBackToPage(message) {
-    sourceMode = "page";
-    sourceSelect.value = sourceMode;
-    renderDiscovery();
-    if (message) toastMessage(message);
-  }
-  function loadRss() {
-    sourceMode = "rss";
-    sourceSelect.value = sourceMode;
-    if (rssCache && Date.now() - rssCache.at < 300000) {
-      rssItems = rssCache.items.slice();
-      renderDiscovery();
-      toastMessage("RSS-Cache verwendet");
-      return;
-    }
-    if (rssRequest) {
-      renderDiscovery();
-      return;
-    }
-    if (typeof global.fetch !== "function" || !global.location || !global.location.origin) {
-      fallBackToPage("RSS nicht verfügbar; aktuelle Seite angezeigt");
-      return;
-    }
-    var feedUrl = new global.URL("/rss", global.location.origin).href;
-    rssRequest = global.fetch(feedUrl, {
-      credentials: "same-origin",
-      headers: { Accept: "application/rss+xml, application/xml, text/xml;q=0.9" }
-    }).then(function onRssResponse(response) {
-      var type = response.headers && response.headers.get ? response.headers.get("content-type") || "" : "";
-      if (!response.ok || /text\/html|application\/xhtml/i.test(type)) throw new Error("html");
-      return response.text();
-    }).then(function parseRss(body) {
-      var sample = String(body || "").replace(/^\s+/, "").slice(0, 500);
-      if (!sample || /^<(?:!doctype\s+)?html[\s>]/i.test(sample) || (/consent|cookie|tcf/i.test(sample) && !/<(?:rss|feed|rdf:RDF)[\s>]/i.test(sample))) throw new Error("not-xml");
-      if (!/(?:<\?xml[^>]*>\s*)?<\s*(?:rss|feed|rdf:RDF)\b/i.test(sample)) throw new Error("not-xml");
-      var parsed = site.extractRss(body, feedUrl);
-      if (!parsed.length) throw new Error("empty");
-      rssCache = { at: Date.now(), items: parsed.slice() };
-      rssItems = parsed.slice();
-      renderDiscovery();
-      toastMessage("RSS geladen");
-    }).catch(function onRssError() {
-      fallBackToPage("RSS nicht verfügbar oder keine XML-Daten; aktuelle Seite angezeigt");
-    }).then(function finishRss() {
-      rssRequest = null;
-      if (!destroyed && sourceMode === "rss") renderDiscovery();
-    });
   }
   function reduced() {
     try {
@@ -785,6 +708,7 @@
     if (destroyed) return;
     pageArticle = site.extractPageArticle(doc);
     domItems = site.extractArticles(doc);
+    updateDiscoverAvailability();
     if (pageArticle) {
       markVisited(pageArticle.key, pageArticle.title);
       applyArticle();
@@ -808,11 +732,6 @@
   function onLauncherClick() { setOpen(!panelOpen, launcher); }
   function onCloseClick() { setOpen(false); }
   function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
-  function onSourceChange() {
-    sourceMode = sourceSelect.value === "rss" ? "rss" : "page";
-    if (sourceMode === "rss") loadRss();
-    else renderDiscovery();
-  }
   function onSearchInput() { renderList(); }
   function onFilterChange() { renderList(); }
   function onScaleInput() {
@@ -937,7 +856,6 @@
     launcher.removeEventListener("click", onLauncherClick);
     panel.querySelector(".dsux-close").removeEventListener("click", onCloseClick);
     panel.querySelectorAll("[data-tab]").forEach(function (node) { node.removeEventListener("click", onTabClick); });
-    sourceSelect.removeEventListener("change", onSourceChange);
     search.removeEventListener("input", onSearchInput);
     filter.removeEventListener("change", onFilterChange);
     scaleInput.removeEventListener("input", onScaleInput);
@@ -956,7 +874,6 @@
   launcher.addEventListener("click", onLauncherClick);
   panel.querySelector(".dsux-close").addEventListener("click", onCloseClick);
   panel.querySelectorAll("[data-tab]").forEach(function (node) { node.addEventListener("click", onTabClick); });
-  sourceSelect.addEventListener("change", onSourceChange);
   search.addEventListener("input", onSearchInput);
   filter.addEventListener("change", onFilterChange);
   scaleInput.addEventListener("input", onScaleInput);
