@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         DerStandard Enhancer – lokal
+// @name         DerStandard Enhancer
 // @namespace    https://www.derstandard.at/
-// @version      1.0.0
-// @description  Lokaler Entdecker, Lesefortschritt und Kommentaransicht für derStandard
+// @version      1.0.1
+// @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
 // @run-at       document-idle
@@ -1249,9 +1249,9 @@
   function sourceLabel(value) {
     if (value === "rss") return "Neueste RSS";
     if (value === "page" || value === "card") return "Aktuelle Seite";
-    if (value === "saved") return "Lokal gespeichert";
+    if (value === "saved") return "Gespeichert";
     if (value === "ignored") return "Ignoriert";
-    return "Lokal beobachtet";
+    return "Beobachtet";
   }
   function copyItem(item, source) {
     return {
@@ -1382,7 +1382,7 @@
   var sourceSelect = doc.createElement("select");
   sourceSelect.id = "dsux-source";
   sourceSelect.setAttribute("aria-label", "Entdeckungsquelle");
-  [["page", "Aktuelle Seite"], ["rss", "Neueste RSS"], ["most", "Meist kommentiert (lokal beobachtet)"]].forEach(function (entry) {
+  [["page", "Aktuelle Seite"], ["rss", "Neueste RSS"], ["most", "Meist kommentiert"]].forEach(function (entry) {
     var option = doc.createElement("option");
     option.value = entry[0];
     option.textContent = entry[1];
@@ -1420,7 +1420,7 @@
   discoverView.appendChild(list);
   var help = doc.createElement("div");
   help.className = "dsux-help";
-  help.innerHTML = "<strong>Lokale Daten</strong><br>Besuchte Artikel, Lesefortschritt, Lesezeichen und ignorierte Artikel bleiben ausschließlich in diesem Browser (localStorage). Ignorierte Artikel bleiben getrennt erhalten, bis sie wiederhergestellt oder über importierte lokale Daten entfernt werden. Es werden keine Artikeltexte kopiert oder Daten an einen Dienst gesendet.<div class='dsux-actions'></div>";
+  help.innerHTML = "<strong>Lokale Daten</strong><br>Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser. Artikeltexte werden nicht gespeichert.<div class='dsux-actions'></div>";
   discoverView.appendChild(help);
   var actions = help.querySelector(".dsux-actions");
   var exportButton = button("Daten exportieren", "");
@@ -1539,7 +1539,7 @@
     var meta = doc.createElement("div");
     meta.className = "dsux-meta";
     var provenance = doc.createElement("span");
-    provenance.textContent = "Quelle: " + sourceLabel(item.source);
+    provenance.textContent = sourceLabel(item.source);
     meta.appendChild(provenance);
     if (item.section) {
       var section = doc.createElement("span");
@@ -1553,7 +1553,7 @@
     }
     if (item.commentCount !== null && item.commentCount !== undefined) {
       var count = doc.createElement("span");
-      count.textContent = "Kommentare: " + item.commentCount + " (lokal beobachtet)";
+      count.textContent = "Kommentare: " + item.commentCount;
       meta.appendChild(count);
     }
     li.appendChild(meta);
@@ -1599,11 +1599,11 @@
       var empty = doc.createElement("li");
       empty.className = "dsux-empty";
       if (selected === "ignored") empty.textContent = "Keine ignorierten Artikel.";
-      else if (sourceMode === "most" && !sourceItems.length) empty.textContent = "Keine lokal beobachteten Kommentarzahlen verfügbar.";
+      else if (sourceMode === "most" && !sourceItems.length) empty.textContent = "Keine Kommentarzahlen verfügbar.";
       else if (query || selected !== "all") empty.textContent = "Keine passenden Artikel.";
-      else if (!sourceItems.length && sourceMode === "rss") empty.textContent = "Keine sicheren RSS-Artikel verfügbar.";
-      else if (!sourceItems.length) empty.textContent = "Auf dieser Seite wurden keine nicht ignorierten Artikel gefunden.";
-      else empty.textContent = "Keine nicht ignorierten Artikel verfügbar.";
+      else if (!sourceItems.length && sourceMode === "rss") empty.textContent = "Keine RSS-Artikel.";
+      else if (!sourceItems.length) empty.textContent = "Keine Artikel gefunden.";
+      else empty.textContent = "Keine Artikel verfügbar.";
       list.appendChild(empty);
       return;
     }
@@ -1614,9 +1614,9 @@
   }
   function renderDiscovery() {
     sourceSelect.value = sourceMode;
-    if (sourceMode === "rss") sourceStatus.textContent = rssItems.length ? "Quelle: Neueste RSS · nur auf Anfrage · sicherer same-origin /rss-Feed" : "Quelle: Neueste RSS · Feed wird nur auf Anfrage geladen";
-    else if (sourceMode === "most") sourceStatus.textContent = "Quelle: Meist kommentiert · nur sichtbare lokal beobachtete Kommentarzahlen, Top-Ergebnisse zuerst";
-    else sourceStatus.textContent = "Quelle: Aktuelle Seite · lokale Besuche und Lesezeichen werden ergänzt; ignorierte Artikel sind ausgeblendet";
+    if (sourceMode === "rss") sourceStatus.textContent = rssItems.length ? "Neueste RSS" : "RSS wird geladen…";
+    else if (sourceMode === "most") sourceStatus.textContent = "Meist kommentiert";
+    else sourceStatus.textContent = "Aktuelle Seite";
     renderList();
   }
   function fallBackToPage(message) {
@@ -1716,7 +1716,7 @@
     }
     articleControls.hidden = false;
     var value = progressFor(pageArticle.key);
-    articleStatus.textContent = (pageArticle.title || "Artikel") + " · " + pct(value) + "% lokal gelesen";
+    articleStatus.textContent = (pageArticle.title || "Artikel") + " · " + pct(value) + "% gelesen";
     scaleInput.value = String(state.prefs && state.prefs.fontScale || 1);
     scaleOutput.textContent = pct(Number(scaleInput.value) || 1) + "%";
     var width = state.prefs && state.prefs.lineWidth === "narrow" ? "narrow" : "medium";
@@ -1855,7 +1855,7 @@
     select.value = state.prefs && state.prefs.commentSort || "native";
     var note = doc.createElement("small");
     note.id = "dsux-comment-note";
-    note.textContent = "Nur geladene Top-Level-Kommentare werden neu angeordnet; nicht geladene Antworten bleiben unverändert.";
+    note.textContent = "Sortiert nur geladene Top-Level-Kommentare.";
     commentHost.appendChild(label);
     commentHost.appendChild(select);
     commentHost.appendChild(note);
@@ -1948,7 +1948,7 @@
     link.download = "derstandard-enhancer-daten.json";
     link.click();
     global.setTimeout(function revokeExportUrl() { global.URL.revokeObjectURL(url); }, 0);
-    toastMessage("Lokale Daten exportiert");
+    toastMessage("Daten exportiert");
   }
   function onImportChange() {
     var file = importInput.files && importInput.files[0];
@@ -1960,7 +1960,7 @@
         renderDiscovery();
         renderArticle();
         decorate();
-        toastMessage("Lokale Daten importiert");
+        toastMessage("Daten importiert");
       } else toastMessage("Import abgelehnt: ungültige JSON-Daten");
       importInput.value = "";
     };
@@ -2092,7 +2092,7 @@
   unsubscribe = storage.subscribe(onStorageChange);
   var pageStyle = doc.createElement("style");
   pageStyle.id = "dsux-enhancer-page-style";
-  pageStyle.textContent = "article.story-article[data-dsux-enhanced] .article-body,article.story-article[data-dsux-enhanced] .article-content,article.story-article[data-dsux-enhanced] [data-testid='article-body']{font-size:calc(1em * var(--dsux-font-scale,1));max-width:var(--dsux-content-width,none)}[data-dsux-decoration='true'].dsux-card-read::after{content:' · lokal gelesen';color:#17621b;font-size:.8em}[data-dsux-decoration='true'][data-dsux-progress]::before{content:'Lesefortschritt ' attr(data-dsux-progress) '%';display:block;color:#555;font-size:.75em}";
+  pageStyle.textContent = "article.story-article[data-dsux-enhanced] .article-body,article.story-article[data-dsux-enhanced] .article-content,article.story-article[data-dsux-enhanced] [data-testid='article-body']{font-size:calc(1em * var(--dsux-font-scale,1));max-width:var(--dsux-content-width,none)}[data-dsux-decoration='true'].dsux-card-read::after{content:' · gelesen';color:#17621b;font-size:.8em}[data-dsux-decoration='true'][data-dsux-progress]::before{content:'Lesefortschritt ' attr(data-dsux-progress) '%';display:block;color:#555;font-size:.75em}";
   (doc.head || doc.documentElement).appendChild(pageStyle);
   global.DSUXEnhancerTeardown = teardown;
   scan();
