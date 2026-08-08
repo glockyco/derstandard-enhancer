@@ -216,6 +216,7 @@
   var launcher = button("✦", "dsux-launcher");
   launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
   launcher.setAttribute("aria-expanded", "false");
+  root.appendChild(launcher);
   launcher.setAttribute("title", "Entdecken öffnen");
   var panel = doc.createElement("section");
   panel.className = "dsux-panel";

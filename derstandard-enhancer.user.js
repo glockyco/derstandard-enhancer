@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://github.com/glockyco/derstandard-enhancer
-// @version      0.1.2
+// @version      0.1.3
 // @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
@@ -1344,6 +1344,7 @@
   var launcher = button("✦", "dsux-launcher");
   launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
   launcher.setAttribute("aria-expanded", "false");
+  root.appendChild(launcher);
   launcher.setAttribute("title", "Entdecken öffnen");
   var panel = doc.createElement("section");
   panel.className = "dsux-panel";
