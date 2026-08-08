@@ -12,6 +12,8 @@ A local [Violentmonkey](https://violentmonkey.github.io/) userscript for discove
 
 4. Reload derStandard.at.
 
+If you installed an earlier `1.x`/`2.x` build, reinstall this URL once and remove the old script. The current script intentionally uses a new namespace and `0.1.0` version; Violentmonkey does not downgrade an existing higher-version script.
+
 The userscript declares GitHub `@downloadURL` and `@updateURL` metadata for future updates.
 
 ## Features
