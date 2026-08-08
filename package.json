@@ -1,0 +1,16 @@
+{
+  "name": "derstandard-enhancer",
+  "version": "0.1.7",
+  "private": true,
+  "packageManager": "bun@1.3.13",
+  "scripts": {
+    "build": "bun build.js",
+    "check:dist": "bun build.js --check",
+    "test:unit": "bun test tests/storage.test.js tests/site.test.js",
+    "test:browser": "playwright test tests/controller.test.js",
+    "verify": "bun run check:dist && bun run test:unit && bun run test:browser"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.52.0"
+  }
+}
