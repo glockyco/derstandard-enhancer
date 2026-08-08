@@ -213,8 +213,7 @@
   style.textContent = global.DSUXStyles;
   root.appendChild(style);
 
-  var launcher = button("", "dsux-launcher");
-  launcher.innerHTML = "<span class='dsux-launcher-icon' aria-hidden='true'>✦</span><span class='dsux-launcher-label'>Entdecken</span>";
+  var launcher = button("✦", "dsux-launcher");
   launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
   launcher.setAttribute("aria-expanded", "false");
   launcher.setAttribute("title", "Entdecken öffnen");
@@ -623,8 +622,6 @@
       if (!cardNode || cardNode === host) continue;
       cardNode.setAttribute("data-dsux-decoration", "true");
       cardNode.classList.toggle("dsux-card-read", read(key));
-      var value = progressFor(key);
-      if (value > 0) cardNode.setAttribute("data-dsux-progress", String(pct(value)));
     }
   }
   function visibleRatingNode(node) {
@@ -917,7 +914,7 @@
   unsubscribe = storage.subscribe(onStorageChange);
   var pageStyle = doc.createElement("style");
   pageStyle.id = "dsux-enhancer-page-style";
-  pageStyle.textContent = "article.story-article[data-dsux-enhanced] .article-body,article.story-article[data-dsux-enhanced] .article-content,article.story-article[data-dsux-enhanced] [data-testid='article-body']{font-size:calc(1em * var(--dsux-font-scale,1));max-width:var(--dsux-content-width,none)}[data-dsux-decoration='true'].dsux-card-read::after{content:' · gelesen';color:#17621b;font-size:.8em}[data-dsux-decoration='true'][data-dsux-progress]::before{content:'Lesefortschritt ' attr(data-dsux-progress) '%';display:block;color:#555;font-size:.75em}";
+  pageStyle.textContent = "article.story-article[data-dsux-enhanced] .article-body,article.story-article[data-dsux-enhanced] .article-content,article.story-article[data-dsux-enhanced] [data-testid='article-body']{font-size:calc(1em * var(--dsux-font-scale,1));max-width:var(--dsux-content-width,none)}[data-dsux-decoration='true'].dsux-card-read::after{content:' · gelesen';color:#17621b;font-size:.8em}";
   (doc.head || doc.documentElement).appendChild(pageStyle);
   global.DSUXEnhancerTeardown = teardown;
   scan();
