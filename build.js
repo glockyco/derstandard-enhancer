@@ -1,7 +1,7 @@
 const header = `// ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://www.derstandard.at/
-// @version      2.0.0
+// @version      2.1.0
 // @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
@@ -19,5 +19,9 @@ const modules = [
   "src/controller.js",
 ];
 
-const sources = await Promise.all(modules.map((path) => Bun.file(path).text()));
-await Bun.write("derstandard-enhancer.user.js", [header, ...sources].join("\n\n"));
+const [styles, ...sources] = await Promise.all([
+  Bun.file("src/controller.css").text(),
+  ...modules.map((path) => Bun.file(path).text()),
+]);
+const styleModule = `(function (global) { global.DSUXStyles = ${JSON.stringify(styles)}; }(typeof window !== "undefined" ? window : globalThis));`;
+await Bun.write("derstandard-enhancer.user.js", [header, styleModule, ...sources].join("\n\n"));
