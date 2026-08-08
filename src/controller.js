@@ -564,18 +564,7 @@
     resume.textContent = value > 0.98 ? "Am Ende" : "Fortsetzen";
     renderOutline();
   }
-  function applyArticle() {
-    var article = doc.querySelector("article.story-article");
-    if (!article || !currentArticle()) return;
-    var scale = Number(state.prefs && state.prefs.fontScale) || 1;
-    var width = state.prefs && state.prefs.lineWidth === "narrow" ? "narrow" : "medium";
-    article.setAttribute("data-dsux-enhanced", "true");
-    article.setAttribute("data-dsux-line-width", width);
-    article.style.setProperty("--dsux-font-scale", String(scale));
-    article.style.setProperty("--dsux-content-width", width === "narrow" ? "55ch" : "75ch");
-    scaleInput.value = String(scale);
-    scaleOutput.textContent = pct(scale) + "%";
-  }
+  function applyArticle() {}
   function resumeReading() {
     if (!currentArticle()) return;
     var value = progressFor(pageArticle.key);
@@ -609,22 +598,7 @@
   function onScroll() {
     if (currentArticle() && scrollTimer === null) scrollTimer = global.setTimeout(saveScroll, 250);
   }
-  function decorate() {
-    var old = doc.querySelectorAll("[data-dsux-decoration='true']");
-    for (var oldIndex = 0; oldIndex < old.length; oldIndex += 1) {
-      old[oldIndex].classList.remove("dsux-card-read");
-      old[oldIndex].removeAttribute("data-dsux-progress");
-    }
-    var links = doc.querySelectorAll("a[href]");
-    for (var i = 0; i < links.length; i += 1) {
-      var key = site.articleKey(links[i].href || links[i].getAttribute("href"));
-      if (!key) continue;
-      var cardNode = links[i].closest ? links[i].closest("article,[aria-labelledby],[class*='teaser'],li") : null;
-      if (!cardNode || cardNode === host) continue;
-      cardNode.setAttribute("data-dsux-decoration", "true");
-      cardNode.classList.toggle("dsux-card-read", read(key));
-    }
-  }
+  function decorate() {}
   function visibleRatingNode(node) {
     var current = node;
     while (current && current.nodeType === 1) {
@@ -861,6 +835,8 @@
       generated[k].removeAttribute("id");
       generated[k].removeAttribute("data-dsux-outline-id");
     }
+    var pageStyle = doc.querySelector("#dsux-enhancer-page-style");
+    if (pageStyle) pageStyle.remove();
   }
   function teardown() {
     if (destroyed) return;
@@ -913,10 +889,6 @@
     observer.observe(doc.documentElement || doc, { childList: true, subtree: true });
   }
   unsubscribe = storage.subscribe(onStorageChange);
-  var pageStyle = doc.createElement("style");
-  pageStyle.id = "dsux-enhancer-page-style";
-  pageStyle.textContent = "article.story-article[data-dsux-enhanced] .article-body,article.story-article[data-dsux-enhanced] .article-content,article.story-article[data-dsux-enhanced] [data-testid='article-body']{font-size:calc(1em * var(--dsux-font-scale,1));max-width:var(--dsux-content-width,none)}[data-dsux-decoration='true'].dsux-card-read::after{content:' · gelesen';color:#17621b;font-size:.8em}";
-  (doc.head || doc.documentElement).appendChild(pageStyle);
   global.DSUXEnhancerTeardown = teardown;
   scan();
 
