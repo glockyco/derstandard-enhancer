@@ -1,6 +1,6 @@
 # DerStandard Enhancer
 
-A local [Violentmonkey](https://violentmonkey.github.io/) userscript for discovery, reading progress, and comment browsing on [derStandard.at](https://www.derstandard.at/).
+A local [Violentmonkey](https://violentmonkey.github.io/) userscript for article discovery and reading progress on [derStandard.at](https://www.derstandard.at/).
 
 ## Install
 
@@ -19,15 +19,14 @@ The userscript declares GitHub `@downloadURL` and `@updateURL` metadata for futu
 ## Features
 
 - Main-page article discovery in a compact table.
-- Sorting by date or visible comment count.
+- Three-state sorting by date or visible comment count: descending, ascending, then original page order.
 - Search plus read, saved, and ignored filters.
-- Reading progress percentage, visited markers, resume reading, and JSON export/import.
-- Font scaling, text-width preferences, and an article outline.
-- Reversible sorting of loaded top-level comments by rating.
-- Keyboard shortcuts: `Alt+Shift+O` opens the panel; `Alt+Shift+R` resumes reading.
-- Local-only state via `localStorage`; no posting, voting, private API calls, or external sync.
+- Reading progress, visited state, one-shot resume, and JSON export/import inside the enhancer panel.
+- A panel-local article outline that leaves article markup unchanged.
+- Keyboard shortcuts: `Alt+Shift+O` opens the panel; `Alt+Shift+R` resumes reading once.
+- Local-only state via `localStorage`; no posting, voting, private API calls, network requests, or external sync.
 
-The discovery view is available on the main page. Article pages expose only reading and comment tools. Progress ends at the article body or forum, whichever comes first. Comment counts are based on data visible on the current page; comment sorting affects loaded top-level comments only.
+The enhancer never decorates or restyles the regular page. Discovery, reading status, and controls stay inside its shadow-DOM panel. Progress is measured across the article body up to the forum. Comment counts use data already visible on the current page.
 
 ## Development
 

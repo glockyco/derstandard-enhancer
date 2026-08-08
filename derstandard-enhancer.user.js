@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://github.com/glockyco/derstandard-enhancer
-// @version      0.1.4
-// @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
+// @version      0.1.6
+// @description  Panel für Artikelsuche und Lesefortschritt auf derStandard.at
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
 // @run-at       document-idle
@@ -12,7 +12,7 @@
 // ==/UserScript==
 
 
-(function (global) { global.DSUXStyles = ":host{all:initial}\n.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1b1b1b}\n.dsux-launcher{position:fixed;z-index:2147483000;right:5.25rem;bottom:1rem;width:3.5rem;height:3.5rem;display:grid;place-items:center;border:0;border-radius:50%;padding:0;background:#1b1b1b;color:#fff;box-shadow:0 2px 14px #0004;cursor:pointer;font-size:1.7rem;line-height:1}\n.dsux-launcher:focus-visible,.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-panel a:focus-visible{outline:3px solid #005fcc;outline-offset:2px}\n.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;border:1px solid #555;border-radius:.6rem;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005;padding:1rem}\n.dsux-panel-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem}\n.dsux-panel-header h2{font-size:1.1rem;margin:0}\n.dsux-close{border:0;background:transparent;font-size:1.5rem;cursor:pointer}\n.dsux-tabs{display:flex;gap:.4rem;margin:.8rem 0}\n.dsux-tabs button[aria-selected='true']{font-weight:700;border-bottom:3px solid #005fcc}\n.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem;margin-bottom:.5rem}\n.dsux-controls input,.dsux-controls select,.dsux-controls button,.dsux-scale input,.dsux-width button,.dsux-actions button,.dsux-comment-control select{font:inherit;padding:.4rem}\n.dsux-controls button{grid-column:span 2}\n.dsux-source-label{display:block;font-weight:700;margin:.5rem 0 .2rem}\n.dsux-meta{display:flex;flex-wrap:wrap;gap:.4rem .8rem;color:#555;font-size:.82rem}\n.dsux-status{display:block;min-height:1.3em;color:#555;font-size:.85rem;margin:.25rem 0 .5rem}\n.dsux-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:.5rem 0}\n.dsux-table th{text-align:left;color:#555;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;padding:.35rem .45rem;border-bottom:2px solid #bbb}\n.dsux-table-sort{padding:0!important;border:0!important;background:transparent!important;color:inherit!important;font:inherit!important;text-transform:inherit!important;letter-spacing:inherit!important}\n.dsux-table-sort[aria-pressed='true']{color:#111}\n.dsux-table th:nth-child(1){width:auto}\n.dsux-table th:nth-child(2){width:6.5rem}\n.dsux-table th:nth-child(3){width:5rem;text-align:right}\n.dsux-table th:nth-child(4){width:4.5rem;text-align:center}\n.dsux-table th:nth-child(5){width:10rem}\n.dsux-table td{vertical-align:top;padding:.55rem .45rem;border-bottom:1px solid #ddd}\n.dsux-table td:first-child{padding-left:0}\n.dsux-table td:last-child{padding-right:0}\n.dsux-title-cell a{font-weight:700;color:#0645ad;overflow-wrap:anywhere}\n.dsux-row-meta{margin-top:.15rem;color:#666;font-size:.75rem}\n.dsux-save,.dsux-ignore{flex:0 0 auto;white-space:nowrap;padding:.2rem .35rem!important;font-size:.76rem!important}\n.dsux-icon-button{width:2rem;height:2rem;padding:0!important;font-size:1.1rem!important;line-height:1}\n.dsux-subtitle{margin:.25rem 0;font-size:.82rem;color:#555}\n.dsux-badge{display:inline-block;margin-top:.25rem;color:#17621b;font-size:.75rem}\n.dsux-progress{height:.25rem;background:#ddd;margin-top:.35rem;border-radius:99px;overflow:hidden}\n.dsux-progress span{display:block;height:100%;background:#17621b}\n.dsux-count-cell{text-align:right;font-variant-numeric:tabular-nums}\n.dsux-status-cell{text-align:center;color:#17621b;font-size:1.2rem;font-weight:700}\n.dsux-actions-cell{display:flex;flex-wrap:nowrap;gap:.3rem;white-space:nowrap}\n.dsux-empty td{padding:.9rem 0;color:#555}\n.dsux-help{border-top:1px solid #bbb;padding-top:.7rem;font-size:.85rem}\n.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem}\n.dsux-empty{padding:.9rem 0;color:#555}\n.dsux-article-status{font-weight:600}\n.dsux-article-controls{display:grid;gap:1rem}\n.dsux-width{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem}\n.dsux-width button[aria-pressed='true']{font-weight:700}\n.dsux-outline{border-top:1px solid #ddd;padding-top:.5rem}\n.dsux-outline ol{margin:.4rem 0;padding-left:1.5rem}\n.dsux-outline ul{margin:.15rem 0;padding-left:1.25rem;list-style-type:circle}\n.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;max-width:min(92vw,31rem);padding:.65rem .8rem;border-radius:.4rem;background:#222;color:#fff;box-shadow:0 2px 12px #0005}\n.dsux-comment-control{margin:.75rem 0;padding:.65rem;border:1px solid #bbb;background:#fff;color:#111;font:14px system-ui,sans-serif}\n.dsux-comment-control small{display:block;margin-top:.35rem;color:#555}\n.dsux-comment-control label{font-weight:600}\n.dsux-comment-control select{margin-left:.35rem}\n.dsux-panel{background:#f4f4f4;border-color:#888;border-radius:.25rem;box-shadow:0 8px 28px #0004;padding:1.25rem}\n.dsux-panel-header{padding-bottom:.75rem;border-bottom:1px solid #c5c5c5}\n.dsux-panel-header h2{font-size:1.25rem}\n.dsux-tabs{margin:.75rem 0 1rem}\n.dsux-tabs button,.dsux-controls input,.dsux-controls select,.dsux-controls button,.dsux-actions button{border:1px solid #999;border-radius:.2rem;background:#fff;color:#1b1b1b;font-size:.9rem}\n.dsux-tabs button[aria-selected='true']{background:#1b1b1b;color:#fff;border-color:#1b1b1b}\n.dsux-launcher{background:#1b1b1b;color:#fff;border-color:#1b1b1b}\n.dsux-table th{color:#333}\n.dsux-table td{font-size:.9rem}\n.dsux-table-sort{font-size:.72rem!important}\n@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto;padding:.75rem}\n.dsux-table th:nth-child(2),.dsux-table td:nth-child(2),.dsux-table th:nth-child(4),.dsux-table td:nth-child(4){display:none}\n.dsux-table th:nth-child(3){width:3.5rem}\n.dsux-table th:nth-child(4){width:7rem}\n.dsux-table th,.dsux-table td{padding:.45rem .3rem}\n.dsux-actions-cell{flex-direction:column}\n.dsux-save,.dsux-ignore{width:100%}\n"; }(typeof window !== "undefined" ? window : globalThis));
+(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
 
 (function (root) {
   "use strict";
@@ -653,1371 +653,1004 @@
 
 
 (function (global) {
-  'use strict';
-
-  if (!global) {
-    return;
-  }
-
-  var mode = 'native';
-  var changeHandler = null;
-  var documentObserver = null;
-  var shadowObservers = [];
-  var retryTimer = null;
-  var currentRecord = null;
-  var lastNotification = null;
-  var active = false;
-
-  function normalizeMode(value) {
-    return value === 'positive' || value === 'negative' || value === 'total'
-      ? value
-      : 'native';
-  }
-
-  function notify(count, available) {
-    var payload = {
-      count: count,
-      mode: mode,
-      available: available
-    };
-    var signature = String(count) + '|' + String(mode) + '|' + String(available);
-    if (signature === lastNotification) {
-      return;
-    }
-    lastNotification = signature;
-    if (typeof changeHandler === 'function') {
-      try {
-        changeHandler(payload);
-      } catch (_) {
-        // A consumer callback must not interfere with comment observation.
-      }
-    }
-  }
-
-  function parseRating(node, attribute) {
-    if (!node || typeof node.getAttribute !== 'function') {
-      return 0;
-    }
-    var raw;
-    try {
-      raw = node.getAttribute(attribute);
-    } catch (_) {
-      return 0;
-    }
-    if (typeof raw !== 'string') {
-      return 0;
-    }
-    raw = raw.trim();
-    if (!/^[+]?\d+$/.test(raw)) {
-      return 0;
-    }
-    var value = Number(raw);
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  function visible(node) {
-    if (!node || typeof node.getAttribute !== 'function') {
-      return false;
-    }
-    try {
-      if (node.hidden || node.getAttribute('aria-hidden') === 'true') {
-        return false;
-      }
-      var style = node.getAttribute('style') || '';
-      if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style)) {
-        return false;
-      }
-    } catch (_) {
-      return false;
-    }
-    return true;
-  }
-
-  function visibleRating(node, attribute) {
-    if (!node) {
-      return null;
-    }
-    var logs = [];
-    try {
-      if (typeof node.querySelectorAll === 'function') {
-        logs = Array.prototype.slice.call(node.querySelectorAll('dst-posting--ratinglog'));
-      } else if (typeof node.querySelector === 'function') {
-        var log = node.querySelector('dst-posting--ratinglog');
-        if (log) {
-          logs = [log];
-        }
-      }
-    } catch (_) {
-      return null;
-    }
-    for (var i = 0; i < logs.length; i += 1) {
-      if (!visible(logs[i])) {
-        continue;
-      }
-      var candidates = [logs[i]];
-      try {
-        var descendants = logs[i].querySelectorAll('[' + attribute + ']');
-        for (var j = 0; j < descendants.length; j += 1) {
-          candidates.push(descendants[j]);
-        }
-      } catch (_) {
-        // The rating log itself is still a valid candidate.
-      }
-      for (var k = 0; k < candidates.length; k += 1) {
-        if (!visible(candidates[k])) {
-          continue;
-        }
-        var raw = candidates[k].getAttribute(attribute);
-        if (typeof raw === 'string' && /^[+]?\d+$/.test(raw.trim())) {
-          var value = Number(raw.trim());
-          if (Number.isFinite(value)) {
-            return value;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  function ratings(node) {
-    var positive = visibleRating(node, 'positiveratings');
-    var negative = visibleRating(node, 'negativeratings');
-    if (positive === null) {
-      positive = parseRating(node, 'positiveratings');
-    }
-    if (negative === null) {
-      negative = parseRating(node, 'negativeratings');
-    }
-    return {
-      positive: positive,
-      negative: negative,
-      total: positive + negative
-    };
-  }
-
-  function findMain(root) {
-    if (!root || typeof root.querySelector !== 'function') {
-      return null;
-    }
-    try {
-      return root.querySelector('section#forum main.forum--main');
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function discoverMain() {
-    var doc = global.document;
-    if (!doc || typeof doc.querySelectorAll !== 'function') {
-      return null;
-    }
-
-    var hosts;
-    try {
-      hosts = doc.querySelectorAll('dst-forum');
-    } catch (_) {
-      return null;
-    }
-
-    for (var i = 0; i < hosts.length; i += 1) {
-      var shadow;
-      try {
-        shadow = hosts[i].shadowRoot;
-      } catch (_) {
-        shadow = null;
-      }
-      if (!shadow) {
-        continue;
-      }
-      attachShadowObserver(shadow);
-      var main = findMain(shadow);
-      if (main) {
-        return main;
-      }
-    }
-    return null;
-  }
-
-  function attachShadowObserver(shadow) {
-    for (var i = 0; i < shadowObservers.length; i += 1) {
-      if (shadowObservers[i].shadow === shadow) {
-        return;
-      }
-    }
-
-    if (typeof global.MutationObserver !== 'function') {
-      return;
-    }
-
-    var observer;
-    try {
-      observer = new global.MutationObserver(function () {
-        refresh();
-      });
-      observer.observe(shadow, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['positiveratings', 'negativeratings', 'style', 'hidden', 'aria-hidden']
-      });
-      shadowObservers.push({ shadow: shadow, observer: observer });
-    } catch (_) {
-      if (observer && typeof observer.disconnect === 'function') {
-        observer.disconnect();
-      }
-    }
-  }
-
-  function collectNodes(main) {
-    if (!main || typeof main.querySelectorAll !== 'function') {
-      return [];
-    }
-    try {
-      return Array.prototype.slice.call(
-        main.querySelectorAll("dst-posting[data-level='0']")
-      );
-    } catch (_) {
-      return [];
-    }
-  }
-
-  function indexOfNode(nodes, node) {
-    for (var i = 0; i < nodes.length; i += 1) {
-      if (nodes[i] === node) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  function synchronizeNativeOrder(record, nodes, preserveBaseline) {
-    if (mode === 'native' && !preserveBaseline) {
-      record.nativeOrder = nodes.slice();
-      return;
-    }
-    var order = record.nativeOrder;
-    for (var i = 0; i < nodes.length; i += 1) {
-      if (indexOfNode(order, nodes[i]) === -1) {
-        order.push(nodes[i]);
-      }
-    }
-  }
-
-  function compareNodes(a, b) {
-    var ar = ratings(a.node);
-    var br = ratings(b.node);
-    var av = mode === 'positive' ? ar.positive : mode === 'negative' ? ar.negative : ar.total;
-    var bv = mode === 'positive' ? br.positive : mode === 'negative' ? br.negative : br.total;
-    if (av !== bv) {
-      return bv - av;
-    }
-    return a.nativeIndex - b.nativeIndex;
-  }
-
-  function reorderGroup(parent, nodes, desired) {
-    var unchanged = true;
-    for (var i = 0; i < nodes.length; i += 1) {
-      if (nodes[i] !== desired[i]) {
-        unchanged = false;
-        break;
-      }
-    }
-    if (unchanged || !parent || typeof parent.insertBefore !== 'function') {
-      return;
-    }
-
-    // Keep non-posting children in their exact slots while replacing the posting slots.
-    var children = Array.prototype.slice.call(parent.childNodes || []);
-    var postingSet = [];
-    for (var j = 0; j < nodes.length; j += 1) {
-      postingSet.push(nodes[j]);
-    }
-    var anchors = [];
-    var nextNonPosting = null;
-    for (var k = children.length - 1; k >= 0; k -= 1) {
-      if (indexOfNode(postingSet, children[k]) === -1) {
-        nextNonPosting = children[k];
-      } else {
-        anchors[k] = nextNonPosting;
-      }
-    }
-
-    var fragment;
-    var doc = global.document;
-    if (doc && typeof doc.createDocumentFragment === 'function') {
-      fragment = doc.createDocumentFragment();
-      for (var m = 0; m < nodes.length; m += 1) {
-        fragment.appendChild(nodes[m]);
-      }
-    } else {
-      for (var n = 0; n < nodes.length; n += 1) {
-        parent.removeChild(nodes[n]);
-      }
-    }
-
-    var targetIndex = 0;
-    for (var p = 0; p < children.length; p += 1) {
-      if (indexOfNode(postingSet, children[p]) !== -1) {
-        parent.insertBefore(desired[targetIndex], anchors[p] || null);
-        targetIndex += 1;
-      }
-    }
-  }
-
-  function applyOrder(record, nodes) {
-    if (!record || !nodes.length) {
-      return;
-    }
-
-    var entries = [];
-    for (var i = 0; i < nodes.length; i += 1) {
-      entries.push({
-        node: nodes[i],
-        nativeIndex: indexOfNode(record.nativeOrder, nodes[i])
-      });
-    }
-
-    var groups = [];
-    for (var j = 0; j < entries.length; j += 1) {
-      var parent = entries[j].node.parentNode;
-      if (!parent) {
-        continue;
-      }
-      var group = null;
-      for (var g = 0; g < groups.length; g += 1) {
-        if (groups[g].parent === parent) {
-          group = groups[g];
-          break;
-        }
-      }
-      if (!group) {
-        group = { parent: parent, entries: [] };
-        groups.push(group);
-      }
-      group.entries.push(entries[j]);
-    }
-
-    for (var h = 0; h < groups.length; h += 1) {
-      var groupEntries = groups[h].entries;
-      var current = [];
-      for (var c = 0; c < groupEntries.length; c += 1) {
-        current.push(groupEntries[c].node);
-      }
-      var desired;
-      if (mode === 'native') {
-        desired = groupEntries.slice().sort(function (a, b) {
-          return a.nativeIndex - b.nativeIndex;
-        }).map(function (entry) {
-          return entry.node;
-        });
-      } else {
-        desired = groupEntries.slice().sort(function (a, b) {
-          return compareNodes(a, b);
-        }).map(function (entry) {
-          return entry.node;
-        });
-      }
-      // The selector returns document order, which is the native/current order.
-      reorderGroup(groups[h].parent, current, desired);
-    }
-  }
-
-  function scheduleRetry() {
-    if (!active || currentRecord || retryTimer !== null || typeof global.setTimeout !== 'function') {
-      return;
-    }
-    retryTimer = global.setTimeout(function () {
-      retryTimer = null;
-      refresh();
-      if (active && !currentRecord) {
-        scheduleRetry();
-      }
-    }, 250);
-  }
-
-  function refresh(preserveBaseline) {
-    if (!active) {
-      return;
-    }
-    var main = discoverMain();
-    if (main !== (currentRecord && currentRecord.main)) {
-      currentRecord = main ? { main: main, nativeOrder: [] } : null;
-    }
-
-    if (!currentRecord) {
-      notify(0, false);
-      scheduleRetry();
-      return;
-    }
-
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
-      global.clearTimeout(retryTimer);
-      retryTimer = null;
-    }
-    var nodes = collectNodes(currentRecord.main);
-    synchronizeNativeOrder(currentRecord, nodes, preserveBaseline);
-    applyOrder(currentRecord, nodes);
-    notify(nodes.length, true);
-  }
-
-  function init(onChange) {
-    disconnect();
-    active = true;
-    changeHandler = typeof onChange === 'function' ? onChange : null;
-    lastNotification = null;
-
-    var doc = global.document;
-    if (doc && typeof global.MutationObserver === 'function') {
-      try {
-        documentObserver = new global.MutationObserver(function () {
-          refresh();
-        });
-        documentObserver.observe(doc.documentElement || doc, {
-          childList: true,
-          subtree: true
-        });
-      } catch (_) {
-        documentObserver = null;
-      }
-    }
-    refresh();
-  }
-
-  function sort(nextMode) {
-    var previousMode = mode;
-    mode = normalizeMode(nextMode);
-    if (active) {
-      refresh(mode === 'native' && previousMode !== 'native');
-    }
-    return mode;
-  }
-
-  function currentMode() {
-    return mode;
-  }
-
-  function disconnect() {
-    if (documentObserver && typeof documentObserver.disconnect === 'function') {
-      documentObserver.disconnect();
-    }
-    documentObserver = null;
-    for (var i = 0; i < shadowObservers.length; i += 1) {
-      if (shadowObservers[i].observer && typeof shadowObservers[i].observer.disconnect === 'function') {
-        shadowObservers[i].observer.disconnect();
-      }
-    }
-    shadowObservers = [];
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
-      global.clearTimeout(retryTimer);
-    }
-    retryTimer = null;
-    currentRecord = null;
-    active = false;
-    changeHandler = null;
-    lastNotification = null;
-  }
-
-  global.DSUXComments = {
-    init: init,
-    sort: sort,
-    currentMode: currentMode,
-    disconnect: disconnect
-  };
-}(typeof window !== 'undefined' ? window : null));
-
-
-(function (global) {
   "use strict";
-  if (!global || !global.document || global.__DSUXEnhancerController) return;
-  global.__DSUXEnhancerController = true;
+
+  if (!global || !global.document || !global.document.documentElement) return;
+  if (global.__DSUXEnhancerController) return;
+
   var doc = global.document;
   var storage = global.DSUXStorage;
   var site = global.DSUXSite;
-  var comments = global.DSUXComments;
-  if (!storage || !site) {
-    global.__DSUXEnhancerController = false;
-    return;
-  }
+  if (!storage || !site) return;
 
-  var state = storage.load();
-  var pageArticle = null;
-  var domItems = [];
-  var sortMode = "date";
-  var panelOpen = false;
-  var activeTab = "discover";
-  var returnFocus = null;
-  var scanTimer = null;
-  var scrollTimer = null;
-  var toastTimer = null;
-  var observer = null;
-  var commentsStarted = false;
-  var commentHost = null;
-  var commentSelect = null;
-  var commentSortButton = null;
-  var unsubscribe = null;
-  var destroyed = false;
+  global.__DSUXEnhancerController = true;
 
-  function clean(value) {
-    return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
-  }
-  function has(map, key) {
+  var model = {
+    activeTab: "discover",
+    panelOpen: false,
+    snapshot: null,
+    routeIdentity: "",
+    routeKey: "",
+    pageArticle: null,
+    pageItems: [],
+    resumeKey: "",
+    resumeValue: 0,
+    resumeEntry: -1,
+    query: "",
+    filter: "all",
+    sort: "",
+    sortAscending: false,
+    outline: [],
+    generation: 0,
+    routeEntry: 0,
+    markedEntry: 0,
+    scanTimer: null,
+    progressTimer: null,
+    toastTimer: null,
+    exportTimer: null,
+    exportUrl: null,
+    routePollTimer: null,
+    observer: null,
+    unsubscribe: null,
+    destroyed: false
+  };
+
+  function own(map, key) {
     return !!(map && key && Object.prototype.hasOwnProperty.call(map, key));
   }
-  function ignored(key) {
-    var canonical = site.articleKey(key);
-    if (!canonical) return false;
-    if (has(state.ignored, canonical)) return true;
-    var records = state.ignored || {};
-    return Object.keys(records).some(function (rawKey) {
-      var item = records[rawKey];
-      return site.articleKey((item && item.url) || rawKey) === canonical;
-    });
-  }
-  function normalizeIgnoredForToggle(key) {
-    var canonical = site.articleKey(key);
-    if (!canonical || !ignored(canonical) || has(state.ignored, canonical)) return;
-    var next = storage.load();
-    var records = next.ignored || {};
-    var changed = false;
-    Object.keys(records).forEach(function (rawKey) {
-      if (rawKey === canonical) return;
-      var item = records[rawKey];
-      if (site.articleKey((item && item.url) || rawKey) !== canonical) return;
-      if (!has(records, canonical)) {
-        records[canonical] = {
-          url: canonical,
-          title: item && item.title || "",
-          ignoredAt: item && item.ignoredAt || 0
-        };
-      }
-      delete records[rawKey];
-      changed = true;
-    });
-    if (changed) state = storage.save(next);
-  }
-  function progressFor(key) {
-    var value = state.progress && state.progress[key];
-    return typeof value === "number" && isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
-  }
-  function read(key) { return has(state.visited, key); }
-  function pct(value) { return Math.round(Math.max(0, Math.min(1, value || 0)) * 100); }
-  function currentArticle() { return !!(pageArticle && pageArticle.key); }
-  function markVisited(url, title) {
-    var key = site.articleKey(url);
-    if (!key) return;
-    var existing = state.visited && state.visited[key];
-    var nextTitle = clean(title) || (existing && existing.title) || "";
-    if (existing && !clean(title)) return;
-    storage.markVisited(key, nextTitle);
-    state = storage.load();
-  }
-  function pref(name, value) {
-    var next = storage.load();
-    next.prefs = next.prefs || {};
-    if (name === "fontScale") value = Math.max(0.5, Math.min(2, Number(value) || 1));
-    if (name === "lineWidth") value = value === "narrow" ? "narrow" : "medium";
-    if (name === "commentSort") value = value === "positive" || value === "negative" || value === "total" ? value : "native";
-    next.prefs[name] = value;
-    state = storage.save(next);
-  }
-  function dateText(value) {
-    var raw = clean(value);
-    if (!raw) return "";
-    var date = new Date(raw);
-    if (isNaN(date.getTime())) return raw.slice(0, 40);
-    try {
-      return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(date);
-    } catch (_) {
-      return date.toLocaleDateString("de-AT");
-    }
-  }
-  function dateValue(value) {
-    var parsed = Date.parse(value || "");
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  function button(label, className) {
-    var node = doc.createElement("button");
-    node.type = "button";
-    node.className = className || "";
-    node.textContent = label;
-    return node;
-  }
-  function titleFor(anchor) {
-    var label = anchor && (anchor.getAttribute("aria-label") || anchor.getAttribute("title"));
-    if (label) return clean(label);
-    var cardNode = anchor && anchor.closest ? anchor.closest("article, [aria-labelledby], [class*='teaser'], li") : null;
-    var heading = cardNode && cardNode.querySelector ? cardNode.querySelector("h1, h2, h3, [data-testid='headline']") : null;
-    return heading ? clean(heading.textContent) : "";
-  }
-  function copyItem(item, source) {
-    return {
-      key: item.key,
-      url: item.url || item.key,
-      title: clean(item.title),
-      subtitle: clean(item.subtitle),
-      section: clean(item.section),
-      publishedAt: clean(item.publishedAt),
-      commentCount: item.commentCount == null ? null : item.commentCount,
-      source: source || item.source || ""
-    };
-  }
-  function appendUnique(list, seen, item, source) {
-    if (!item) return;
-    var key = site.articleKey(item.key || item.url);
-    if (!key) return;
-    var existing = seen[key];
-    if (existing) {
-      if (!existing.title && item.title) existing.title = clean(item.title);
-      if (!existing.subtitle && item.subtitle) existing.subtitle = clean(item.subtitle);
-      if (!existing.section && item.section) existing.section = clean(item.section);
-      if (!existing.publishedAt && item.publishedAt) existing.publishedAt = clean(item.publishedAt);
-      if (existing.commentCount == null && item.commentCount != null) existing.commentCount = item.commentCount;
-      return;
-    }
-    var copy = copyItem(item, source);
-    copy.key = key;
-    copy.url = key;
-    seen[key] = copy;
-    list.push(copy);
-  }
-  function baseItems() {
-    var list = [];
-    if (pageArticle) list.push(pageArticle);
-    domItems.forEach(function (item) { list.push(item); });
-    return list;
-  }
-  function localRecords() {
-    var list = [];
-    Object.keys(state.visited || {}).forEach(function (key) {
-      var item = state.visited[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "local" });
-    });
-    Object.keys(state.saved || {}).forEach(function (key) {
-      var item = state.saved[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "saved" });
-    });
-    Object.keys(state.ignored || {}).forEach(function (key) {
-      var item = state.ignored[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "ignored" });
-    });
-    return list;
-  }
-  function items() {
-    var list = [];
-    var seen = Object.create(null);
-    baseItems().forEach(function (item) { appendUnique(list, seen, item, item && item.source); });
-    localRecords().forEach(function (item) { appendUnique(list, seen, item, item.source); });
-    list.sort(function (left, right) {
-      if (sortMode === "comments") {
-        var leftCount = typeof left.commentCount === "number" && isFinite(left.commentCount) ? left.commentCount : -1;
-        var rightCount = typeof right.commentCount === "number" && isFinite(right.commentCount) ? right.commentCount : -1;
-        if (rightCount !== leftCount) return rightCount - leftCount;
-      }
-      var dateDifference = dateValue(right.publishedAt) - dateValue(left.publishedAt);
-      if (dateDifference) return dateDifference;
-      return clean(left.title).localeCompare(clean(right.title), "de");
-    });
-    return list;
+
+  function text(value) {
+    return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
   }
 
+  function finite(value) {
+    return typeof value === "number" && isFinite(value) ? value : null;
+  }
+
+  function clamp(value, minimum, maximum) {
+    var number = finite(value);
+    if (number === null) return minimum;
+    return Math.max(minimum, Math.min(maximum, number));
+  }
+
+  function percent(value) {
+    return Math.round(clamp(value, 0, 1) * 100);
+  }
+
+  function dateValue(value) {
+    var parsed = Date.parse(value || "");
+    return isNaN(parsed) ? null : parsed;
+  }
+
+  function dateText(value) {
+    var raw = text(value);
+    if (!raw) return "—";
+    var parsed = new Date(raw);
+    if (isNaN(parsed.getTime())) return raw.slice(0, 40);
+    try {
+      return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(parsed);
+    } catch (_) {
+      return parsed.toLocaleDateString("de-AT");
+    }
+  }
+
+  function articleKey(value) {
+    try {
+      return site.articleKey(value) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function canonicalUrl(value) {
+    try {
+      return site.canonicalUrl(value) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function copyRecord(value, fallbackKey, source) {
+    var raw = value && typeof value === "object" ? value : {};
+    var key = articleKey(raw.key || raw.url || fallbackKey);
+    if (!key) return null;
+    return {
+      key: key,
+      url: key,
+      title: text(raw.title),
+      subtitle: text(raw.subtitle),
+      section: text(raw.section),
+      publishedAt: text(raw.publishedAt),
+      commentCount: finite(raw.commentCount) === null ? null : Math.max(0, Math.floor(raw.commentCount)),
+      source: source || text(raw.source)
+    };
+  }
+
+  function canonicalSnapshot(input) {
+    var source = input && typeof input === "object" ? input : {};
+    var output = {
+      version: 1,
+      visited: Object.create(null),
+      saved: Object.create(null),
+      ignored: Object.create(null),
+      progress: Object.create(null),
+      prefs: {}
+    };
+
+    function records(field, target, sourceName) {
+      var map = source[field];
+      if (!map || typeof map !== "object") return;
+      Object.keys(map).forEach(function (rawKey) {
+        var item = map[rawKey];
+        var key = articleKey(item && item.url || rawKey);
+        if (!key || own(target, key)) return;
+        if (field === "visited") {
+          target[key] = {
+            url: key,
+            title: text(item && item.title),
+            visitedAt: finite(item && item.visitedAt) === null ? 0 : Math.max(0, item.visitedAt),
+            progress: clamp(item && item.progress, 0, 1)
+          };
+        } else {
+          target[key] = {
+            url: key,
+            title: text(item && item.title),
+            savedAt: field === "saved" && finite(item && item.savedAt) !== null ? Math.max(0, item.savedAt) : undefined,
+            ignoredAt: field === "ignored" && finite(item && item.ignoredAt) !== null ? Math.max(0, item.ignoredAt) : undefined
+          };
+        }
+        if (sourceName) target[key].source = sourceName;
+      });
+    }
+
+    var rawProgress = source.progress;
+    if (rawProgress && typeof rawProgress === "object") {
+      Object.keys(rawProgress).forEach(function (rawKey) {
+        var key = articleKey(rawKey);
+        var value = finite(rawProgress[rawKey]);
+        if (key && value !== null) output.progress[key] = clamp(value, 0, 1);
+      });
+    }
+    records("visited", output.visited, "visited");
+    records("saved", output.saved, "saved");
+    records("ignored", output.ignored, "ignored");
+    Object.keys(output.visited).forEach(function (key) {
+      if (!own(output.progress, key)) output.progress[key] = clamp(output.visited[key].progress, 0, 1);
+    });
+    if (source.prefs && typeof source.prefs === "object") {
+      Object.keys(source.prefs).forEach(function (key) { output.prefs[key] = source.prefs[key]; });
+    }
+    return output;
+  }
+
+  model.snapshot = canonicalSnapshot(storage.load());
+
+  function refreshSnapshot() {
+    model.snapshot = canonicalSnapshot(storage.load());
+    return model.snapshot;
+  }
+
+  function progressFor(key) {
+    var value = model.snapshot.progress && model.snapshot.progress[key];
+    return clamp(value, 0, 1);
+  }
+
+  function isRead(key) {
+    return own(model.snapshot.visited, key);
+  }
+
+  function isSaved(key) {
+    return own(model.snapshot.saved, key);
+  }
+
+  function isIgnored(key) {
+    return own(model.snapshot.ignored, key);
+  }
+
+  function make(tag, className, label) {
+    var node = doc.createElement(tag);
+    if (className) node.className = className;
+    if (label !== undefined) node.textContent = label;
+    return node;
+  }
+
+  function button(label, className) {
+    var node = make("button", className, label);
+    node.type = "button";
+    return node;
+  }
+
+  var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
+  fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
+  fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
+
   var host = doc.createElement("div");
-  host.id = "dsux-enhancer-host";
-  host.setAttribute("data-dsux-enhancer", "true");
-  var root;
+  var shadow;
   try {
-    root = host.attachShadow({ mode: "closed" });
+    shadow = host.attachShadow({ mode: "open" });
   } catch (_) {
     global.__DSUXEnhancerController = false;
     return;
   }
-  (doc.body || doc.documentElement).appendChild(host);
-  var style = doc.createElement("style");
-  style.textContent = global.DSUXStyles;
-  root.appendChild(style);
+  doc.documentElement.appendChild(host);
+
+  var style = make("style");
+  var configuredStyle = String(global.DSUXStyles || "");
+  style.textContent = configuredStyle.trim() ? configuredStyle : fallbackStyle;
+  shadow.appendChild(style);
 
   var launcher = button("✦", "dsux-launcher");
-  launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
+  launcher.setAttribute("aria-label", "DerStandard Enhancer öffnen");
+  launcher.setAttribute("title", "DerStandard Enhancer öffnen");
   launcher.setAttribute("aria-expanded", "false");
-  root.appendChild(launcher);
-  launcher.setAttribute("title", "Entdecken öffnen");
-  var panel = doc.createElement("section");
-  panel.className = "dsux-panel";
+  shadow.appendChild(launcher);
+
+  var panel = make("section", "dsux-panel");
   panel.hidden = true;
   panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-modal", "true");
   panel.setAttribute("aria-label", "DerStandard Enhancer");
-  panel.innerHTML = "<div class='dsux-panel-header'><h2>DerStandard Enhancer</h2><button type='button' class='dsux-close' aria-label='Schließen'>×</button></div><nav class='dsux-tabs' aria-label='Enhancer-Bereiche'><button type='button' data-tab='discover' aria-selected='true'>Entdecken</button><button type='button' data-tab='article' aria-selected='false'>Artikel</button></nav><div class='dsux-view' data-view='discover'></div><div class='dsux-view' data-view='article' hidden></div>";
-  root.appendChild(panel);
-  var toast = doc.createElement("div");
-  toast.className = "dsux-toast";
-  toast.setAttribute("role", "status");
-  toast.setAttribute("aria-live", "polite");
-  toast.hidden = true;
-  root.appendChild(toast);
-  var discoverView = panel.querySelector("[data-view='discover']");
-  var articleView = panel.querySelector("[data-view='article']");
-  var discoverTab = panel.querySelector("[data-tab='discover']");
-  var articleTab = panel.querySelector("[data-tab='article']");
-  var search = doc.createElement("input");
+  shadow.appendChild(panel);
+
+  var header = make("div", "dsux-panel-header");
+  header.appendChild(make("h2", "", "DerStandard Enhancer"));
+  var closeButton = button("×", "dsux-close");
+  closeButton.setAttribute("aria-label", "Schließen");
+  closeButton.setAttribute("title", "Schließen");
+  header.appendChild(closeButton);
+  panel.appendChild(header);
+
+  var tabs = make("nav", "dsux-tabs");
+  tabs.setAttribute("aria-label", "Enhancer-Bereiche");
+  var discoverTab = button("Entdecken");
+  discoverTab.setAttribute("data-tab", "discover");
+  var articleTab = button("Artikel");
+  articleTab.setAttribute("data-tab", "article");
+  tabs.appendChild(discoverTab);
+  tabs.appendChild(articleTab);
+  panel.appendChild(tabs);
+
+  var discoverView = make("div", "dsux-view");
+  var articleView = make("div", "dsux-view");
+  panel.appendChild(discoverView);
+  panel.appendChild(articleView);
+
+  var controls = make("div", "dsux-controls");
+  var search = make("input");
   search.type = "search";
   search.placeholder = "Titel oder Bereich suchen";
   search.setAttribute("aria-label", "Titel oder Bereich suchen");
-  var filter = doc.createElement("select");
+  var filter = make("select");
   filter.setAttribute("aria-label", "Artikel filtern");
   [["all", "Alle"], ["unread", "Ungelesen"], ["read", "Gelesen"], ["saved", "Gespeichert"], ["ignored", "Ignoriert"]].forEach(function (entry) {
-    var option = doc.createElement("option");
+    var option = make("option", "", entry[1]);
     option.value = entry[0];
-    option.textContent = entry[1];
     filter.appendChild(option);
   });
-  var controls = doc.createElement("div");
-  controls.className = "dsux-controls";
   controls.appendChild(search);
   controls.appendChild(filter);
   discoverView.appendChild(controls);
-  var table = doc.createElement("table");
-  table.className = "dsux-table";
+
+  var discoverStatus = make("p", "dsux-status");
+  discoverStatus.setAttribute("role", "status");
+  discoverStatus.setAttribute("aria-live", "polite");
+  discoverView.appendChild(discoverStatus);
+
+  var table = make("table", "dsux-table");
   table.setAttribute("aria-label", "Artikelübersicht");
-  var thead = doc.createElement("thead");
-  var headerRow = doc.createElement("tr");
+  var thead = make("thead");
+  var headingRow = make("tr");
   ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach(function (label) {
-    var th = doc.createElement("th");
+    var th = make("th", "", label);
     th.scope = "col";
-    if (label === "Kommentare") {
-      commentSortButton = button("Kommentare", "dsux-table-sort");
-      commentSortButton.setAttribute("aria-pressed", "false");
-      commentSortButton.setAttribute("aria-label", "Nach Kommentaren sortieren");
-      commentSortButton.addEventListener("click", function onCommentSortClick() {
-        sortMode = sortMode === "comments" ? "date" : "comments";
-        renderDiscovery();
-      });
-      th.appendChild(commentSortButton);
-    } else {
-      th.textContent = label;
-    }
-    headerRow.appendChild(th);
+    headingRow.appendChild(th);
   });
-  thead.appendChild(headerRow);
+  thead.appendChild(headingRow);
   table.appendChild(thead);
-  var list = doc.createElement("tbody");
+  var dateHeader = headingRow.children[1];
+  var commentHeader = headingRow.children[2];
+  var dateSort = button("Datum", "dsux-table-sort");
+  var commentSort = button("Kommentare", "dsux-table-sort");
+  dateHeader.textContent = "";
+  commentHeader.textContent = "";
+  dateHeader.appendChild(dateSort);
+  commentHeader.appendChild(commentSort);
+  var list = make("tbody");
   list.setAttribute("aria-live", "polite");
+  dateSort.setAttribute("data-sort", "date");
+  commentSort.setAttribute("data-sort", "comments");
   table.appendChild(list);
   discoverView.appendChild(table);
-  var help = doc.createElement("div");
-  help.className = "dsux-help";
-  help.innerHTML = "<strong>Lokale Daten</strong><br>Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser. Artikeltexte werden nicht gespeichert.<div class='dsux-actions'></div>";
-  discoverView.appendChild(help);
-  var actions = help.querySelector(".dsux-actions");
-  var exportButton = button("Daten exportieren", "");
-  var importLabel = doc.createElement("label");
-  importLabel.textContent = "Daten importieren";
-  var importInput = doc.createElement("input");
+
+  var help = make("div", "dsux-help");
+  help.appendChild(make("strong", "", "Lokale Daten"));
+  help.appendChild(make("br"));
+  help.appendChild(doc.createTextNode("Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  var dataActions = make("div", "dsux-actions");
+  var exportButton = button("Daten exportieren");
+  var importLabel = make("label", "", "Daten importieren");
+  var importInput = make("input");
   importInput.type = "file";
   importInput.accept = "application/json,.json";
   importInput.setAttribute("aria-label", "JSON-Daten importieren");
   importLabel.appendChild(importInput);
-  var clear = button("Verlauf löschen", "");
-  actions.appendChild(exportButton);
-  actions.appendChild(importLabel);
-  actions.appendChild(clear);
-  articleView.innerHTML = "<p class='dsux-article-status'></p><div class='dsux-article-controls'><div class='dsux-scale'><label for='dsux-scale'>Schriftgröße <output id='dsux-scale-value'>100%</output></label><input id='dsux-scale' type='range' min='0.5' max='2' step='0.05' value='1'></div><div class='dsux-width' role='group' aria-label='Textbreite'><span>Textbreite:</span><button type='button' data-width='comfortable' aria-pressed='true'>Komfortabel</button><button type='button' data-width='narrow' aria-pressed='false'>Schmal</button></div><div class='dsux-actions'><button type='button' data-resume>Fortsetzen</button></div><div class='dsux-outline'><strong>Übersicht</strong><ol></ol></div></div>";
-  var articleStatus = articleView.querySelector(".dsux-article-status");
-  var articleControls = articleView.querySelector(".dsux-article-controls");
-  var scaleInput = articleView.querySelector("#dsux-scale");
-  var scaleOutput = articleView.querySelector("#dsux-scale-value");
-  var resume = articleView.querySelector("[data-resume]");
-  var outline = articleView.querySelector(".dsux-outline");
-  var outlineList = outline.querySelector("ol");
+  var clearButton = button("Verlauf löschen");
+  dataActions.appendChild(exportButton);
+  dataActions.appendChild(importLabel);
+  dataActions.appendChild(clearButton);
+  help.appendChild(dataActions);
+  discoverView.appendChild(help);
 
-  function toastMessage(message) {
-    if (destroyed) return;
+  var articleTitle = make("h3", "dsux-article-title");
+  articleView.appendChild(articleTitle);
+  var readingControls = make("div", "dsux-reading-controls");
+  var articleStatus = make("p", "dsux-article-status");
+  articleStatus.setAttribute("role", "status");
+  readingControls.appendChild(articleStatus);
+  var articleProgress = make("div", "dsux-progress dsux-article-progress");
+  articleProgress.setAttribute("role", "progressbar");
+  articleProgress.setAttribute("aria-label", "Lesefortschritt");
+  articleProgress.setAttribute("aria-valuemin", "0");
+  articleProgress.setAttribute("aria-valuemax", "100");
+  var articleFill = make("span");
+  articleProgress.appendChild(articleFill);
+  readingControls.appendChild(articleProgress);
+  var articleActions = make("div", "dsux-actions");
+  var resumeButton = button("Fortsetzen");
+  articleActions.appendChild(resumeButton);
+  readingControls.appendChild(articleActions);
+  articleView.appendChild(readingControls);
+  var outline = make("section", "dsux-outline");
+  outline.appendChild(make("strong", "", "Übersicht"));
+  var outlineList = make("ol");
+  outline.appendChild(outlineList);
+  articleView.appendChild(outline);
+
+  var toast = make("div", "dsux-toast");
+  toast.hidden = true;
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  shadow.appendChild(toast);
+
+  function currentArticle() {
+    var article = model.pageArticle;
+    if (!article || !article.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity) return null;
+    return article;
+  }
+
+  function currentKey() {
+    var article = currentArticle();
+    return model.routeKey || article && article.key || "";
+  }
+
+  function combinedItems() {
+    var result = [];
+    var seen = Object.create(null);
+
+    function append(value, source, fallbackKey) {
+      var item = copyRecord(value, fallbackKey || value && (value.key || value.url), source);
+      if (!item) return;
+      var existing = seen[item.key];
+      if (existing) {
+        if (!existing.title && item.title) existing.title = item.title;
+        if (!existing.subtitle && item.subtitle) existing.subtitle = item.subtitle;
+        if (!existing.section && item.section) existing.section = item.section;
+        if (!existing.publishedAt && item.publishedAt) existing.publishedAt = item.publishedAt;
+        if (existing.commentCount === null && item.commentCount !== null) existing.commentCount = item.commentCount;
+        return;
+      }
+      seen[item.key] = item;
+      result.push(item);
+    }
+
+    append(model.pageArticle, "page");
+    model.pageItems.forEach(function (item) { append(item, "card"); });
+    ["visited", "saved", "ignored"].forEach(function (field) {
+      var records = model.snapshot[field] || {};
+      Object.keys(records).forEach(function (key) {
+        append(records[key], field, key);
+      });
+    });
+    Object.keys(model.snapshot.progress || {}).forEach(function (key) {
+      append(null, "progress", key);
+    });
+
+    if (!model.sort) return result;
+
+    result.sort(function (left, right) {
+      var leftValue;
+      var rightValue;
+      if (model.sort === "comments") {
+        leftValue = finite(left.commentCount);
+        rightValue = finite(right.commentCount);
+      } else {
+        leftValue = dateValue(left.publishedAt);
+        rightValue = dateValue(right.publishedAt);
+      }
+      if (leftValue === null && rightValue === null) return 0;
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      return model.sortAscending ? leftValue - rightValue : rightValue - leftValue;
+    });
+    return result;
+  }
+
+  function showToast(message) {
+    if (model.destroyed) return;
     toast.textContent = message;
     toast.hidden = false;
-    if (toastTimer !== null) global.clearTimeout(toastTimer);
-    toastTimer = global.setTimeout(function hideToast() { toast.hidden = true; }, 3200);
+    if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
+    model.toastTimer = global.setTimeout(function () {
+      model.toastTimer = null;
+      if (!model.destroyed) toast.hidden = true;
+    }, 3200);
   }
-  function updateDiscoverAvailability() {
-    discoverTab.hidden = currentArticle();
-    articleTab.hidden = !currentArticle();
-    if (currentArticle() && activeTab === "discover") setTab("article");
-    if (!currentArticle() && activeTab === "article") setTab("discover");
-  }
-  function setTab(tabName) {
-    activeTab = tabName === "article" ? "article" : "discover";
-    panel.querySelectorAll("[data-tab]").forEach(function (node) {
-      node.setAttribute("aria-selected", node.getAttribute("data-tab") === activeTab ? "true" : "false");
-    });
-    discoverView.hidden = activeTab !== "discover";
-    articleView.hidden = activeTab !== "article";
-    if (activeTab === "article") renderArticle();
-  }
-  function firstPanelControl() { return panel.querySelector("button, input, select, a"); }
-  function setOpen(opened, trigger) {
-    var next = !!opened;
-    if (next === panelOpen) {
-      if (next) {
-        updateDiscoverAvailability();
-        renderDiscovery();
-        renderArticle();
-      }
-      return;
-    }
-    if (next) {
-      var active = doc.activeElement;
-      returnFocus = trigger && typeof trigger.focus === "function" ? trigger : active && active !== host && typeof active.focus === "function" ? active : launcher;
-      panelOpen = true;
-      panel.hidden = false;
-      launcher.setAttribute("aria-expanded", "true");
-      renderDiscovery();
-      renderArticle();
-      var control = firstPanelControl();
-      if (control && typeof control.focus === "function") control.focus();
+
+  function renderStatus(total, shown) {
+    if (!total) {
+      discoverStatus.textContent = "Keine Artikel verfügbar.";
+    } else if (!shown) {
+      discoverStatus.textContent = "Keine passenden Artikel.";
     } else {
-      panelOpen = false;
-      panel.hidden = true;
-      launcher.setAttribute("aria-expanded", "false");
-      var target = returnFocus && typeof returnFocus.focus === "function" ? returnFocus : launcher;
-      returnFocus = null;
-      if (target && typeof target.focus === "function") target.focus();
+      discoverStatus.textContent = shown + " von " + total + " Artikel" + (total === 1 ? "" : "n");
     }
   }
-  function card(item) {
-    var key = site.articleKey(item.key || item.url);
-    if (!key) return null;
-    var row = doc.createElement("tr");
-    row.className = "dsux-row";
-    var titleCell = doc.createElement("td");
-    titleCell.className = "dsux-title-cell";
-    var link = doc.createElement("a");
+
+  function restorePanelScroll(scrollTop) {
+    var routeEntry = model.routeEntry;
+    panel.scrollTop = scrollTop;
+    var restore = function () {
+      if (!model.destroyed && model.panelOpen && model.routeEntry === routeEntry) panel.scrollTop = scrollTop;
+    };
+    if (typeof global.requestAnimationFrame === "function") global.requestAnimationFrame(restore);
+    else global.setTimeout(restore, 0);
+  }
+
+  function renderRow(item) {
+    var key = item.key;
+    var row = make("tr", "dsux-row");
+    var titleCell = make("td", "dsux-title-cell");
+    var link = make("a", "", item.title || key);
     link.href = key;
-    link.textContent = item.title || key;
     titleCell.appendChild(link);
-    if (item.section) {
-      var rowMeta = doc.createElement("div");
-      rowMeta.className = "dsux-row-meta";
-      rowMeta.textContent = item.section;
-      titleCell.appendChild(rowMeta);
-    }
-    if (item.subtitle) {
-      var subtitle = doc.createElement("div");
-      subtitle.className = "dsux-subtitle";
-      subtitle.textContent = item.subtitle;
-      titleCell.appendChild(subtitle);
-    }
+    if (item.section) titleCell.appendChild(make("div", "dsux-row-meta", item.section));
+    if (item.subtitle) titleCell.appendChild(make("div", "dsux-subtitle", item.subtitle));
     var value = progressFor(key);
     if (value > 0) {
-      var progress = doc.createElement("div");
-      progress.className = "dsux-progress";
+      var progress = make("div", "dsux-progress");
       progress.setAttribute("role", "progressbar");
       progress.setAttribute("aria-label", "Lesefortschritt");
       progress.setAttribute("aria-valuemin", "0");
       progress.setAttribute("aria-valuemax", "100");
-      progress.setAttribute("aria-valuenow", String(pct(value)));
-      var fill = doc.createElement("span");
-      fill.style.width = pct(value) + "%";
+      progress.setAttribute("aria-valuenow", String(percent(value)));
+      var fill = make("span");
+      fill.style.width = percent(value) + "%";
       progress.appendChild(fill);
       titleCell.appendChild(progress);
     }
     row.appendChild(titleCell);
-    var dateCell = doc.createElement("td");
-    dateCell.className = "dsux-date-cell";
-    dateCell.textContent = item.publishedAt ? dateText(item.publishedAt) : "—";
-    row.appendChild(dateCell);
-    var countCell = doc.createElement("td");
-    countCell.className = "dsux-count-cell";
-    countCell.textContent = item.commentCount === null || item.commentCount === undefined ? "—" : String(item.commentCount);
-    row.appendChild(countCell);
-    var statusCell = doc.createElement("td");
-    statusCell.className = "dsux-status-cell";
-    var progressValue = progressFor(key);
-    if (progressValue > 0) {
-      var progressPercent = pct(progressValue);
-      statusCell.textContent = progressPercent >= 100 ? "✓" : progressPercent + "%";
-      statusCell.setAttribute("aria-label", progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%");
-      statusCell.title = progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%";
+    row.appendChild(make("td", "dsux-date-cell", dateText(item.publishedAt)));
+    row.appendChild(make("td", "dsux-count-cell", item.commentCount === null ? "—" : String(item.commentCount)));
+    var status = make("td", "dsux-status-cell");
+    if (isRead(key)) {
+      status.textContent = value >= 0.99 ? "✓" : percent(value) + "%";
+      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : "Lesefortschritt " + percent(value) + "%");
     }
-    row.appendChild(statusCell);
-    var actionsCell = doc.createElement("td");
-    actionsCell.className = "dsux-actions-cell";
-    var saved = has(state.saved, key);
-    var save = button(saved ? "★" : "☆", "dsux-save dsux-icon-button");
-    save.setAttribute("aria-pressed", saved ? "true" : "false");
-    save.setAttribute("aria-label", (saved ? "Lesezeichen entfernen: " : "Speichern: ") + (item.title || key));
-    save.title = saved ? "Lesezeichen entfernen" : "Speichern";
-    save.addEventListener("click", function onSaveClick(event) {
+    row.appendChild(status);
+
+    var actions = make("td", "dsux-actions-cell");
+    var actionGroup = make("div", "dsux-row-actions");
+    var save = button(isSaved(key) ? "★" : "☆", "dsux-save dsux-icon-button");
+    save.setAttribute("aria-pressed", isSaved(key) ? "true" : "false");
+    save.setAttribute("aria-label", (isSaved(key) ? "Lesezeichen entfernen: " : "Speichern: ") + (item.title || key));
+    save.setAttribute("title", isSaved(key) ? "Lesezeichen entfernen" : "Speichern");
+    save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
       storage.toggleSaved(key, item.title || "");
-      state = storage.load();
-      renderList();
-      decorate();
-      toastMessage(has(state.saved, key) ? "Gespeichert" : "Lesezeichen entfernt");
+      refreshSnapshot();
+      renderDiscovery();
+      showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
-    actionsCell.appendChild(save);
-    var isIgnored = ignored(key);
-    var ignore = button(isIgnored ? "↩" : "⊘", "dsux-ignore dsux-icon-button");
-    ignore.setAttribute("aria-pressed", isIgnored ? "true" : "false");
-    ignore.setAttribute("aria-label", (isIgnored ? "Wiederherstellen: " : "Ignorieren: ") + (item.title || key));
-    ignore.title = isIgnored ? "Wiederherstellen" : "Ignorieren";
-    ignore.addEventListener("click", function onIgnoreClick(event) {
+    actionGroup.appendChild(save);
+
+    var ignore = button(isIgnored(key) ? "↩" : "⊘", "dsux-ignore dsux-icon-button");
+    ignore.setAttribute("aria-pressed", isIgnored(key) ? "true" : "false");
+    ignore.setAttribute("aria-label", (isIgnored(key) ? "Wiederherstellen: " : "Ignorieren: ") + (item.title || key));
+    ignore.setAttribute("title", isIgnored(key) ? "Wiederherstellen" : "Ignorieren");
+    ignore.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      normalizeIgnoredForToggle(key);
+      var scrollTop = panel.scrollTop;
       storage.toggleIgnored(key, item.title || "");
-      state = storage.load();
-      renderList();
-      decorate();
-      toastMessage(ignored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
+      refreshSnapshot();
+      renderDiscovery();
+      restorePanelScroll(scrollTop);
+      showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
     });
-    actionsCell.appendChild(ignore);
-    row.appendChild(actionsCell);
+    actionGroup.appendChild(ignore);
+    actions.appendChild(actionGroup);
+    row.appendChild(actions);
     return row;
   }
-  function renderList() {
+
+  function renderDiscovery() {
+    if (model.destroyed) return;
+    search.value = model.query;
+    filter.value = model.filter;
+    var dateDirection = model.sort === "date" ? (model.sortAscending ? "ascending" : "descending") : "none";
+    var commentDirection = model.sort === "comments" ? (model.sortAscending ? "ascending" : "descending") : "none";
+    dateSort.setAttribute("data-direction", dateDirection);
+    commentSort.setAttribute("data-direction", commentDirection);
+    dateSort.setAttribute("aria-label", "Datum sortieren, aktuell " + (dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    commentSort.setAttribute("aria-label", "Kommentare sortieren, aktuell " + (commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    dateHeader.setAttribute("aria-sort", dateDirection);
+    commentHeader.setAttribute("aria-sort", commentDirection);
+
     while (list.firstChild) list.removeChild(list.firstChild);
-    var query = clean(search.value).toLocaleLowerCase();
-    var selected = filter.value || "all";
-    var sourceItems = items().filter(function (item) {
-      return selected === "ignored" ? ignored(item.key) : !ignored(item.key);
-    });
-    var result = sourceItems.filter(function (item) {
-      var key = item.key;
-      if (selected === "ignored" && !ignored(key)) return false;
-      if (selected === "read" && !read(key)) return false;
-      if (selected === "unread" && read(key)) return false;
-      if (selected === "saved" && !has(state.saved, key)) return false;
+    var query = text(model.query).toLocaleLowerCase();
+    var all = combinedItems();
+    var result = all.filter(function (item) {
+      var ignored = isIgnored(item.key);
+      if (model.filter === "ignored" ? !ignored : ignored) return false;
+      if (model.filter === "read" && !isRead(item.key)) return false;
+      if (model.filter === "unread" && isRead(item.key)) return false;
+      if (model.filter === "saved" && !isSaved(item.key)) return false;
       if (query && [item.title, item.subtitle, item.section, item.publishedAt, item.key].join(" ").toLocaleLowerCase().indexOf(query) === -1) return false;
       return true;
     });
+    renderStatus(all.length, result.length);
     if (!result.length) {
-      var empty = doc.createElement("tr");
-      empty.className = "dsux-empty";
-      var emptyCell = doc.createElement("td");
+      var emptyRow = make("tr", "dsux-empty");
+      var emptyCell = make("td", "", model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel.");
       emptyCell.colSpan = 5;
-      if (selected === "ignored") empty.textContent = "Keine ignorierten Artikel.";
-      else if (query || selected !== "all") empty.textContent = "Keine passenden Artikel.";
-        else if (!sourceItems.length) empty.textContent = "Keine Artikel gefunden.";
-      else empty.textContent = "Keine Artikel verfügbar.";
-      emptyCell.textContent = empty.textContent;
-      empty.textContent = "";
-      empty.appendChild(emptyCell);
-      list.appendChild(empty);
-      return;
+      emptyRow.appendChild(emptyCell);
+      list.appendChild(emptyRow);
+    } else {
+      result.forEach(function (item) { list.appendChild(renderRow(item)); });
     }
-    result.forEach(function (item) {
-      var node = card(item);
-      if (node) list.appendChild(node);
-    });
   }
-  function renderDiscovery() {
-    if (commentSortButton) {
-      commentSortButton.textContent = sortMode === "comments" ? "Kommentare ↓" : "Kommentare";
-      commentSortButton.setAttribute("aria-pressed", sortMode === "comments" ? "true" : "false");
+
+  function updateTabs() {
+    var available = !!currentArticle();
+    articleTab.hidden = !available;
+    discoverTab.hidden = false;
+    if (!available && model.activeTab === "article") model.activeTab = "discover";
+    discoverTab.setAttribute("aria-selected", model.activeTab === "discover" ? "true" : "false");
+    articleTab.setAttribute("aria-selected", model.activeTab === "article" ? "true" : "false");
+    discoverView.hidden = model.activeTab !== "discover";
+    articleView.hidden = model.activeTab !== "article";
+  }
+
+  function outlineEntries() {
+    model.outline = [];
+    var article = doc.querySelector("article.story-article");
+    var body = article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
+    if (!body) return model.outline;
+    var headings = body.querySelectorAll("h2,h3,h4");
+    for (var index = 0; index < headings.length; index += 1) {
+      var heading = headings[index];
+      var label = text(heading.textContent);
+      if (label) model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
     }
-    renderList();
+    return model.outline;
   }
-  function reduced() {
+
+  function prefersReducedMotion() {
     try {
-      return !!(global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      return typeof global.matchMedia === "function" && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
     } catch (_) {
       return false;
     }
   }
+
   function renderOutline() {
     while (outlineList.firstChild) outlineList.removeChild(outlineList.firstChild);
-    if (!currentArticle()) {
+    var entries = outlineEntries();
+    outline.hidden = !entries.length;
+    var stack = [{ level: 1, item: null, list: outlineList }];
+    entries.forEach(function (entry) {
+      var level = Math.max(2, Math.min(4, Number(entry.level) || 2));
+      while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+      var parent = stack[stack.length - 1];
+      if (!parent.list) {
+        parent.list = make("ol");
+        parent.item.appendChild(parent.list);
+      }
+      var item = make("li");
+      var jump = button(entry.label);
+      jump.addEventListener("click", function () {
+        if (entry.node && typeof entry.node.scrollIntoView === "function") {
+          entry.node.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+        }
+      });
+      item.appendChild(jump);
+      parent.list.appendChild(item);
+      stack.push({ level: level, item: item, list: null });
+    });
+  }
+
+  function renderArticle() {
+    var article = currentArticle();
+    if (!article) {
+      articleTitle.textContent = "";
+      articleStatus.textContent = "Auf einer Artikelseite stehen Fortschritt, Fortsetzen und Übersicht zur Verfügung.";
+      articleProgress.hidden = true;
+      articleActions.hidden = true;
       outline.hidden = true;
       return;
     }
-    var article = doc.querySelector("article.story-article");
-    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
-    var headings = body ? body.querySelectorAll("h2,h3") : [];
-    outline.hidden = !headings.length;
-    var lastSection = null;
-    for (var i = 0; i < headings.length; i += 1) {
-      var heading = headings[i];
-      var label = clean(heading.textContent);
-      if (!label) continue;
-      if (!heading.id) {
-        heading.id = "dsux-outline-" + i;
-        heading.setAttribute("data-dsux-outline-id", "true");
-      }
-      var li = doc.createElement("li");
-      var link = doc.createElement("a");
-      link.href = "#" + heading.id;
-      link.textContent = label;
-      link.addEventListener("click", function onOutlineClick(event) {
-        event.preventDefault();
-        var target = doc.getElementById(event.currentTarget.getAttribute("href").slice(1));
-        if (target && target.scrollIntoView) target.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
-      });
-      li.appendChild(link);
-      if (String(heading.tagName).toLowerCase() === "h3" && lastSection) {
-        var children = lastSection.querySelector("ul");
-        if (!children) {
-          children = doc.createElement("ul");
-          lastSection.appendChild(children);
-        }
-        children.appendChild(li);
-      } else {
-        outlineList.appendChild(li);
-        lastSection = li;
-      }
-    }
-  }
-  function renderArticle() {
-    if (!currentArticle()) {
-      articleStatus.textContent = "Auf einer Artikelseite stehen Schriftgröße, Breite und Fortsetzen zur Verfügung.";
-      articleControls.hidden = true;
-      renderOutline();
-      return;
-    }
-    articleControls.hidden = false;
-    var value = progressFor(pageArticle.key);
-    articleStatus.textContent = (pageArticle.title || "Artikel") + " · " + pct(value) + "% gelesen";
-    scaleInput.value = String(state.prefs && state.prefs.fontScale || 1);
-    scaleOutput.textContent = pct(Number(scaleInput.value) || 1) + "%";
-    var width = state.prefs && state.prefs.lineWidth === "narrow" ? "narrow" : "medium";
-    articleView.querySelectorAll("[data-width]").forEach(function (node) {
-      var selected = node.getAttribute("data-width") === "narrow" ? width === "narrow" : width === "medium";
-      node.setAttribute("aria-pressed", selected ? "true" : "false");
-    });
-    resume.disabled = value < 0.02 || value > 0.98;
-    resume.textContent = value > 0.98 ? "Am Ende" : "Fortsetzen";
+    articleTitle.textContent = article.title || "Artikel";
+    var key = currentKey() || article.key;
+    var value = progressFor(key);
+    articleStatus.textContent = percent(value) + "% gelesen";
+    articleProgress.hidden = false;
+    articleProgress.setAttribute("aria-valuenow", String(percent(value)));
+    articleFill.style.width = percent(value) + "%";
+    articleActions.hidden = false;
+    var target = model.resumeKey === key ? model.resumeValue : 0;
+    resumeButton.disabled = !(target > 0.01 && target < 0.99);
+    resumeButton.setAttribute("aria-label", resumeButton.disabled ? "Kein gespeicherter Fortsetzpunkt" : "Fortsetzen");
     renderOutline();
   }
-  function applyArticle() {}
-  function resumeReading() {
-    if (!currentArticle()) return;
-    var value = progressFor(pageArticle.key);
-    if (value < 0.02 || value > 0.98) {
-      toastMessage("Kein gespeicherter Fortsetzpunkt");
-      return;
-    }
-    var max = Math.max(0, doc.documentElement.scrollHeight - global.innerHeight);
-    if (global.scrollTo) global.scrollTo({ top: max * value, behavior: reduced() ? "auto" : "smooth" });
+
+  function render() {
+    updateTabs();
+    renderDiscovery();
+    renderArticle();
   }
-  function scrollProgress() {
+
+  function focusWithoutScroll(node) {
+    if (!node || typeof node.focus !== "function") return;
+    try {
+      node.focus({ preventScroll: true });
+    } catch (_) {
+      node.focus();
+    }
+  }
+
+  function setOpen(open) {
+    var next = !!open;
+    var changed = next !== model.panelOpen;
+    model.panelOpen = next;
+    panel.hidden = !model.panelOpen;
+    launcher.setAttribute("aria-expanded", model.panelOpen ? "true" : "false");
+    if (model.panelOpen) {
+      render();
+      if (changed) focusWithoutScroll(closeButton);
+    } else if (changed) {
+      focusWithoutScroll(launcher);
+    }
+  }
+
+  function setTab(name) {
+    if (name === "article" && currentArticle()) model.activeTab = "article";
+    else model.activeTab = "discover";
+    updateTabs();
+    if (model.panelOpen && model.activeTab === "article") renderArticle();
+  }
+
+  function articleBounds() {
     var article = doc.querySelector("article.story-article");
-    var start = article ? article.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
+    if (!article) return null;
+    var body = article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article;
+    var rect = body.getBoundingClientRect();
+    var scrollTop = finite(global.pageYOffset) !== null ? global.pageYOffset : doc.documentElement.scrollTop || 0;
+    var start = rect.top + scrollTop;
+    var end = rect.bottom + scrollTop;
     var forum = doc.querySelector("#forum, dst-forum");
-    var articleEnd = body ? body.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : article ? article.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var forumStart = forum ? forum.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var end = forumStart > start ? forumStart : articleEnd;
-    var range = Math.max(0, end - start);
-    var viewportBottom = (global.pageYOffset || doc.documentElement.scrollTop || 0) + global.innerHeight;
-    return range ? Math.max(0, Math.min(1, (viewportBottom - start) / range)) : 0;
+    if (forum) {
+      var forumTop = forum.getBoundingClientRect().top + scrollTop;
+      if (forumTop > start) end = forumTop;
+    }
+    return { start: start, end: end };
   }
-  function saveScroll() {
-    scrollTimer = null;
-    if (currentArticle()) {
-      storage.setProgress(pageArticle.key, scrollProgress());
-      state = storage.load();
-      if (panelOpen && activeTab === "article") renderArticle();
+
+  function progressNow() {
+    var bounds = articleBounds();
+    if (!bounds) return 0;
+    var range = bounds.end - bounds.start;
+    if (range <= 0) return 0;
+    var scrollTop = finite(global.pageYOffset) !== null ? global.pageYOffset : doc.documentElement.scrollTop || 0;
+    var viewportBottom = scrollTop + (finite(global.innerHeight) === null ? 0 : global.innerHeight);
+    return clamp((viewportBottom - bounds.start) / range, 0, 1);
+  }
+
+  function clearProgressTimer() {
+    if (model.progressTimer !== null) {
+      global.clearTimeout(model.progressTimer);
+      model.progressTimer = null;
     }
   }
+
   function onScroll() {
-    if (currentArticle() && scrollTimer === null) scrollTimer = global.setTimeout(saveScroll, 250);
+    var key = currentKey();
+    if (!key || !currentArticle() || model.destroyed || routeIdentity() !== model.routeIdentity) return;
+    clearProgressTimer();
+    var capturedKey = key;
+    var capturedIdentity = model.routeIdentity;
+    var capturedGeneration = model.generation;
+    model.progressTimer = global.setTimeout(function () {
+      model.progressTimer = null;
+      if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
+      var value = progressNow();
+      if (value === progressFor(capturedKey)) return;
+      storage.setProgress(capturedKey, value);
+    }, 250);
   }
-  function decorate() {}
-  function visibleRatingNode(node) {
-    var current = node;
-    while (current && current.nodeType === 1) {
-      if (!current.getAttribute) return false;
-      if (current.hidden || current.getAttribute("aria-hidden") === "true") return false;
-      var inline = current.getAttribute("style") || "";
-      if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(inline)) return false;
-      var view = current.ownerDocument && current.ownerDocument.defaultView;
-      if (view && typeof view.getComputedStyle === "function") {
-        var computed = view.getComputedStyle(current);
-        if (computed && (computed.display === "none" || computed.visibility === "hidden" || computed.visibility === "collapse" || computed.opacity === "0")) return false;
-      }
-      current = current.parentElement;
-    }
-    return !!node;
-  }
-  function validRatingValue(value) { return typeof value === "string" && /^[+]?\d+$/.test(value.trim()); }
-  function hasRatingAttributes(node) {
-    return !!(node && node.getAttribute && ((validRatingValue(node.getAttribute("positiveratings")) || validRatingValue(node.getAttribute("negativeratings")))));
-  }
-  function ratingsAvailable() {
-    var hosts = doc.querySelectorAll("dst-forum");
-    for (var i = 0; i < hosts.length; i += 1) {
-      var shadow = hosts[i].shadowRoot;
-      if (!shadow || !shadow.querySelectorAll) continue;
-      var logs = shadow.querySelectorAll("dst-posting--ratinglog");
-      for (var j = 0; j < logs.length; j += 1) {
-        if (!visibleRatingNode(logs[j])) continue;
-        if (hasRatingAttributes(logs[j])) return true;
-        var descendants = logs[j].querySelectorAll("[positiveratings],[negativeratings]");
-        for (var k = 0; k < descendants.length; k += 1) if (visibleRatingNode(descendants[k]) && hasRatingAttributes(descendants[k])) return true;
-      }
-      var postings = shadow.querySelectorAll("dst-posting");
-      for (var p = 0; p < postings.length; p += 1) if (visibleRatingNode(postings[p]) && hasRatingAttributes(postings[p])) return true;
-    }
-    return false;
-  }
-  function removeCommentControl() {
-    if (commentHost && commentHost.parentNode) commentHost.parentNode.removeChild(commentHost);
-    commentHost = null;
-    commentSelect = null;
-  }
-  function commentControl() {
-    if (!ratingsAvailable()) {
-      removeCommentControl();
+
+  function resumeReading() {
+    var key = currentKey();
+    var article = currentArticle();
+    if (!article || article.key !== model.routeKey || !key || model.resumeKey !== key) return;
+    var value = clamp(model.resumeValue, 0, 1);
+    if (!(value > 0.01 && value < 0.99)) {
+      showToast("Kein gespeicherter Fortsetzpunkt");
       return;
     }
-    if (commentHost) return;
-    var forum = doc.querySelector("#forum");
-    var hostNode = doc.querySelector("dst-forum");
-    var anchor = forum || hostNode;
-    if (!anchor || !anchor.parentNode) return;
-    commentHost = doc.createElement("div");
-    commentHost.className = "dsux-comment-control";
-    commentHost.style.cssText = "display:flex;align-items:center;gap:.5rem;margin:.75rem 0;padding:.55rem .65rem;border:1px solid #bbb;background:#fff;color:#111;font:14px system-ui,sans-serif";
-    commentHost.id = "dsux-comment-control";
-    var label = doc.createElement("label");
-    label.htmlFor = "dsux-comment-sort";
-    label.textContent = "Sortieren";
-    var select = doc.createElement("select");
-    commentSelect = select;
-    select.id = "dsux-comment-sort";
-    [["native", "Standard"], ["positive", "Positive Bewertungen"], ["negative", "Negative Bewertungen"], ["total", "Gesamtbewertungen"]].forEach(function (entry) {
-      var option = doc.createElement("option");
-      option.value = entry[0];
-      option.textContent = entry[1];
-      select.appendChild(option);
-    });
-    select.value = state.prefs && state.prefs.commentSort || "native";
-    commentHost.appendChild(label);
-    commentHost.appendChild(select);
-    anchor.parentNode.insertBefore(commentHost, anchor);
-    select.addEventListener("change", onCommentSortChange);
-    if (comments && comments.sort) comments.sort(select.value);
-  }
-  function onCommentSortChange() {
-    var mode = commentSelect && commentSelect.value;
-    mode = mode === "positive" || mode === "negative" || mode === "total" ? mode : "native";
-    pref("commentSort", mode);
-    if (comments && comments.sort) comments.sort(mode);
-  }
-  function onCommentChange(payload) {
-    if (payload && payload.available && ratingsAvailable()) commentControl();
-    else if (!ratingsAvailable()) {
-      if (comments && comments.sort) comments.sort("native");
-      removeCommentControl();
+    var bounds = articleBounds();
+    if (!bounds || typeof global.scrollTo !== "function") {
+      showToast("Kein gespeicherter Fortsetzpunkt");
+      return;
     }
-  }
-  function startComments() {
-    if (!comments || commentsStarted) return;
-    commentsStarted = true;
-    comments.init(onCommentChange);
-    if (ratingsAvailable()) commentControl();
-    else if (comments.sort) comments.sort("native");
-  }
-  function stopComments() {
-    if (commentsStarted && comments && comments.sort) comments.sort("native");
-    if (commentsStarted && comments && comments.disconnect) comments.disconnect();
-    commentsStarted = false;
-    removeCommentControl();
-  }
-  function scan() {
-    if (destroyed) return;
-    pageArticle = site.extractPageArticle(doc);
-    domItems = site.extractArticles(doc);
-    updateDiscoverAvailability();
-    if (pageArticle) {
-      markVisited(pageArticle.key, pageArticle.title);
-      applyArticle();
-      startComments();
-    } else {
-      stopComments();
+    var viewport = finite(global.innerHeight) === null ? 0 : global.innerHeight;
+    var target = bounds.start + value * Math.max(0, bounds.end - bounds.start) - viewport;
+    var max = Math.max(0, (doc.documentElement.scrollHeight || 0) - viewport);
+    target = clamp(target, 0, max);
+    try {
+      global.scrollTo({ top: target, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    } catch (_) {
+      showToast("Fortsetzen nicht verfügbar");
+      return;
     }
-    decorate();
-    if (panelOpen) {
-      renderDiscovery();
-      renderArticle();
-    }
+    model.resumeKey = "";
+    model.resumeValue = 0;
+    model.resumeEntry = model.routeEntry;
+    if (model.panelOpen) renderArticle();
   }
-  function schedule() {
-    if (scanTimer !== null) global.clearTimeout(scanTimer);
-    scanTimer = global.setTimeout(function runScan() {
-      scanTimer = null;
+
+  function routeIdentity() {
+    var href = global.location && global.location.href || doc.URL || "";
+    return articleKey(href) || canonicalUrl(href) || href;
+  }
+
+  function invalidateRoute(identity, force) {
+    var changed = identity !== model.routeIdentity;
+    if (!changed && !force) return false;
+    model.routeIdentity = identity;
+    model.routeKey = articleKey(global.location && global.location.href || doc.URL || "");
+    model.generation += 1;
+    clearProgressTimer();
+    if (changed) {
+      model.routeEntry += 1;
+      model.pageArticle = null;
+      model.pageItems = [];
+      model.resumeKey = "";
+      model.resumeValue = 0;
+      model.resumeEntry = -1;
+    }
+    return true;
+  }
+
+  function scheduleScan() {
+    if (model.destroyed) return;
+    if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
+    model.scanTimer = global.setTimeout(function () {
+      model.scanTimer = null;
       scan();
-    }, 180);
+    }, 120);
   }
-  function onLauncherClick() { setOpen(!panelOpen, launcher); }
+
+  function markCurrentVisited() {
+    var key = model.routeKey;
+    var article = currentArticle();
+    if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
+    model.markedEntry = model.routeEntry;
+    storage.markVisited(key, article.title || "");
+    refreshSnapshot();
+  }
+
+  function scan() {
+    if (model.destroyed) return;
+    model.generation += 1;
+    invalidateRoute(routeIdentity(), false);
+    var generation = model.generation;
+    var page = null;
+    var items = [];
+    try { page = site.extractPageArticle(doc); } catch (_) { page = null; }
+    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
+    if (model.destroyed || generation > model.generation) return;
+    var pageRecord = copyRecord(page, page && page.key, "page");
+    model.pageArticle = pageRecord && model.routeKey && pageRecord.key === model.routeKey ? pageRecord : null;
+    model.pageItems = [];
+    items.forEach(function (item) {
+      var copy = copyRecord(item, item && (item.key || item.url), "card");
+      if (copy) model.pageItems.push(copy);
+    });
+    var article = currentArticle();
+    var key = article && article.key === model.routeKey ? model.routeKey : "";
+    if (!key) {
+      if (model.resumeEntry !== model.routeEntry) {
+        model.resumeKey = "";
+        model.resumeValue = 0;
+        model.resumeEntry = -1;
+      }
+    } else if (model.resumeEntry !== model.routeEntry) {
+      model.resumeKey = key;
+      model.resumeValue = progressFor(key);
+      model.resumeEntry = model.routeEntry;
+    }
+    markCurrentVisited();
+    updateTabs();
+    if (model.panelOpen) render();
+  }
+
+  function startRoutePolling() {
+    if (model.destroyed || model.routePollTimer !== null) return;
+    model.routePollTimer = global.setTimeout(pollRoute, 250);
+  }
+
+  function pollRoute() {
+    model.routePollTimer = null;
+    if (model.destroyed) return;
+    if (invalidateRoute(routeIdentity(), false)) scheduleScan();
+    startRoutePolling();
+  }
+
+  function onRouteEvent() {
+    if (invalidateRoute(routeIdentity(), true)) scheduleScan();
+  }
+
+  function onStorageChange(next) {
+    if (model.destroyed) return;
+    model.snapshot = canonicalSnapshot(next);
+    if (model.panelOpen) render();
+  }
+
+  function onLauncherClick() { setOpen(!model.panelOpen); }
   function onCloseClick() { setOpen(false); }
   function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
-  function onSearchInput() { renderList(); }
-  function onFilterChange() { renderList(); }
-  function onScaleInput() {
-    pref("fontScale", scaleInput.value);
-    applyArticle();
-    renderArticle();
+  function onSearchInput() { model.query = search.value || ""; renderDiscovery(); }
+  function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
+  function cycleSort(field) {
+    if (model.sort !== field) {
+      model.sort = field;
+      model.sortAscending = false;
+    } else if (!model.sortAscending) {
+      model.sortAscending = true;
+    } else {
+      model.sort = "";
+      model.sortAscending = false;
+    }
+    renderDiscovery();
   }
-  function onWidthClick(event) {
-    pref("lineWidth", event.currentTarget.getAttribute("data-width") === "narrow" ? "narrow" : "medium");
-    applyArticle();
-    renderArticle();
-  }
+  function onDateSort() { cycleSort("date"); }
+  function onCommentSort() { cycleSort("comments"); }
   function onResumeClick() { resumeReading(); }
+
   function onExportClick() {
-    var blob = new Blob([storage.exportJson()], { type: "application/json" });
+    if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
+      showToast("Export nicht verfügbar");
+      return;
+    }
+    var blob = new global.Blob([storage.exportJson()], { type: "application/json" });
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
     var url = global.URL.createObjectURL(blob);
-    var link = doc.createElement("a");
-    link.href = url;
-    link.download = "derstandard-enhancer-daten.json";
-    link.click();
-    global.setTimeout(function revokeExportUrl() { global.URL.revokeObjectURL(url); }, 0);
-    toastMessage("Daten exportiert");
+    model.exportUrl = url;
+    var download = make("a");
+    download.href = url;
+    download.download = "derstandard-enhancer-daten.json";
+    shadow.appendChild(download);
+    download.click();
+    shadow.removeChild(download);
+    if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
+    model.exportTimer = global.setTimeout(function () {
+      model.exportTimer = null;
+      if (global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (model.exportUrl === url) model.exportUrl = null;
+    }, 0);
+    showToast("Daten exportiert");
   }
+
   function onImportChange() {
     var file = importInput.files && importInput.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function onImportLoad() {
+    if (!file || typeof global.FileReader !== "function") return;
+    var reader = new global.FileReader();
+    reader.onload = function () {
+      if (model.destroyed) return;
       if (storage.importJson(reader.result)) {
-        state = storage.load();
-        renderDiscovery();
-        renderArticle();
-        decorate();
-        toastMessage("Daten importiert");
-      } else toastMessage("Import abgelehnt: ungültige JSON-Daten");
+        refreshSnapshot();
+        render();
+        showToast("Daten importiert");
+      } else {
+        showToast("Import abgelehnt: ungültige JSON-Daten");
+      }
       importInput.value = "";
     };
     reader.readAsText(file);
   }
+
   function onClearClick() {
-    if (!global.confirm || global.confirm("Den lokalen Verlauf löschen? Lesefortschritt und gespeicherte Artikel bleiben erhalten. Ignorierte Artikel bleiben getrennt erhalten, bis sie wiederhergestellt oder über importierte lokale Daten entfernt werden.")) {
-      storage.clearVisited();
-      state = storage.load();
-      renderDiscovery();
-      renderArticle();
-      decorate();
-      toastMessage("Besuchsverlauf gelöscht; Fortschritt, Lesezeichen und ignorierte Artikel bleiben erhalten");
-    }
+    storage.clearVisited();
+    refreshSnapshot();
+    render();
+    showToast("Besuchsverlauf gelöscht");
   }
-  function onDocumentClick(event) {
-    var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
-    if (!anchor || host.contains(anchor)) return;
-    var key = site.articleKey(anchor.href || anchor.getAttribute("href"));
-    if (key) {
-      markVisited(key, titleFor(anchor));
-      decorate();
-    }
-  }
+
   function onKeydown(event) {
-    if (event.key === "Escape" && panelOpen) {
+    if (event.key === "Escape" && model.panelOpen) {
       event.preventDefault();
       setOpen(false);
       return;
     }
     if (!event.altKey || !event.shiftKey) return;
-    if (String(event.key).toLowerCase() === "o") {
+    var key = String(event.key || "").toLowerCase();
+    if (key === "o") {
       event.preventDefault();
-      setOpen(!panelOpen);
-    } else if (String(event.key).toLowerCase() === "r") {
+      setOpen(!model.panelOpen);
+    } else if (key === "r") {
       event.preventDefault();
       setOpen(true);
       setTab("article");
       resumeReading();
     }
   }
-  function onStorageChange(next) {
-    state = next;
-    var mode = state.prefs && state.prefs.commentSort;
-    mode = mode === "positive" || mode === "negative" || mode === "total" ? mode : "native";
-    if (commentSelect) commentSelect.value = mode;
-    if (commentsStarted && comments && comments.sort && ratingsAvailable()) comments.sort(mode);
-    applyArticle();
-    decorate();
-    if (panelOpen) {
-      renderDiscovery();
-      renderArticle();
-    }
-  }
-  function cleanupPageDecorations() {
-    var enhanced = doc.querySelectorAll("article.story-article[data-dsux-enhanced]");
-    for (var i = 0; i < enhanced.length; i += 1) {
-      enhanced[i].removeAttribute("data-dsux-enhanced");
-      enhanced[i].removeAttribute("data-dsux-line-width");
-      enhanced[i].style.removeProperty("--dsux-font-scale");
-      enhanced[i].style.removeProperty("--dsux-content-width");
-    }
-    var decorated = doc.querySelectorAll("[data-dsux-decoration='true']");
-    for (var j = 0; j < decorated.length; j += 1) {
-      decorated[j].classList.remove("dsux-card-read");
-      decorated[j].removeAttribute("data-dsux-progress");
-      decorated[j].removeAttribute("data-dsux-decoration");
-    }
-    var generated = doc.querySelectorAll("[data-dsux-outline-id='true']");
-    for (var k = 0; k < generated.length; k += 1) {
-      generated[k].removeAttribute("id");
-      generated[k].removeAttribute("data-dsux-outline-id");
-    }
-    var pageStyle = doc.querySelector("#dsux-enhancer-page-style");
-    if (pageStyle) pageStyle.remove();
-  }
+
   function teardown() {
-    if (destroyed) return;
-    destroyed = true;
-    if (scanTimer !== null) global.clearTimeout(scanTimer);
-    if (scrollTimer !== null) global.clearTimeout(scrollTimer);
-    if (toastTimer !== null) global.clearTimeout(toastTimer);
-    if (observer && observer.disconnect) observer.disconnect();
-    if (unsubscribe) unsubscribe();
-    stopComments();
-    global.removeEventListener("scroll", onScroll);
-    global.removeEventListener("popstate", schedule);
-    doc.removeEventListener("click", onDocumentClick);
-    doc.removeEventListener("keydown", onKeydown);
+    if (model.destroyed) return;
+    model.destroyed = true;
+    model.generation += 1;
+    if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
+    if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
+    if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
+    if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+    if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
+    if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
+    if (typeof model.unsubscribe === "function") model.unsubscribe();
     launcher.removeEventListener("click", onLauncherClick);
-    panel.querySelector(".dsux-close").removeEventListener("click", onCloseClick);
-    panel.querySelectorAll("[data-tab]").forEach(function (node) { node.removeEventListener("click", onTabClick); });
+    closeButton.removeEventListener("click", onCloseClick);
+    discoverTab.removeEventListener("click", onTabClick);
+    articleTab.removeEventListener("click", onTabClick);
     search.removeEventListener("input", onSearchInput);
     filter.removeEventListener("change", onFilterChange);
-    scaleInput.removeEventListener("input", onScaleInput);
-    articleView.querySelectorAll("[data-width]").forEach(function (node) { node.removeEventListener("click", onWidthClick); });
-    resume.removeEventListener("click", onResumeClick);
+    dateSort.removeEventListener("click", onDateSort);
+    commentSort.removeEventListener("click", onCommentSort);
+    resumeButton.removeEventListener("click", onResumeClick);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
-    clear.removeEventListener("click", onClearClick);
-    cleanupPageDecorations();
-    if (style.parentNode) style.parentNode.removeChild(style);
+    clearButton.removeEventListener("click", onClearClick);
+    global.removeEventListener("scroll", onScroll);
+    global.removeEventListener("popstate", onRouteEvent);
+    global.removeEventListener("hashchange", onRouteEvent);
+    doc.removeEventListener("keydown", onKeydown);
     if (host.parentNode) host.parentNode.removeChild(host);
     global.__DSUXEnhancerController = false;
     global.DSUXEnhancerTeardown = null;
   }
 
   launcher.addEventListener("click", onLauncherClick);
-  panel.querySelector(".dsux-close").addEventListener("click", onCloseClick);
-  panel.querySelectorAll("[data-tab]").forEach(function (node) { node.addEventListener("click", onTabClick); });
+  closeButton.addEventListener("click", onCloseClick);
+  discoverTab.addEventListener("click", onTabClick);
+  articleTab.addEventListener("click", onTabClick);
   search.addEventListener("input", onSearchInput);
   filter.addEventListener("change", onFilterChange);
-  scaleInput.addEventListener("input", onScaleInput);
-  articleView.querySelectorAll("[data-width]").forEach(function (node) { node.addEventListener("click", onWidthClick); });
-  resume.addEventListener("click", onResumeClick);
+  dateSort.addEventListener("click", onDateSort);
+  commentSort.addEventListener("click", onCommentSort);
+  resumeButton.addEventListener("click", onResumeClick);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
-  clear.addEventListener("click", onClearClick);
-  doc.addEventListener("click", onDocumentClick);
+  clearButton.addEventListener("click", onClearClick);
   global.addEventListener("scroll", onScroll, { passive: true });
-  global.addEventListener("popstate", schedule);
+  global.addEventListener("popstate", onRouteEvent);
+  global.addEventListener("hashchange", onRouteEvent);
   doc.addEventListener("keydown", onKeydown);
+
   if (typeof global.MutationObserver === "function") {
-    observer = new global.MutationObserver(schedule);
-    observer.observe(doc.documentElement || doc, { childList: true, subtree: true });
+    model.observer = new global.MutationObserver(function () { scheduleScan(); });
+    model.observer.observe(doc.documentElement, { childList: true, subtree: true });
   }
-  unsubscribe = storage.subscribe(onStorageChange);
+  model.unsubscribe = storage.subscribe(onStorageChange);
   global.DSUXEnhancerTeardown = teardown;
   scan();
-
+  startRoutePolling();
 }(typeof window !== "undefined" ? window : null));

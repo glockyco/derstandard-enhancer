@@ -1,8 +1,8 @@
 const header = `// ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://github.com/glockyco/derstandard-enhancer
-// @version      0.1.4
-// @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
+// @version      0.1.6
+// @description  Panel für Artikelsuche und Lesefortschritt auf derStandard.at
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
 // @run-at       document-idle
@@ -15,7 +15,6 @@ const header = `// ==UserScript==
 const modules = [
   "src/storage.js",
   "src/site.js",
-  "src/comments.js",
   "src/controller.js",
 ];
 

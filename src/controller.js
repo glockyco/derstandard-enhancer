@@ -1,895 +1,1002 @@
 (function (global) {
   "use strict";
-  if (!global || !global.document || global.__DSUXEnhancerController) return;
-  global.__DSUXEnhancerController = true;
+
+  if (!global || !global.document || !global.document.documentElement) return;
+  if (global.__DSUXEnhancerController) return;
+
   var doc = global.document;
   var storage = global.DSUXStorage;
   var site = global.DSUXSite;
-  var comments = global.DSUXComments;
-  if (!storage || !site) {
-    global.__DSUXEnhancerController = false;
-    return;
-  }
+  if (!storage || !site) return;
 
-  var state = storage.load();
-  var pageArticle = null;
-  var domItems = [];
-  var sortMode = "date";
-  var panelOpen = false;
-  var activeTab = "discover";
-  var returnFocus = null;
-  var scanTimer = null;
-  var scrollTimer = null;
-  var toastTimer = null;
-  var observer = null;
-  var commentsStarted = false;
-  var commentHost = null;
-  var commentSelect = null;
-  var commentSortButton = null;
-  var unsubscribe = null;
-  var destroyed = false;
+  global.__DSUXEnhancerController = true;
 
-  function clean(value) {
-    return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
-  }
-  function has(map, key) {
+  var model = {
+    activeTab: "discover",
+    panelOpen: false,
+    snapshot: null,
+    routeIdentity: "",
+    routeKey: "",
+    pageArticle: null,
+    pageItems: [],
+    resumeKey: "",
+    resumeValue: 0,
+    resumeEntry: -1,
+    query: "",
+    filter: "all",
+    sort: "",
+    sortAscending: false,
+    outline: [],
+    generation: 0,
+    routeEntry: 0,
+    markedEntry: 0,
+    scanTimer: null,
+    progressTimer: null,
+    toastTimer: null,
+    exportTimer: null,
+    exportUrl: null,
+    routePollTimer: null,
+    observer: null,
+    unsubscribe: null,
+    destroyed: false
+  };
+
+  function own(map, key) {
     return !!(map && key && Object.prototype.hasOwnProperty.call(map, key));
   }
-  function ignored(key) {
-    var canonical = site.articleKey(key);
-    if (!canonical) return false;
-    if (has(state.ignored, canonical)) return true;
-    var records = state.ignored || {};
-    return Object.keys(records).some(function (rawKey) {
-      var item = records[rawKey];
-      return site.articleKey((item && item.url) || rawKey) === canonical;
-    });
-  }
-  function normalizeIgnoredForToggle(key) {
-    var canonical = site.articleKey(key);
-    if (!canonical || !ignored(canonical) || has(state.ignored, canonical)) return;
-    var next = storage.load();
-    var records = next.ignored || {};
-    var changed = false;
-    Object.keys(records).forEach(function (rawKey) {
-      if (rawKey === canonical) return;
-      var item = records[rawKey];
-      if (site.articleKey((item && item.url) || rawKey) !== canonical) return;
-      if (!has(records, canonical)) {
-        records[canonical] = {
-          url: canonical,
-          title: item && item.title || "",
-          ignoredAt: item && item.ignoredAt || 0
-        };
-      }
-      delete records[rawKey];
-      changed = true;
-    });
-    if (changed) state = storage.save(next);
-  }
-  function progressFor(key) {
-    var value = state.progress && state.progress[key];
-    return typeof value === "number" && isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
-  }
-  function read(key) { return has(state.visited, key); }
-  function pct(value) { return Math.round(Math.max(0, Math.min(1, value || 0)) * 100); }
-  function currentArticle() { return !!(pageArticle && pageArticle.key); }
-  function markVisited(url, title) {
-    var key = site.articleKey(url);
-    if (!key) return;
-    var existing = state.visited && state.visited[key];
-    var nextTitle = clean(title) || (existing && existing.title) || "";
-    if (existing && !clean(title)) return;
-    storage.markVisited(key, nextTitle);
-    state = storage.load();
-  }
-  function pref(name, value) {
-    var next = storage.load();
-    next.prefs = next.prefs || {};
-    if (name === "fontScale") value = Math.max(0.5, Math.min(2, Number(value) || 1));
-    if (name === "lineWidth") value = value === "narrow" ? "narrow" : "medium";
-    if (name === "commentSort") value = value === "positive" || value === "negative" || value === "total" ? value : "native";
-    next.prefs[name] = value;
-    state = storage.save(next);
-  }
-  function dateText(value) {
-    var raw = clean(value);
-    if (!raw) return "";
-    var date = new Date(raw);
-    if (isNaN(date.getTime())) return raw.slice(0, 40);
-    try {
-      return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(date);
-    } catch (_) {
-      return date.toLocaleDateString("de-AT");
-    }
-  }
-  function dateValue(value) {
-    var parsed = Date.parse(value || "");
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  function button(label, className) {
-    var node = doc.createElement("button");
-    node.type = "button";
-    node.className = className || "";
-    node.textContent = label;
-    return node;
-  }
-  function titleFor(anchor) {
-    var label = anchor && (anchor.getAttribute("aria-label") || anchor.getAttribute("title"));
-    if (label) return clean(label);
-    var cardNode = anchor && anchor.closest ? anchor.closest("article, [aria-labelledby], [class*='teaser'], li") : null;
-    var heading = cardNode && cardNode.querySelector ? cardNode.querySelector("h1, h2, h3, [data-testid='headline']") : null;
-    return heading ? clean(heading.textContent) : "";
-  }
-  function copyItem(item, source) {
-    return {
-      key: item.key,
-      url: item.url || item.key,
-      title: clean(item.title),
-      subtitle: clean(item.subtitle),
-      section: clean(item.section),
-      publishedAt: clean(item.publishedAt),
-      commentCount: item.commentCount == null ? null : item.commentCount,
-      source: source || item.source || ""
-    };
-  }
-  function appendUnique(list, seen, item, source) {
-    if (!item) return;
-    var key = site.articleKey(item.key || item.url);
-    if (!key) return;
-    var existing = seen[key];
-    if (existing) {
-      if (!existing.title && item.title) existing.title = clean(item.title);
-      if (!existing.subtitle && item.subtitle) existing.subtitle = clean(item.subtitle);
-      if (!existing.section && item.section) existing.section = clean(item.section);
-      if (!existing.publishedAt && item.publishedAt) existing.publishedAt = clean(item.publishedAt);
-      if (existing.commentCount == null && item.commentCount != null) existing.commentCount = item.commentCount;
-      return;
-    }
-    var copy = copyItem(item, source);
-    copy.key = key;
-    copy.url = key;
-    seen[key] = copy;
-    list.push(copy);
-  }
-  function baseItems() {
-    var list = [];
-    if (pageArticle) list.push(pageArticle);
-    domItems.forEach(function (item) { list.push(item); });
-    return list;
-  }
-  function localRecords() {
-    var list = [];
-    Object.keys(state.visited || {}).forEach(function (key) {
-      var item = state.visited[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "local" });
-    });
-    Object.keys(state.saved || {}).forEach(function (key) {
-      var item = state.saved[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "saved" });
-    });
-    Object.keys(state.ignored || {}).forEach(function (key) {
-      var item = state.ignored[key];
-      var itemKey = item && site.articleKey(item.url || key);
-      if (!itemKey) return;
-      list.push({ key: itemKey, url: itemKey, title: item.title || "", subtitle: "", section: "", publishedAt: "", commentCount: null, source: "ignored" });
-    });
-    return list;
-  }
-  function items() {
-    var list = [];
-    var seen = Object.create(null);
-    baseItems().forEach(function (item) { appendUnique(list, seen, item, item && item.source); });
-    localRecords().forEach(function (item) { appendUnique(list, seen, item, item.source); });
-    list.sort(function (left, right) {
-      if (sortMode === "comments") {
-        var leftCount = typeof left.commentCount === "number" && isFinite(left.commentCount) ? left.commentCount : -1;
-        var rightCount = typeof right.commentCount === "number" && isFinite(right.commentCount) ? right.commentCount : -1;
-        if (rightCount !== leftCount) return rightCount - leftCount;
-      }
-      var dateDifference = dateValue(right.publishedAt) - dateValue(left.publishedAt);
-      if (dateDifference) return dateDifference;
-      return clean(left.title).localeCompare(clean(right.title), "de");
-    });
-    return list;
+
+  function text(value) {
+    return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
   }
 
+  function finite(value) {
+    return typeof value === "number" && isFinite(value) ? value : null;
+  }
+
+  function clamp(value, minimum, maximum) {
+    var number = finite(value);
+    if (number === null) return minimum;
+    return Math.max(minimum, Math.min(maximum, number));
+  }
+
+  function percent(value) {
+    return Math.round(clamp(value, 0, 1) * 100);
+  }
+
+  function dateValue(value) {
+    var parsed = Date.parse(value || "");
+    return isNaN(parsed) ? null : parsed;
+  }
+
+  function dateText(value) {
+    var raw = text(value);
+    if (!raw) return "—";
+    var parsed = new Date(raw);
+    if (isNaN(parsed.getTime())) return raw.slice(0, 40);
+    try {
+      return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(parsed);
+    } catch (_) {
+      return parsed.toLocaleDateString("de-AT");
+    }
+  }
+
+  function articleKey(value) {
+    try {
+      return site.articleKey(value) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function canonicalUrl(value) {
+    try {
+      return site.canonicalUrl(value) || "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function copyRecord(value, fallbackKey, source) {
+    var raw = value && typeof value === "object" ? value : {};
+    var key = articleKey(raw.key || raw.url || fallbackKey);
+    if (!key) return null;
+    return {
+      key: key,
+      url: key,
+      title: text(raw.title),
+      subtitle: text(raw.subtitle),
+      section: text(raw.section),
+      publishedAt: text(raw.publishedAt),
+      commentCount: finite(raw.commentCount) === null ? null : Math.max(0, Math.floor(raw.commentCount)),
+      source: source || text(raw.source)
+    };
+  }
+
+  function canonicalSnapshot(input) {
+    var source = input && typeof input === "object" ? input : {};
+    var output = {
+      version: 1,
+      visited: Object.create(null),
+      saved: Object.create(null),
+      ignored: Object.create(null),
+      progress: Object.create(null),
+      prefs: {}
+    };
+
+    function records(field, target, sourceName) {
+      var map = source[field];
+      if (!map || typeof map !== "object") return;
+      Object.keys(map).forEach(function (rawKey) {
+        var item = map[rawKey];
+        var key = articleKey(item && item.url || rawKey);
+        if (!key || own(target, key)) return;
+        if (field === "visited") {
+          target[key] = {
+            url: key,
+            title: text(item && item.title),
+            visitedAt: finite(item && item.visitedAt) === null ? 0 : Math.max(0, item.visitedAt),
+            progress: clamp(item && item.progress, 0, 1)
+          };
+        } else {
+          target[key] = {
+            url: key,
+            title: text(item && item.title),
+            savedAt: field === "saved" && finite(item && item.savedAt) !== null ? Math.max(0, item.savedAt) : undefined,
+            ignoredAt: field === "ignored" && finite(item && item.ignoredAt) !== null ? Math.max(0, item.ignoredAt) : undefined
+          };
+        }
+        if (sourceName) target[key].source = sourceName;
+      });
+    }
+
+    var rawProgress = source.progress;
+    if (rawProgress && typeof rawProgress === "object") {
+      Object.keys(rawProgress).forEach(function (rawKey) {
+        var key = articleKey(rawKey);
+        var value = finite(rawProgress[rawKey]);
+        if (key && value !== null) output.progress[key] = clamp(value, 0, 1);
+      });
+    }
+    records("visited", output.visited, "visited");
+    records("saved", output.saved, "saved");
+    records("ignored", output.ignored, "ignored");
+    Object.keys(output.visited).forEach(function (key) {
+      if (!own(output.progress, key)) output.progress[key] = clamp(output.visited[key].progress, 0, 1);
+    });
+    if (source.prefs && typeof source.prefs === "object") {
+      Object.keys(source.prefs).forEach(function (key) { output.prefs[key] = source.prefs[key]; });
+    }
+    return output;
+  }
+
+  model.snapshot = canonicalSnapshot(storage.load());
+
+  function refreshSnapshot() {
+    model.snapshot = canonicalSnapshot(storage.load());
+    return model.snapshot;
+  }
+
+  function progressFor(key) {
+    var value = model.snapshot.progress && model.snapshot.progress[key];
+    return clamp(value, 0, 1);
+  }
+
+  function isRead(key) {
+    return own(model.snapshot.visited, key);
+  }
+
+  function isSaved(key) {
+    return own(model.snapshot.saved, key);
+  }
+
+  function isIgnored(key) {
+    return own(model.snapshot.ignored, key);
+  }
+
+  function make(tag, className, label) {
+    var node = doc.createElement(tag);
+    if (className) node.className = className;
+    if (label !== undefined) node.textContent = label;
+    return node;
+  }
+
+  function button(label, className) {
+    var node = make("button", className, label);
+    node.type = "button";
+    return node;
+  }
+
+  var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
+  fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
+  fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
+
   var host = doc.createElement("div");
-  host.id = "dsux-enhancer-host";
-  host.setAttribute("data-dsux-enhancer", "true");
-  var root;
+  var shadow;
   try {
-    root = host.attachShadow({ mode: "closed" });
+    shadow = host.attachShadow({ mode: "open" });
   } catch (_) {
     global.__DSUXEnhancerController = false;
     return;
   }
-  (doc.body || doc.documentElement).appendChild(host);
-  var style = doc.createElement("style");
-  style.textContent = global.DSUXStyles;
-  root.appendChild(style);
+  doc.documentElement.appendChild(host);
+
+  var style = make("style");
+  var configuredStyle = String(global.DSUXStyles || "");
+  style.textContent = configuredStyle.trim() ? configuredStyle : fallbackStyle;
+  shadow.appendChild(style);
 
   var launcher = button("✦", "dsux-launcher");
-  launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
+  launcher.setAttribute("aria-label", "DerStandard Enhancer öffnen");
+  launcher.setAttribute("title", "DerStandard Enhancer öffnen");
   launcher.setAttribute("aria-expanded", "false");
-  root.appendChild(launcher);
-  launcher.setAttribute("title", "Entdecken öffnen");
-  var panel = doc.createElement("section");
-  panel.className = "dsux-panel";
+  shadow.appendChild(launcher);
+
+  var panel = make("section", "dsux-panel");
   panel.hidden = true;
   panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-modal", "true");
   panel.setAttribute("aria-label", "DerStandard Enhancer");
-  panel.innerHTML = "<div class='dsux-panel-header'><h2>DerStandard Enhancer</h2><button type='button' class='dsux-close' aria-label='Schließen'>×</button></div><nav class='dsux-tabs' aria-label='Enhancer-Bereiche'><button type='button' data-tab='discover' aria-selected='true'>Entdecken</button><button type='button' data-tab='article' aria-selected='false'>Artikel</button></nav><div class='dsux-view' data-view='discover'></div><div class='dsux-view' data-view='article' hidden></div>";
-  root.appendChild(panel);
-  var toast = doc.createElement("div");
-  toast.className = "dsux-toast";
-  toast.setAttribute("role", "status");
-  toast.setAttribute("aria-live", "polite");
-  toast.hidden = true;
-  root.appendChild(toast);
-  var discoverView = panel.querySelector("[data-view='discover']");
-  var articleView = panel.querySelector("[data-view='article']");
-  var discoverTab = panel.querySelector("[data-tab='discover']");
-  var articleTab = panel.querySelector("[data-tab='article']");
-  var search = doc.createElement("input");
+  shadow.appendChild(panel);
+
+  var header = make("div", "dsux-panel-header");
+  header.appendChild(make("h2", "", "DerStandard Enhancer"));
+  var closeButton = button("×", "dsux-close");
+  closeButton.setAttribute("aria-label", "Schließen");
+  closeButton.setAttribute("title", "Schließen");
+  header.appendChild(closeButton);
+  panel.appendChild(header);
+
+  var tabs = make("nav", "dsux-tabs");
+  tabs.setAttribute("aria-label", "Enhancer-Bereiche");
+  var discoverTab = button("Entdecken");
+  discoverTab.setAttribute("data-tab", "discover");
+  var articleTab = button("Artikel");
+  articleTab.setAttribute("data-tab", "article");
+  tabs.appendChild(discoverTab);
+  tabs.appendChild(articleTab);
+  panel.appendChild(tabs);
+
+  var discoverView = make("div", "dsux-view");
+  var articleView = make("div", "dsux-view");
+  panel.appendChild(discoverView);
+  panel.appendChild(articleView);
+
+  var controls = make("div", "dsux-controls");
+  var search = make("input");
   search.type = "search";
   search.placeholder = "Titel oder Bereich suchen";
   search.setAttribute("aria-label", "Titel oder Bereich suchen");
-  var filter = doc.createElement("select");
+  var filter = make("select");
   filter.setAttribute("aria-label", "Artikel filtern");
   [["all", "Alle"], ["unread", "Ungelesen"], ["read", "Gelesen"], ["saved", "Gespeichert"], ["ignored", "Ignoriert"]].forEach(function (entry) {
-    var option = doc.createElement("option");
+    var option = make("option", "", entry[1]);
     option.value = entry[0];
-    option.textContent = entry[1];
     filter.appendChild(option);
   });
-  var controls = doc.createElement("div");
-  controls.className = "dsux-controls";
   controls.appendChild(search);
   controls.appendChild(filter);
   discoverView.appendChild(controls);
-  var table = doc.createElement("table");
-  table.className = "dsux-table";
+
+  var discoverStatus = make("p", "dsux-status");
+  discoverStatus.setAttribute("role", "status");
+  discoverStatus.setAttribute("aria-live", "polite");
+  discoverView.appendChild(discoverStatus);
+
+  var table = make("table", "dsux-table");
   table.setAttribute("aria-label", "Artikelübersicht");
-  var thead = doc.createElement("thead");
-  var headerRow = doc.createElement("tr");
+  var thead = make("thead");
+  var headingRow = make("tr");
   ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach(function (label) {
-    var th = doc.createElement("th");
+    var th = make("th", "", label);
     th.scope = "col";
-    if (label === "Kommentare") {
-      commentSortButton = button("Kommentare", "dsux-table-sort");
-      commentSortButton.setAttribute("aria-pressed", "false");
-      commentSortButton.setAttribute("aria-label", "Nach Kommentaren sortieren");
-      commentSortButton.addEventListener("click", function onCommentSortClick() {
-        sortMode = sortMode === "comments" ? "date" : "comments";
-        renderDiscovery();
-      });
-      th.appendChild(commentSortButton);
-    } else {
-      th.textContent = label;
-    }
-    headerRow.appendChild(th);
+    headingRow.appendChild(th);
   });
-  thead.appendChild(headerRow);
+  thead.appendChild(headingRow);
   table.appendChild(thead);
-  var list = doc.createElement("tbody");
+  var dateHeader = headingRow.children[1];
+  var commentHeader = headingRow.children[2];
+  var dateSort = button("Datum", "dsux-table-sort");
+  var commentSort = button("Kommentare", "dsux-table-sort");
+  dateHeader.textContent = "";
+  commentHeader.textContent = "";
+  dateHeader.appendChild(dateSort);
+  commentHeader.appendChild(commentSort);
+  var list = make("tbody");
   list.setAttribute("aria-live", "polite");
+  dateSort.setAttribute("data-sort", "date");
+  commentSort.setAttribute("data-sort", "comments");
   table.appendChild(list);
   discoverView.appendChild(table);
-  var help = doc.createElement("div");
-  help.className = "dsux-help";
-  help.innerHTML = "<strong>Lokale Daten</strong><br>Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser. Artikeltexte werden nicht gespeichert.<div class='dsux-actions'></div>";
-  discoverView.appendChild(help);
-  var actions = help.querySelector(".dsux-actions");
-  var exportButton = button("Daten exportieren", "");
-  var importLabel = doc.createElement("label");
-  importLabel.textContent = "Daten importieren";
-  var importInput = doc.createElement("input");
+
+  var help = make("div", "dsux-help");
+  help.appendChild(make("strong", "", "Lokale Daten"));
+  help.appendChild(make("br"));
+  help.appendChild(doc.createTextNode("Besuche, Fortschritt, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  var dataActions = make("div", "dsux-actions");
+  var exportButton = button("Daten exportieren");
+  var importLabel = make("label", "", "Daten importieren");
+  var importInput = make("input");
   importInput.type = "file";
   importInput.accept = "application/json,.json";
   importInput.setAttribute("aria-label", "JSON-Daten importieren");
   importLabel.appendChild(importInput);
-  var clear = button("Verlauf löschen", "");
-  actions.appendChild(exportButton);
-  actions.appendChild(importLabel);
-  actions.appendChild(clear);
-  articleView.innerHTML = "<p class='dsux-article-status'></p><div class='dsux-article-controls'><div class='dsux-scale'><label for='dsux-scale'>Schriftgröße <output id='dsux-scale-value'>100%</output></label><input id='dsux-scale' type='range' min='0.5' max='2' step='0.05' value='1'></div><div class='dsux-width' role='group' aria-label='Textbreite'><span>Textbreite:</span><button type='button' data-width='comfortable' aria-pressed='true'>Komfortabel</button><button type='button' data-width='narrow' aria-pressed='false'>Schmal</button></div><div class='dsux-actions'><button type='button' data-resume>Fortsetzen</button></div><div class='dsux-outline'><strong>Übersicht</strong><ol></ol></div></div>";
-  var articleStatus = articleView.querySelector(".dsux-article-status");
-  var articleControls = articleView.querySelector(".dsux-article-controls");
-  var scaleInput = articleView.querySelector("#dsux-scale");
-  var scaleOutput = articleView.querySelector("#dsux-scale-value");
-  var resume = articleView.querySelector("[data-resume]");
-  var outline = articleView.querySelector(".dsux-outline");
-  var outlineList = outline.querySelector("ol");
+  var clearButton = button("Verlauf löschen");
+  dataActions.appendChild(exportButton);
+  dataActions.appendChild(importLabel);
+  dataActions.appendChild(clearButton);
+  help.appendChild(dataActions);
+  discoverView.appendChild(help);
 
-  function toastMessage(message) {
-    if (destroyed) return;
+  var articleTitle = make("h3", "dsux-article-title");
+  articleView.appendChild(articleTitle);
+  var readingControls = make("div", "dsux-reading-controls");
+  var articleStatus = make("p", "dsux-article-status");
+  articleStatus.setAttribute("role", "status");
+  readingControls.appendChild(articleStatus);
+  var articleProgress = make("div", "dsux-progress dsux-article-progress");
+  articleProgress.setAttribute("role", "progressbar");
+  articleProgress.setAttribute("aria-label", "Lesefortschritt");
+  articleProgress.setAttribute("aria-valuemin", "0");
+  articleProgress.setAttribute("aria-valuemax", "100");
+  var articleFill = make("span");
+  articleProgress.appendChild(articleFill);
+  readingControls.appendChild(articleProgress);
+  var articleActions = make("div", "dsux-actions");
+  var resumeButton = button("Fortsetzen");
+  articleActions.appendChild(resumeButton);
+  readingControls.appendChild(articleActions);
+  articleView.appendChild(readingControls);
+  var outline = make("section", "dsux-outline");
+  outline.appendChild(make("strong", "", "Übersicht"));
+  var outlineList = make("ol");
+  outline.appendChild(outlineList);
+  articleView.appendChild(outline);
+
+  var toast = make("div", "dsux-toast");
+  toast.hidden = true;
+  toast.setAttribute("role", "status");
+  toast.setAttribute("aria-live", "polite");
+  shadow.appendChild(toast);
+
+  function currentArticle() {
+    var article = model.pageArticle;
+    if (!article || !article.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity) return null;
+    return article;
+  }
+
+  function currentKey() {
+    var article = currentArticle();
+    return model.routeKey || article && article.key || "";
+  }
+
+  function combinedItems() {
+    var result = [];
+    var seen = Object.create(null);
+
+    function append(value, source, fallbackKey) {
+      var item = copyRecord(value, fallbackKey || value && (value.key || value.url), source);
+      if (!item) return;
+      var existing = seen[item.key];
+      if (existing) {
+        if (!existing.title && item.title) existing.title = item.title;
+        if (!existing.subtitle && item.subtitle) existing.subtitle = item.subtitle;
+        if (!existing.section && item.section) existing.section = item.section;
+        if (!existing.publishedAt && item.publishedAt) existing.publishedAt = item.publishedAt;
+        if (existing.commentCount === null && item.commentCount !== null) existing.commentCount = item.commentCount;
+        return;
+      }
+      seen[item.key] = item;
+      result.push(item);
+    }
+
+    append(model.pageArticle, "page");
+    model.pageItems.forEach(function (item) { append(item, "card"); });
+    ["visited", "saved", "ignored"].forEach(function (field) {
+      var records = model.snapshot[field] || {};
+      Object.keys(records).forEach(function (key) {
+        append(records[key], field, key);
+      });
+    });
+    Object.keys(model.snapshot.progress || {}).forEach(function (key) {
+      append(null, "progress", key);
+    });
+
+    if (!model.sort) return result;
+
+    result.sort(function (left, right) {
+      var leftValue;
+      var rightValue;
+      if (model.sort === "comments") {
+        leftValue = finite(left.commentCount);
+        rightValue = finite(right.commentCount);
+      } else {
+        leftValue = dateValue(left.publishedAt);
+        rightValue = dateValue(right.publishedAt);
+      }
+      if (leftValue === null && rightValue === null) return 0;
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      return model.sortAscending ? leftValue - rightValue : rightValue - leftValue;
+    });
+    return result;
+  }
+
+  function showToast(message) {
+    if (model.destroyed) return;
     toast.textContent = message;
     toast.hidden = false;
-    if (toastTimer !== null) global.clearTimeout(toastTimer);
-    toastTimer = global.setTimeout(function hideToast() { toast.hidden = true; }, 3200);
+    if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
+    model.toastTimer = global.setTimeout(function () {
+      model.toastTimer = null;
+      if (!model.destroyed) toast.hidden = true;
+    }, 3200);
   }
-  function updateDiscoverAvailability() {
-    discoverTab.hidden = currentArticle();
-    articleTab.hidden = !currentArticle();
-    if (currentArticle() && activeTab === "discover") setTab("article");
-    if (!currentArticle() && activeTab === "article") setTab("discover");
-  }
-  function setTab(tabName) {
-    activeTab = tabName === "article" ? "article" : "discover";
-    panel.querySelectorAll("[data-tab]").forEach(function (node) {
-      node.setAttribute("aria-selected", node.getAttribute("data-tab") === activeTab ? "true" : "false");
-    });
-    discoverView.hidden = activeTab !== "discover";
-    articleView.hidden = activeTab !== "article";
-    if (activeTab === "article") renderArticle();
-  }
-  function firstPanelControl() { return panel.querySelector("button, input, select, a"); }
-  function setOpen(opened, trigger) {
-    var next = !!opened;
-    if (next === panelOpen) {
-      if (next) {
-        updateDiscoverAvailability();
-        renderDiscovery();
-        renderArticle();
-      }
-      return;
-    }
-    if (next) {
-      var active = doc.activeElement;
-      returnFocus = trigger && typeof trigger.focus === "function" ? trigger : active && active !== host && typeof active.focus === "function" ? active : launcher;
-      panelOpen = true;
-      panel.hidden = false;
-      launcher.setAttribute("aria-expanded", "true");
-      renderDiscovery();
-      renderArticle();
-      var control = firstPanelControl();
-      if (control && typeof control.focus === "function") control.focus();
+
+  function renderStatus(total, shown) {
+    if (!total) {
+      discoverStatus.textContent = "Keine Artikel verfügbar.";
+    } else if (!shown) {
+      discoverStatus.textContent = "Keine passenden Artikel.";
     } else {
-      panelOpen = false;
-      panel.hidden = true;
-      launcher.setAttribute("aria-expanded", "false");
-      var target = returnFocus && typeof returnFocus.focus === "function" ? returnFocus : launcher;
-      returnFocus = null;
-      if (target && typeof target.focus === "function") target.focus();
+      discoverStatus.textContent = shown + " von " + total + " Artikel" + (total === 1 ? "" : "n");
     }
   }
-  function card(item) {
-    var key = site.articleKey(item.key || item.url);
-    if (!key) return null;
-    var row = doc.createElement("tr");
-    row.className = "dsux-row";
-    var titleCell = doc.createElement("td");
-    titleCell.className = "dsux-title-cell";
-    var link = doc.createElement("a");
+
+  function restorePanelScroll(scrollTop) {
+    var routeEntry = model.routeEntry;
+    panel.scrollTop = scrollTop;
+    var restore = function () {
+      if (!model.destroyed && model.panelOpen && model.routeEntry === routeEntry) panel.scrollTop = scrollTop;
+    };
+    if (typeof global.requestAnimationFrame === "function") global.requestAnimationFrame(restore);
+    else global.setTimeout(restore, 0);
+  }
+
+  function renderRow(item) {
+    var key = item.key;
+    var row = make("tr", "dsux-row");
+    var titleCell = make("td", "dsux-title-cell");
+    var link = make("a", "", item.title || key);
     link.href = key;
-    link.textContent = item.title || key;
     titleCell.appendChild(link);
-    if (item.section) {
-      var rowMeta = doc.createElement("div");
-      rowMeta.className = "dsux-row-meta";
-      rowMeta.textContent = item.section;
-      titleCell.appendChild(rowMeta);
-    }
-    if (item.subtitle) {
-      var subtitle = doc.createElement("div");
-      subtitle.className = "dsux-subtitle";
-      subtitle.textContent = item.subtitle;
-      titleCell.appendChild(subtitle);
-    }
+    if (item.section) titleCell.appendChild(make("div", "dsux-row-meta", item.section));
+    if (item.subtitle) titleCell.appendChild(make("div", "dsux-subtitle", item.subtitle));
     var value = progressFor(key);
     if (value > 0) {
-      var progress = doc.createElement("div");
-      progress.className = "dsux-progress";
+      var progress = make("div", "dsux-progress");
       progress.setAttribute("role", "progressbar");
       progress.setAttribute("aria-label", "Lesefortschritt");
       progress.setAttribute("aria-valuemin", "0");
       progress.setAttribute("aria-valuemax", "100");
-      progress.setAttribute("aria-valuenow", String(pct(value)));
-      var fill = doc.createElement("span");
-      fill.style.width = pct(value) + "%";
+      progress.setAttribute("aria-valuenow", String(percent(value)));
+      var fill = make("span");
+      fill.style.width = percent(value) + "%";
       progress.appendChild(fill);
       titleCell.appendChild(progress);
     }
     row.appendChild(titleCell);
-    var dateCell = doc.createElement("td");
-    dateCell.className = "dsux-date-cell";
-    dateCell.textContent = item.publishedAt ? dateText(item.publishedAt) : "—";
-    row.appendChild(dateCell);
-    var countCell = doc.createElement("td");
-    countCell.className = "dsux-count-cell";
-    countCell.textContent = item.commentCount === null || item.commentCount === undefined ? "—" : String(item.commentCount);
-    row.appendChild(countCell);
-    var statusCell = doc.createElement("td");
-    statusCell.className = "dsux-status-cell";
-    var progressValue = progressFor(key);
-    if (progressValue > 0) {
-      var progressPercent = pct(progressValue);
-      statusCell.textContent = progressPercent >= 100 ? "✓" : progressPercent + "%";
-      statusCell.setAttribute("aria-label", progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%");
-      statusCell.title = progressPercent >= 100 ? "Gelesen" : "Lesefortschritt " + progressPercent + "%";
+    row.appendChild(make("td", "dsux-date-cell", dateText(item.publishedAt)));
+    row.appendChild(make("td", "dsux-count-cell", item.commentCount === null ? "—" : String(item.commentCount)));
+    var status = make("td", "dsux-status-cell");
+    if (isRead(key)) {
+      status.textContent = value >= 0.99 ? "✓" : percent(value) + "%";
+      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : "Lesefortschritt " + percent(value) + "%");
     }
-    row.appendChild(statusCell);
-    var actionsCell = doc.createElement("td");
-    actionsCell.className = "dsux-actions-cell";
-    var saved = has(state.saved, key);
-    var save = button(saved ? "★" : "☆", "dsux-save dsux-icon-button");
-    save.setAttribute("aria-pressed", saved ? "true" : "false");
-    save.setAttribute("aria-label", (saved ? "Lesezeichen entfernen: " : "Speichern: ") + (item.title || key));
-    save.title = saved ? "Lesezeichen entfernen" : "Speichern";
-    save.addEventListener("click", function onSaveClick(event) {
+    row.appendChild(status);
+
+    var actions = make("td", "dsux-actions-cell");
+    var actionGroup = make("div", "dsux-row-actions");
+    var save = button(isSaved(key) ? "★" : "☆", "dsux-save dsux-icon-button");
+    save.setAttribute("aria-pressed", isSaved(key) ? "true" : "false");
+    save.setAttribute("aria-label", (isSaved(key) ? "Lesezeichen entfernen: " : "Speichern: ") + (item.title || key));
+    save.setAttribute("title", isSaved(key) ? "Lesezeichen entfernen" : "Speichern");
+    save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
       storage.toggleSaved(key, item.title || "");
-      state = storage.load();
-      renderList();
-      decorate();
-      toastMessage(has(state.saved, key) ? "Gespeichert" : "Lesezeichen entfernt");
+      refreshSnapshot();
+      renderDiscovery();
+      showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
-    actionsCell.appendChild(save);
-    var isIgnored = ignored(key);
-    var ignore = button(isIgnored ? "↩" : "⊘", "dsux-ignore dsux-icon-button");
-    ignore.setAttribute("aria-pressed", isIgnored ? "true" : "false");
-    ignore.setAttribute("aria-label", (isIgnored ? "Wiederherstellen: " : "Ignorieren: ") + (item.title || key));
-    ignore.title = isIgnored ? "Wiederherstellen" : "Ignorieren";
-    ignore.addEventListener("click", function onIgnoreClick(event) {
+    actionGroup.appendChild(save);
+
+    var ignore = button(isIgnored(key) ? "↩" : "⊘", "dsux-ignore dsux-icon-button");
+    ignore.setAttribute("aria-pressed", isIgnored(key) ? "true" : "false");
+    ignore.setAttribute("aria-label", (isIgnored(key) ? "Wiederherstellen: " : "Ignorieren: ") + (item.title || key));
+    ignore.setAttribute("title", isIgnored(key) ? "Wiederherstellen" : "Ignorieren");
+    ignore.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      normalizeIgnoredForToggle(key);
+      var scrollTop = panel.scrollTop;
       storage.toggleIgnored(key, item.title || "");
-      state = storage.load();
-      renderList();
-      decorate();
-      toastMessage(ignored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
+      refreshSnapshot();
+      renderDiscovery();
+      restorePanelScroll(scrollTop);
+      showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
     });
-    actionsCell.appendChild(ignore);
-    row.appendChild(actionsCell);
+    actionGroup.appendChild(ignore);
+    actions.appendChild(actionGroup);
+    row.appendChild(actions);
     return row;
   }
-  function renderList() {
+
+  function renderDiscovery() {
+    if (model.destroyed) return;
+    search.value = model.query;
+    filter.value = model.filter;
+    var dateDirection = model.sort === "date" ? (model.sortAscending ? "ascending" : "descending") : "none";
+    var commentDirection = model.sort === "comments" ? (model.sortAscending ? "ascending" : "descending") : "none";
+    dateSort.setAttribute("data-direction", dateDirection);
+    commentSort.setAttribute("data-direction", commentDirection);
+    dateSort.setAttribute("aria-label", "Datum sortieren, aktuell " + (dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    commentSort.setAttribute("aria-label", "Kommentare sortieren, aktuell " + (commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    dateHeader.setAttribute("aria-sort", dateDirection);
+    commentHeader.setAttribute("aria-sort", commentDirection);
+
     while (list.firstChild) list.removeChild(list.firstChild);
-    var query = clean(search.value).toLocaleLowerCase();
-    var selected = filter.value || "all";
-    var sourceItems = items().filter(function (item) {
-      return selected === "ignored" ? ignored(item.key) : !ignored(item.key);
-    });
-    var result = sourceItems.filter(function (item) {
-      var key = item.key;
-      if (selected === "ignored" && !ignored(key)) return false;
-      if (selected === "read" && !read(key)) return false;
-      if (selected === "unread" && read(key)) return false;
-      if (selected === "saved" && !has(state.saved, key)) return false;
+    var query = text(model.query).toLocaleLowerCase();
+    var all = combinedItems();
+    var result = all.filter(function (item) {
+      var ignored = isIgnored(item.key);
+      if (model.filter === "ignored" ? !ignored : ignored) return false;
+      if (model.filter === "read" && !isRead(item.key)) return false;
+      if (model.filter === "unread" && isRead(item.key)) return false;
+      if (model.filter === "saved" && !isSaved(item.key)) return false;
       if (query && [item.title, item.subtitle, item.section, item.publishedAt, item.key].join(" ").toLocaleLowerCase().indexOf(query) === -1) return false;
       return true;
     });
+    renderStatus(all.length, result.length);
     if (!result.length) {
-      var empty = doc.createElement("tr");
-      empty.className = "dsux-empty";
-      var emptyCell = doc.createElement("td");
+      var emptyRow = make("tr", "dsux-empty");
+      var emptyCell = make("td", "", model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel.");
       emptyCell.colSpan = 5;
-      if (selected === "ignored") empty.textContent = "Keine ignorierten Artikel.";
-      else if (query || selected !== "all") empty.textContent = "Keine passenden Artikel.";
-        else if (!sourceItems.length) empty.textContent = "Keine Artikel gefunden.";
-      else empty.textContent = "Keine Artikel verfügbar.";
-      emptyCell.textContent = empty.textContent;
-      empty.textContent = "";
-      empty.appendChild(emptyCell);
-      list.appendChild(empty);
-      return;
+      emptyRow.appendChild(emptyCell);
+      list.appendChild(emptyRow);
+    } else {
+      result.forEach(function (item) { list.appendChild(renderRow(item)); });
     }
-    result.forEach(function (item) {
-      var node = card(item);
-      if (node) list.appendChild(node);
-    });
   }
-  function renderDiscovery() {
-    if (commentSortButton) {
-      commentSortButton.textContent = sortMode === "comments" ? "Kommentare ↓" : "Kommentare";
-      commentSortButton.setAttribute("aria-pressed", sortMode === "comments" ? "true" : "false");
+
+  function updateTabs() {
+    var available = !!currentArticle();
+    articleTab.hidden = !available;
+    discoverTab.hidden = false;
+    if (!available && model.activeTab === "article") model.activeTab = "discover";
+    discoverTab.setAttribute("aria-selected", model.activeTab === "discover" ? "true" : "false");
+    articleTab.setAttribute("aria-selected", model.activeTab === "article" ? "true" : "false");
+    discoverView.hidden = model.activeTab !== "discover";
+    articleView.hidden = model.activeTab !== "article";
+  }
+
+  function outlineEntries() {
+    model.outline = [];
+    var article = doc.querySelector("article.story-article");
+    var body = article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
+    if (!body) return model.outline;
+    var headings = body.querySelectorAll("h2,h3,h4");
+    for (var index = 0; index < headings.length; index += 1) {
+      var heading = headings[index];
+      var label = text(heading.textContent);
+      if (label) model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
     }
-    renderList();
+    return model.outline;
   }
-  function reduced() {
+
+  function prefersReducedMotion() {
     try {
-      return !!(global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      return typeof global.matchMedia === "function" && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
     } catch (_) {
       return false;
     }
   }
+
   function renderOutline() {
     while (outlineList.firstChild) outlineList.removeChild(outlineList.firstChild);
-    if (!currentArticle()) {
+    var entries = outlineEntries();
+    outline.hidden = !entries.length;
+    var stack = [{ level: 1, item: null, list: outlineList }];
+    entries.forEach(function (entry) {
+      var level = Math.max(2, Math.min(4, Number(entry.level) || 2));
+      while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
+      var parent = stack[stack.length - 1];
+      if (!parent.list) {
+        parent.list = make("ol");
+        parent.item.appendChild(parent.list);
+      }
+      var item = make("li");
+      var jump = button(entry.label);
+      jump.addEventListener("click", function () {
+        if (entry.node && typeof entry.node.scrollIntoView === "function") {
+          entry.node.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+        }
+      });
+      item.appendChild(jump);
+      parent.list.appendChild(item);
+      stack.push({ level: level, item: item, list: null });
+    });
+  }
+
+  function renderArticle() {
+    var article = currentArticle();
+    if (!article) {
+      articleTitle.textContent = "";
+      articleStatus.textContent = "Auf einer Artikelseite stehen Fortschritt, Fortsetzen und Übersicht zur Verfügung.";
+      articleProgress.hidden = true;
+      articleActions.hidden = true;
       outline.hidden = true;
       return;
     }
-    var article = doc.querySelector("article.story-article");
-    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
-    var headings = body ? body.querySelectorAll("h2,h3") : [];
-    outline.hidden = !headings.length;
-    var lastSection = null;
-    for (var i = 0; i < headings.length; i += 1) {
-      var heading = headings[i];
-      var label = clean(heading.textContent);
-      if (!label) continue;
-      if (!heading.id) {
-        heading.id = "dsux-outline-" + i;
-        heading.setAttribute("data-dsux-outline-id", "true");
-      }
-      var li = doc.createElement("li");
-      var link = doc.createElement("a");
-      link.href = "#" + heading.id;
-      link.textContent = label;
-      link.addEventListener("click", function onOutlineClick(event) {
-        event.preventDefault();
-        var target = doc.getElementById(event.currentTarget.getAttribute("href").slice(1));
-        if (target && target.scrollIntoView) target.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
-      });
-      li.appendChild(link);
-      if (String(heading.tagName).toLowerCase() === "h3" && lastSection) {
-        var children = lastSection.querySelector("ul");
-        if (!children) {
-          children = doc.createElement("ul");
-          lastSection.appendChild(children);
-        }
-        children.appendChild(li);
-      } else {
-        outlineList.appendChild(li);
-        lastSection = li;
-      }
-    }
-  }
-  function renderArticle() {
-    if (!currentArticle()) {
-      articleStatus.textContent = "Auf einer Artikelseite stehen Schriftgröße, Breite und Fortsetzen zur Verfügung.";
-      articleControls.hidden = true;
-      renderOutline();
-      return;
-    }
-    articleControls.hidden = false;
-    var value = progressFor(pageArticle.key);
-    articleStatus.textContent = (pageArticle.title || "Artikel") + " · " + pct(value) + "% gelesen";
-    scaleInput.value = String(state.prefs && state.prefs.fontScale || 1);
-    scaleOutput.textContent = pct(Number(scaleInput.value) || 1) + "%";
-    var width = state.prefs && state.prefs.lineWidth === "narrow" ? "narrow" : "medium";
-    articleView.querySelectorAll("[data-width]").forEach(function (node) {
-      var selected = node.getAttribute("data-width") === "narrow" ? width === "narrow" : width === "medium";
-      node.setAttribute("aria-pressed", selected ? "true" : "false");
-    });
-    resume.disabled = value < 0.02 || value > 0.98;
-    resume.textContent = value > 0.98 ? "Am Ende" : "Fortsetzen";
+    articleTitle.textContent = article.title || "Artikel";
+    var key = currentKey() || article.key;
+    var value = progressFor(key);
+    articleStatus.textContent = percent(value) + "% gelesen";
+    articleProgress.hidden = false;
+    articleProgress.setAttribute("aria-valuenow", String(percent(value)));
+    articleFill.style.width = percent(value) + "%";
+    articleActions.hidden = false;
+    var target = model.resumeKey === key ? model.resumeValue : 0;
+    resumeButton.disabled = !(target > 0.01 && target < 0.99);
+    resumeButton.setAttribute("aria-label", resumeButton.disabled ? "Kein gespeicherter Fortsetzpunkt" : "Fortsetzen");
     renderOutline();
   }
-  function applyArticle() {}
-  function resumeReading() {
-    if (!currentArticle()) return;
-    var value = progressFor(pageArticle.key);
-    if (value < 0.02 || value > 0.98) {
-      toastMessage("Kein gespeicherter Fortsetzpunkt");
-      return;
-    }
-    var max = Math.max(0, doc.documentElement.scrollHeight - global.innerHeight);
-    if (global.scrollTo) global.scrollTo({ top: max * value, behavior: reduced() ? "auto" : "smooth" });
+
+  function render() {
+    updateTabs();
+    renderDiscovery();
+    renderArticle();
   }
-  function scrollProgress() {
+
+  function focusWithoutScroll(node) {
+    if (!node || typeof node.focus !== "function") return;
+    try {
+      node.focus({ preventScroll: true });
+    } catch (_) {
+      node.focus();
+    }
+  }
+
+  function setOpen(open) {
+    var next = !!open;
+    var changed = next !== model.panelOpen;
+    model.panelOpen = next;
+    panel.hidden = !model.panelOpen;
+    launcher.setAttribute("aria-expanded", model.panelOpen ? "true" : "false");
+    if (model.panelOpen) {
+      render();
+      if (changed) focusWithoutScroll(closeButton);
+    } else if (changed) {
+      focusWithoutScroll(launcher);
+    }
+  }
+
+  function setTab(name) {
+    if (name === "article" && currentArticle()) model.activeTab = "article";
+    else model.activeTab = "discover";
+    updateTabs();
+    if (model.panelOpen && model.activeTab === "article") renderArticle();
+  }
+
+  function articleBounds() {
     var article = doc.querySelector("article.story-article");
-    var start = article ? article.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
+    if (!article) return null;
+    var body = article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article;
+    var rect = body.getBoundingClientRect();
+    var scrollTop = finite(global.pageYOffset) !== null ? global.pageYOffset : doc.documentElement.scrollTop || 0;
+    var start = rect.top + scrollTop;
+    var end = rect.bottom + scrollTop;
     var forum = doc.querySelector("#forum, dst-forum");
-    var articleEnd = body ? body.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : article ? article.getBoundingClientRect().bottom + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var forumStart = forum ? forum.getBoundingClientRect().top + (global.pageYOffset || doc.documentElement.scrollTop || 0) : 0;
-    var end = forumStart > start ? forumStart : articleEnd;
-    var range = Math.max(0, end - start);
-    var viewportBottom = (global.pageYOffset || doc.documentElement.scrollTop || 0) + global.innerHeight;
-    return range ? Math.max(0, Math.min(1, (viewportBottom - start) / range)) : 0;
+    if (forum) {
+      var forumTop = forum.getBoundingClientRect().top + scrollTop;
+      if (forumTop > start) end = forumTop;
+    }
+    return { start: start, end: end };
   }
-  function saveScroll() {
-    scrollTimer = null;
-    if (currentArticle()) {
-      storage.setProgress(pageArticle.key, scrollProgress());
-      state = storage.load();
-      if (panelOpen && activeTab === "article") renderArticle();
+
+  function progressNow() {
+    var bounds = articleBounds();
+    if (!bounds) return 0;
+    var range = bounds.end - bounds.start;
+    if (range <= 0) return 0;
+    var scrollTop = finite(global.pageYOffset) !== null ? global.pageYOffset : doc.documentElement.scrollTop || 0;
+    var viewportBottom = scrollTop + (finite(global.innerHeight) === null ? 0 : global.innerHeight);
+    return clamp((viewportBottom - bounds.start) / range, 0, 1);
+  }
+
+  function clearProgressTimer() {
+    if (model.progressTimer !== null) {
+      global.clearTimeout(model.progressTimer);
+      model.progressTimer = null;
     }
   }
+
   function onScroll() {
-    if (currentArticle() && scrollTimer === null) scrollTimer = global.setTimeout(saveScroll, 250);
+    var key = currentKey();
+    if (!key || !currentArticle() || model.destroyed || routeIdentity() !== model.routeIdentity) return;
+    clearProgressTimer();
+    var capturedKey = key;
+    var capturedIdentity = model.routeIdentity;
+    var capturedGeneration = model.generation;
+    model.progressTimer = global.setTimeout(function () {
+      model.progressTimer = null;
+      if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
+      var value = progressNow();
+      if (value === progressFor(capturedKey)) return;
+      storage.setProgress(capturedKey, value);
+    }, 250);
   }
-  function decorate() {}
-  function visibleRatingNode(node) {
-    var current = node;
-    while (current && current.nodeType === 1) {
-      if (!current.getAttribute) return false;
-      if (current.hidden || current.getAttribute("aria-hidden") === "true") return false;
-      var inline = current.getAttribute("style") || "";
-      if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(inline)) return false;
-      var view = current.ownerDocument && current.ownerDocument.defaultView;
-      if (view && typeof view.getComputedStyle === "function") {
-        var computed = view.getComputedStyle(current);
-        if (computed && (computed.display === "none" || computed.visibility === "hidden" || computed.visibility === "collapse" || computed.opacity === "0")) return false;
-      }
-      current = current.parentElement;
-    }
-    return !!node;
-  }
-  function validRatingValue(value) { return typeof value === "string" && /^[+]?\d+$/.test(value.trim()); }
-  function hasRatingAttributes(node) {
-    return !!(node && node.getAttribute && ((validRatingValue(node.getAttribute("positiveratings")) || validRatingValue(node.getAttribute("negativeratings")))));
-  }
-  function ratingsAvailable() {
-    var hosts = doc.querySelectorAll("dst-forum");
-    for (var i = 0; i < hosts.length; i += 1) {
-      var shadow = hosts[i].shadowRoot;
-      if (!shadow || !shadow.querySelectorAll) continue;
-      var logs = shadow.querySelectorAll("dst-posting--ratinglog");
-      for (var j = 0; j < logs.length; j += 1) {
-        if (!visibleRatingNode(logs[j])) continue;
-        if (hasRatingAttributes(logs[j])) return true;
-        var descendants = logs[j].querySelectorAll("[positiveratings],[negativeratings]");
-        for (var k = 0; k < descendants.length; k += 1) if (visibleRatingNode(descendants[k]) && hasRatingAttributes(descendants[k])) return true;
-      }
-      var postings = shadow.querySelectorAll("dst-posting");
-      for (var p = 0; p < postings.length; p += 1) if (visibleRatingNode(postings[p]) && hasRatingAttributes(postings[p])) return true;
-    }
-    return false;
-  }
-  function removeCommentControl() {
-    if (commentHost && commentHost.parentNode) commentHost.parentNode.removeChild(commentHost);
-    commentHost = null;
-    commentSelect = null;
-  }
-  function commentControl() {
-    if (!ratingsAvailable()) {
-      removeCommentControl();
+
+  function resumeReading() {
+    var key = currentKey();
+    var article = currentArticle();
+    if (!article || article.key !== model.routeKey || !key || model.resumeKey !== key) return;
+    var value = clamp(model.resumeValue, 0, 1);
+    if (!(value > 0.01 && value < 0.99)) {
+      showToast("Kein gespeicherter Fortsetzpunkt");
       return;
     }
-    if (commentHost) return;
-    var forum = doc.querySelector("#forum");
-    var hostNode = doc.querySelector("dst-forum");
-    var anchor = forum || hostNode;
-    if (!anchor || !anchor.parentNode) return;
-    commentHost = doc.createElement("div");
-    commentHost.className = "dsux-comment-control";
-    commentHost.style.cssText = "display:flex;align-items:center;gap:.5rem;margin:.75rem 0;padding:.55rem .65rem;border:1px solid #bbb;background:#fff;color:#111;font:14px system-ui,sans-serif";
-    commentHost.id = "dsux-comment-control";
-    var label = doc.createElement("label");
-    label.htmlFor = "dsux-comment-sort";
-    label.textContent = "Sortieren";
-    var select = doc.createElement("select");
-    commentSelect = select;
-    select.id = "dsux-comment-sort";
-    [["native", "Standard"], ["positive", "Positive Bewertungen"], ["negative", "Negative Bewertungen"], ["total", "Gesamtbewertungen"]].forEach(function (entry) {
-      var option = doc.createElement("option");
-      option.value = entry[0];
-      option.textContent = entry[1];
-      select.appendChild(option);
-    });
-    select.value = state.prefs && state.prefs.commentSort || "native";
-    commentHost.appendChild(label);
-    commentHost.appendChild(select);
-    anchor.parentNode.insertBefore(commentHost, anchor);
-    select.addEventListener("change", onCommentSortChange);
-    if (comments && comments.sort) comments.sort(select.value);
-  }
-  function onCommentSortChange() {
-    var mode = commentSelect && commentSelect.value;
-    mode = mode === "positive" || mode === "negative" || mode === "total" ? mode : "native";
-    pref("commentSort", mode);
-    if (comments && comments.sort) comments.sort(mode);
-  }
-  function onCommentChange(payload) {
-    if (payload && payload.available && ratingsAvailable()) commentControl();
-    else if (!ratingsAvailable()) {
-      if (comments && comments.sort) comments.sort("native");
-      removeCommentControl();
+    var bounds = articleBounds();
+    if (!bounds || typeof global.scrollTo !== "function") {
+      showToast("Kein gespeicherter Fortsetzpunkt");
+      return;
     }
-  }
-  function startComments() {
-    if (!comments || commentsStarted) return;
-    commentsStarted = true;
-    comments.init(onCommentChange);
-    if (ratingsAvailable()) commentControl();
-    else if (comments.sort) comments.sort("native");
-  }
-  function stopComments() {
-    if (commentsStarted && comments && comments.sort) comments.sort("native");
-    if (commentsStarted && comments && comments.disconnect) comments.disconnect();
-    commentsStarted = false;
-    removeCommentControl();
-  }
-  function scan() {
-    if (destroyed) return;
-    pageArticle = site.extractPageArticle(doc);
-    domItems = site.extractArticles(doc);
-    updateDiscoverAvailability();
-    if (pageArticle) {
-      markVisited(pageArticle.key, pageArticle.title);
-      applyArticle();
-      startComments();
-    } else {
-      stopComments();
+    var viewport = finite(global.innerHeight) === null ? 0 : global.innerHeight;
+    var target = bounds.start + value * Math.max(0, bounds.end - bounds.start) - viewport;
+    var max = Math.max(0, (doc.documentElement.scrollHeight || 0) - viewport);
+    target = clamp(target, 0, max);
+    try {
+      global.scrollTo({ top: target, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    } catch (_) {
+      showToast("Fortsetzen nicht verfügbar");
+      return;
     }
-    decorate();
-    if (panelOpen) {
-      renderDiscovery();
-      renderArticle();
-    }
+    model.resumeKey = "";
+    model.resumeValue = 0;
+    model.resumeEntry = model.routeEntry;
+    if (model.panelOpen) renderArticle();
   }
-  function schedule() {
-    if (scanTimer !== null) global.clearTimeout(scanTimer);
-    scanTimer = global.setTimeout(function runScan() {
-      scanTimer = null;
+
+  function routeIdentity() {
+    var href = global.location && global.location.href || doc.URL || "";
+    return articleKey(href) || canonicalUrl(href) || href;
+  }
+
+  function invalidateRoute(identity, force) {
+    var changed = identity !== model.routeIdentity;
+    if (!changed && !force) return false;
+    model.routeIdentity = identity;
+    model.routeKey = articleKey(global.location && global.location.href || doc.URL || "");
+    model.generation += 1;
+    clearProgressTimer();
+    if (changed) {
+      model.routeEntry += 1;
+      model.pageArticle = null;
+      model.pageItems = [];
+      model.resumeKey = "";
+      model.resumeValue = 0;
+      model.resumeEntry = -1;
+    }
+    return true;
+  }
+
+  function scheduleScan() {
+    if (model.destroyed) return;
+    if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
+    model.scanTimer = global.setTimeout(function () {
+      model.scanTimer = null;
       scan();
-    }, 180);
+    }, 120);
   }
-  function onLauncherClick() { setOpen(!panelOpen, launcher); }
+
+  function markCurrentVisited() {
+    var key = model.routeKey;
+    var article = currentArticle();
+    if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
+    model.markedEntry = model.routeEntry;
+    storage.markVisited(key, article.title || "");
+    refreshSnapshot();
+  }
+
+  function scan() {
+    if (model.destroyed) return;
+    model.generation += 1;
+    invalidateRoute(routeIdentity(), false);
+    var generation = model.generation;
+    var page = null;
+    var items = [];
+    try { page = site.extractPageArticle(doc); } catch (_) { page = null; }
+    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
+    if (model.destroyed || generation > model.generation) return;
+    var pageRecord = copyRecord(page, page && page.key, "page");
+    model.pageArticle = pageRecord && model.routeKey && pageRecord.key === model.routeKey ? pageRecord : null;
+    model.pageItems = [];
+    items.forEach(function (item) {
+      var copy = copyRecord(item, item && (item.key || item.url), "card");
+      if (copy) model.pageItems.push(copy);
+    });
+    var article = currentArticle();
+    var key = article && article.key === model.routeKey ? model.routeKey : "";
+    if (!key) {
+      if (model.resumeEntry !== model.routeEntry) {
+        model.resumeKey = "";
+        model.resumeValue = 0;
+        model.resumeEntry = -1;
+      }
+    } else if (model.resumeEntry !== model.routeEntry) {
+      model.resumeKey = key;
+      model.resumeValue = progressFor(key);
+      model.resumeEntry = model.routeEntry;
+    }
+    markCurrentVisited();
+    updateTabs();
+    if (model.panelOpen) render();
+  }
+
+  function startRoutePolling() {
+    if (model.destroyed || model.routePollTimer !== null) return;
+    model.routePollTimer = global.setTimeout(pollRoute, 250);
+  }
+
+  function pollRoute() {
+    model.routePollTimer = null;
+    if (model.destroyed) return;
+    if (invalidateRoute(routeIdentity(), false)) scheduleScan();
+    startRoutePolling();
+  }
+
+  function onRouteEvent() {
+    if (invalidateRoute(routeIdentity(), true)) scheduleScan();
+  }
+
+  function onStorageChange(next) {
+    if (model.destroyed) return;
+    model.snapshot = canonicalSnapshot(next);
+    if (model.panelOpen) render();
+  }
+
+  function onLauncherClick() { setOpen(!model.panelOpen); }
   function onCloseClick() { setOpen(false); }
   function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
-  function onSearchInput() { renderList(); }
-  function onFilterChange() { renderList(); }
-  function onScaleInput() {
-    pref("fontScale", scaleInput.value);
-    applyArticle();
-    renderArticle();
+  function onSearchInput() { model.query = search.value || ""; renderDiscovery(); }
+  function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
+  function cycleSort(field) {
+    if (model.sort !== field) {
+      model.sort = field;
+      model.sortAscending = false;
+    } else if (!model.sortAscending) {
+      model.sortAscending = true;
+    } else {
+      model.sort = "";
+      model.sortAscending = false;
+    }
+    renderDiscovery();
   }
-  function onWidthClick(event) {
-    pref("lineWidth", event.currentTarget.getAttribute("data-width") === "narrow" ? "narrow" : "medium");
-    applyArticle();
-    renderArticle();
-  }
+  function onDateSort() { cycleSort("date"); }
+  function onCommentSort() { cycleSort("comments"); }
   function onResumeClick() { resumeReading(); }
+
   function onExportClick() {
-    var blob = new Blob([storage.exportJson()], { type: "application/json" });
+    if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
+      showToast("Export nicht verfügbar");
+      return;
+    }
+    var blob = new global.Blob([storage.exportJson()], { type: "application/json" });
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
     var url = global.URL.createObjectURL(blob);
-    var link = doc.createElement("a");
-    link.href = url;
-    link.download = "derstandard-enhancer-daten.json";
-    link.click();
-    global.setTimeout(function revokeExportUrl() { global.URL.revokeObjectURL(url); }, 0);
-    toastMessage("Daten exportiert");
+    model.exportUrl = url;
+    var download = make("a");
+    download.href = url;
+    download.download = "derstandard-enhancer-daten.json";
+    shadow.appendChild(download);
+    download.click();
+    shadow.removeChild(download);
+    if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
+    model.exportTimer = global.setTimeout(function () {
+      model.exportTimer = null;
+      if (global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
+      if (model.exportUrl === url) model.exportUrl = null;
+    }, 0);
+    showToast("Daten exportiert");
   }
+
   function onImportChange() {
     var file = importInput.files && importInput.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function onImportLoad() {
+    if (!file || typeof global.FileReader !== "function") return;
+    var reader = new global.FileReader();
+    reader.onload = function () {
+      if (model.destroyed) return;
       if (storage.importJson(reader.result)) {
-        state = storage.load();
-        renderDiscovery();
-        renderArticle();
-        decorate();
-        toastMessage("Daten importiert");
-      } else toastMessage("Import abgelehnt: ungültige JSON-Daten");
+        refreshSnapshot();
+        render();
+        showToast("Daten importiert");
+      } else {
+        showToast("Import abgelehnt: ungültige JSON-Daten");
+      }
       importInput.value = "";
     };
     reader.readAsText(file);
   }
+
   function onClearClick() {
-    if (!global.confirm || global.confirm("Den lokalen Verlauf löschen? Lesefortschritt und gespeicherte Artikel bleiben erhalten. Ignorierte Artikel bleiben getrennt erhalten, bis sie wiederhergestellt oder über importierte lokale Daten entfernt werden.")) {
-      storage.clearVisited();
-      state = storage.load();
-      renderDiscovery();
-      renderArticle();
-      decorate();
-      toastMessage("Besuchsverlauf gelöscht; Fortschritt, Lesezeichen und ignorierte Artikel bleiben erhalten");
-    }
+    storage.clearVisited();
+    refreshSnapshot();
+    render();
+    showToast("Besuchsverlauf gelöscht");
   }
-  function onDocumentClick(event) {
-    var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
-    if (!anchor || host.contains(anchor)) return;
-    var key = site.articleKey(anchor.href || anchor.getAttribute("href"));
-    if (key) {
-      markVisited(key, titleFor(anchor));
-      decorate();
-    }
-  }
+
   function onKeydown(event) {
-    if (event.key === "Escape" && panelOpen) {
+    if (event.key === "Escape" && model.panelOpen) {
       event.preventDefault();
       setOpen(false);
       return;
     }
     if (!event.altKey || !event.shiftKey) return;
-    if (String(event.key).toLowerCase() === "o") {
+    var key = String(event.key || "").toLowerCase();
+    if (key === "o") {
       event.preventDefault();
-      setOpen(!panelOpen);
-    } else if (String(event.key).toLowerCase() === "r") {
+      setOpen(!model.panelOpen);
+    } else if (key === "r") {
       event.preventDefault();
       setOpen(true);
       setTab("article");
       resumeReading();
     }
   }
-  function onStorageChange(next) {
-    state = next;
-    var mode = state.prefs && state.prefs.commentSort;
-    mode = mode === "positive" || mode === "negative" || mode === "total" ? mode : "native";
-    if (commentSelect) commentSelect.value = mode;
-    if (commentsStarted && comments && comments.sort && ratingsAvailable()) comments.sort(mode);
-    applyArticle();
-    decorate();
-    if (panelOpen) {
-      renderDiscovery();
-      renderArticle();
-    }
-  }
-  function cleanupPageDecorations() {
-    var enhanced = doc.querySelectorAll("article.story-article[data-dsux-enhanced]");
-    for (var i = 0; i < enhanced.length; i += 1) {
-      enhanced[i].removeAttribute("data-dsux-enhanced");
-      enhanced[i].removeAttribute("data-dsux-line-width");
-      enhanced[i].style.removeProperty("--dsux-font-scale");
-      enhanced[i].style.removeProperty("--dsux-content-width");
-    }
-    var decorated = doc.querySelectorAll("[data-dsux-decoration='true']");
-    for (var j = 0; j < decorated.length; j += 1) {
-      decorated[j].classList.remove("dsux-card-read");
-      decorated[j].removeAttribute("data-dsux-progress");
-      decorated[j].removeAttribute("data-dsux-decoration");
-    }
-    var generated = doc.querySelectorAll("[data-dsux-outline-id='true']");
-    for (var k = 0; k < generated.length; k += 1) {
-      generated[k].removeAttribute("id");
-      generated[k].removeAttribute("data-dsux-outline-id");
-    }
-    var pageStyle = doc.querySelector("#dsux-enhancer-page-style");
-    if (pageStyle) pageStyle.remove();
-  }
+
   function teardown() {
-    if (destroyed) return;
-    destroyed = true;
-    if (scanTimer !== null) global.clearTimeout(scanTimer);
-    if (scrollTimer !== null) global.clearTimeout(scrollTimer);
-    if (toastTimer !== null) global.clearTimeout(toastTimer);
-    if (observer && observer.disconnect) observer.disconnect();
-    if (unsubscribe) unsubscribe();
-    stopComments();
-    global.removeEventListener("scroll", onScroll);
-    global.removeEventListener("popstate", schedule);
-    doc.removeEventListener("click", onDocumentClick);
-    doc.removeEventListener("keydown", onKeydown);
+    if (model.destroyed) return;
+    model.destroyed = true;
+    model.generation += 1;
+    if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
+    if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
+    if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
+    if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+    if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
+    if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
+    if (typeof model.unsubscribe === "function") model.unsubscribe();
     launcher.removeEventListener("click", onLauncherClick);
-    panel.querySelector(".dsux-close").removeEventListener("click", onCloseClick);
-    panel.querySelectorAll("[data-tab]").forEach(function (node) { node.removeEventListener("click", onTabClick); });
+    closeButton.removeEventListener("click", onCloseClick);
+    discoverTab.removeEventListener("click", onTabClick);
+    articleTab.removeEventListener("click", onTabClick);
     search.removeEventListener("input", onSearchInput);
     filter.removeEventListener("change", onFilterChange);
-    scaleInput.removeEventListener("input", onScaleInput);
-    articleView.querySelectorAll("[data-width]").forEach(function (node) { node.removeEventListener("click", onWidthClick); });
-    resume.removeEventListener("click", onResumeClick);
+    dateSort.removeEventListener("click", onDateSort);
+    commentSort.removeEventListener("click", onCommentSort);
+    resumeButton.removeEventListener("click", onResumeClick);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
-    clear.removeEventListener("click", onClearClick);
-    cleanupPageDecorations();
-    if (style.parentNode) style.parentNode.removeChild(style);
+    clearButton.removeEventListener("click", onClearClick);
+    global.removeEventListener("scroll", onScroll);
+    global.removeEventListener("popstate", onRouteEvent);
+    global.removeEventListener("hashchange", onRouteEvent);
+    doc.removeEventListener("keydown", onKeydown);
     if (host.parentNode) host.parentNode.removeChild(host);
     global.__DSUXEnhancerController = false;
     global.DSUXEnhancerTeardown = null;
   }
 
   launcher.addEventListener("click", onLauncherClick);
-  panel.querySelector(".dsux-close").addEventListener("click", onCloseClick);
-  panel.querySelectorAll("[data-tab]").forEach(function (node) { node.addEventListener("click", onTabClick); });
+  closeButton.addEventListener("click", onCloseClick);
+  discoverTab.addEventListener("click", onTabClick);
+  articleTab.addEventListener("click", onTabClick);
   search.addEventListener("input", onSearchInput);
   filter.addEventListener("change", onFilterChange);
-  scaleInput.addEventListener("input", onScaleInput);
-  articleView.querySelectorAll("[data-width]").forEach(function (node) { node.addEventListener("click", onWidthClick); });
-  resume.addEventListener("click", onResumeClick);
+  dateSort.addEventListener("click", onDateSort);
+  commentSort.addEventListener("click", onCommentSort);
+  resumeButton.addEventListener("click", onResumeClick);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
-  clear.addEventListener("click", onClearClick);
-  doc.addEventListener("click", onDocumentClick);
+  clearButton.addEventListener("click", onClearClick);
   global.addEventListener("scroll", onScroll, { passive: true });
-  global.addEventListener("popstate", schedule);
+  global.addEventListener("popstate", onRouteEvent);
+  global.addEventListener("hashchange", onRouteEvent);
   doc.addEventListener("keydown", onKeydown);
+
   if (typeof global.MutationObserver === "function") {
-    observer = new global.MutationObserver(schedule);
-    observer.observe(doc.documentElement || doc, { childList: true, subtree: true });
+    model.observer = new global.MutationObserver(function () { scheduleScan(); });
+    model.observer.observe(doc.documentElement, { childList: true, subtree: true });
   }
-  unsubscribe = storage.subscribe(onStorageChange);
+  model.unsubscribe = storage.subscribe(onStorageChange);
   global.DSUXEnhancerTeardown = teardown;
   scan();
-
+  startRoutePolling();
 }(typeof window !== "undefined" ? window : null));
