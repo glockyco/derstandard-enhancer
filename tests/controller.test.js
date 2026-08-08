@@ -132,6 +132,19 @@ async function installEnhancer(page, useGenerated = false) {
   await page.evaluate(() => document.querySelectorAll("script").forEach((node) => node.remove()));
   await expect(page.locator("html > div")).toHaveCount(1);
 }
+ 
+async function installInstrumented(page, { siteHook = null, storageHook = null, preControllerHook = null } = {}) {
+  await page.addScriptTag({ path: path.join(ROOT, "src/site.js") });
+  if (siteHook) await page.evaluate(siteHook);
+  await page.addScriptTag({ path: path.join(ROOT, "src/storage.js") });
+  if (storageHook) await page.evaluate(storageHook);
+  if (preControllerHook) await page.evaluate(preControllerHook);
+  await page.addScriptTag({ path: path.join(ROOT, "src/comments.js") });
+  await page.addScriptTag({ path: path.join(ROOT, "src/controller.js") });
+  await page.evaluate(() => document.querySelectorAll("script").forEach((node) => node.remove()));
+  await expect(page.locator("html > div")).toHaveCount(1);
+}
+
 
 function host(page) {
   return page.locator("html > div").first();
@@ -914,3 +927,265 @@ test("article initialization persists visited state and scrolling persists separ
   expect(durable.progress.value).toBeLessThanOrEqual(1);
   expect(typeof durable.progress.updatedAt).toBe("number");
 });
+
+test("closed scans defer full discovery until open and refresh only dirty open mutations", async ({ page }) => {
+  await fixture(page);
+  await installInstrumented(page, {
+    siteHook: () => {
+      const extractPageArticle = window.DSUXSite.extractPageArticle;
+      const extractArticles = window.DSUXSite.extractArticles;
+      window.__dsuxExtractPageArticleCalls = 0;
+      window.__dsuxExtractArticlesCalls = 0;
+      window.DSUXSite.extractPageArticle = function (...args) {
+        window.__dsuxExtractPageArticleCalls += 1;
+        return extractPageArticle.apply(this, args);
+      };
+      window.DSUXSite.extractArticles = function (...args) {
+        window.__dsuxExtractArticlesCalls += 1;
+        return extractArticles.apply(this, args);
+      };
+    },
+  });
+
+  await page.waitForTimeout(180);
+  const initialCalls = await page.evaluate(() => ({
+    page: window.__dsuxExtractPageArticleCalls,
+    articles: window.__dsuxExtractArticlesCalls,
+  }));
+  expect(initialCalls.page).toBeGreaterThan(0);
+  expect(initialCalls.articles).toBe(0);
+
+  await page.evaluate(() => {
+    const marker = document.createElement("div");
+    marker.dataset.closedMutation = "true";
+    document.querySelector("#fixture-content").appendChild(marker);
+  });
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
+    .toBeGreaterThan(initialCalls.page);
+  expect(await page.evaluate(() => window.__dsuxExtractArticlesCalls)).toBe(initialCalls.articles);
+
+  const firstClosedMutationCalls = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
+  await page.evaluate(() => {
+    const teaser = document.createElement("article");
+    teaser.className = "teaser";
+    teaser.dataset.section = "Neue Meldung";
+    teaser.innerHTML = '<a href="/story/999/geschlossene-meldung"><h3 class="teaser-title">Geschlossene Meldung</h3></a>';
+    document.querySelector("#fixture-content").appendChild(teaser);
+  });
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
+    .toBeGreaterThan(firstClosedMutationCalls);
+  expect(await page.evaluate(() => window.__dsuxExtractArticlesCalls)).toBe(initialCalls.articles);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractArticlesCalls))
+    .toBeGreaterThan(initialCalls.articles);
+  await expect(enhancer.locator(".dsux-table tbody")).toContainText("Geschlossene Meldung");
+});
+
+test("mutation UI follows the synchronous durable subscription instead of a stale result envelope", async ({ page }) => {
+  await fixture(page);
+  await installInstrumented(page, {
+    storageHook: () => {
+      const subscribe = window.DSUXStorage.subscribe;
+      const toggleSaved = window.DSUXStorage.toggleSaved;
+      window.__dsuxStorageAuthority = {
+        subscriptionSaved: null,
+        resultSaved: null,
+        durableSaved: null,
+      };
+      window.DSUXStorage.subscribe = function (listener) {
+        return subscribe.call(this, (next) => {
+          const divergent = Object.assign({}, next, { saved: {} });
+          const key = window.__dsuxStorageAuthority.key;
+          window.__dsuxStorageAuthority.subscriptionSaved = !!(divergent.saved && divergent.saved[key]);
+          listener(divergent);
+        });
+      };
+      window.DSUXStorage.toggleSaved = function (...args) {
+        window.__dsuxStorageAuthority.key = args[0];
+        const result = toggleSaved.apply(this, args);
+        window.__dsuxStorageAuthority.resultSaved = !!(result.state.saved && result.state.saved[args[0]]);
+        const durable = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state") || "{}");
+        window.__dsuxStorageAuthority.durableSaved = !!(durable.saved && durable.saved[args[0]]);
+        return result;
+      };
+    },
+  });
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const save = enhancer.locator(`[data-action="save"][data-key="${CURRENT_KEYS[0]}"]`);
+  await expect(save).toHaveAttribute("aria-pressed", "false");
+  await save.click();
+
+  const renderedSave = enhancer.locator(`[data-action="save"][data-key="${CURRENT_KEYS[0]}"]`);
+  await expect(renderedSave).toHaveAttribute("aria-pressed", "false");
+  expect(await page.evaluate(() => window.__dsuxStorageAuthority)).toEqual({
+    key: CURRENT_KEYS[0],
+    subscriptionSaved: false,
+    resultSaved: true,
+    durableSaved: true,
+  });
+  expect(await page.evaluate((key) => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return !!(state.saved && state.saved[key]);
+  }, CURRENT_KEYS[0])).toBe(true);
+});
+
+test("scroll progress flushes for the old article before route invalidation", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await installEnhancer(page);
+  await expect.poll(async () => page.evaluate((key) => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return !!(state.visited && state.visited[key]);
+  }, ARTICLE_KEY)).toBe(true);
+
+  const progress = await page.evaluate((key) => {
+    window.scrollTo(0, 600);
+    window.dispatchEvent(new Event("scroll"));
+    history.pushState({}, "", "/story/999/neue-leseprobe");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return state.progress && state.progress[key] ? state.progress[key].value : null;
+  }, ARTICLE_KEY);
+  expect(progress).toBeGreaterThan(0);
+});
+
+test("scroll progress flushes synchronously on pagehide before the debounce", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await installEnhancer(page);
+  await expect.poll(async () => page.evaluate((key) => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return !!(state.visited && state.visited[key]);
+  }, ARTICLE_KEY)).toBe(true);
+
+  const progress = await page.evaluate((key) => {
+    window.scrollTo(0, 600);
+    window.dispatchEvent(new Event("scroll"));
+    window.dispatchEvent(new Event("pagehide"));
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return state.progress && state.progress[key] ? state.progress[key].value : null;
+  }, ARTICLE_KEY);
+  expect(progress).toBeGreaterThan(0);
+});
+
+test("teardown flushes pending scroll progress before disconnecting storage", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await installEnhancer(page);
+  await expect.poll(async () => page.evaluate((key) => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return !!(state.visited && state.visited[key]);
+  }, ARTICLE_KEY)).toBe(true);
+
+  const progress = await page.evaluate((key) => {
+    window.scrollTo(0, 600);
+    window.dispatchEvent(new Event("scroll"));
+    window.DSUXEnhancerTeardown();
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return state.progress && state.progress[key] ? state.progress[key].value : null;
+  }, ARTICLE_KEY);
+  expect(progress).toBeGreaterThan(0);
+});
+
+test("fallback route polling is slow, pauses while hidden, and route events still scan", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await installInstrumented(page, {
+    siteHook: () => {
+      const extractPageArticle = window.DSUXSite.extractPageArticle;
+      window.__dsuxExtractPageArticleCalls = 0;
+      window.DSUXSite.extractPageArticle = function (...args) {
+        window.__dsuxExtractPageArticleCalls += 1;
+        return extractPageArticle.apply(this, args);
+      };
+    },
+    preControllerHook: () => {
+      const nativeSetTimeout = window.setTimeout;
+      const nativeClearTimeout = window.clearTimeout;
+      const state = { hidden: false, schedules: [] };
+      window.__dsuxRuntimeTimerState = state;
+      Object.defineProperty(document, "hidden", {
+        configurable: true,
+        get: () => state.hidden,
+      });
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => state.hidden ? "hidden" : "visible",
+      });
+      window.setTimeout = function (callback, delay, ...args) {
+        const normalizedDelay = Number(delay) || 0;
+        const entry = {
+          captured: normalizedDelay >= 2000,
+          callback,
+          delay: normalizedDelay,
+          hidden: state.hidden,
+          cleared: false,
+        };
+        state.schedules.push(entry);
+        if (entry.captured) return entry;
+        return nativeSetTimeout.call(window, callback, normalizedDelay, ...args);
+      };
+      window.clearTimeout = function (timer) {
+        if (timer && timer.captured) {
+          timer.cleared = true;
+          return;
+        }
+        return nativeClearTimeout.call(window, timer);
+      };
+    },
+  });
+
+  await page.waitForTimeout(180);
+  const initialSlowTimers = await page.evaluate(() => (
+    window.__dsuxRuntimeTimerState.schedules
+      .filter((entry) => entry.delay >= 2000 && !entry.hidden)
+      .map((entry) => ({ delay: entry.delay, hasCallback: typeof entry.callback === "function" }))
+  ));
+  expect(initialSlowTimers.length).toBeGreaterThan(0);
+  expect(initialSlowTimers[0].hasCallback).toBe(true);
+
+  const visibleBeforeRoute = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
+  await page.evaluate(() => history.pushState({}, "", "/story/1000/silent-visible"));
+  await page.waitForTimeout(180);
+  expect(await page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBe(visibleBeforeRoute);
+
+  await page.evaluate(() => {
+    window.__dsuxRuntimeTimerState.hidden = true;
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  const hiddenBeforeRoute = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
+  await page.evaluate(() => history.pushState({}, "", "/story/1001/silent-hidden"));
+  await page.waitForTimeout(180);
+  expect(await page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBe(hiddenBeforeRoute);
+  expect(await page.evaluate(() => (
+    window.__dsuxRuntimeTimerState.schedules.filter((entry) => entry.delay >= 2000 && entry.hidden).length
+  ))).toBe(0);
+
+  const routeEventBefore = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
+  await page.evaluate(() => {
+    history.pushState({}, "", "/story/1002/route-event");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
+    .toBeGreaterThan(routeEventBefore);
+  const routeEventAfter = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
+
+  const fallbackBefore = await page.evaluate(() => {
+    window.__dsuxRuntimeTimerState.hidden = false;
+    history.pushState({}, "", "/story/1003/silent-fallback");
+    const fallback = window.__dsuxRuntimeTimerState.schedules.find((entry) => (
+      entry.delay >= 2000 && !entry.hidden
+    ));
+    if (!fallback || typeof fallback.callback !== "function") return false;
+    fallback.callback();
+    return true;
+  });
+  expect(fallbackBefore).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
+    .toBeGreaterThan(routeEventAfter);
+  expect(await page.evaluate(() => (
+    window.__dsuxRuntimeTimerState.schedules.some((entry) => entry.delay >= 2000 && !entry.hidden)
+  ))).toBe(true);
+});
+
+

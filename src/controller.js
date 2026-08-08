@@ -32,8 +32,10 @@
     generation: 0,
     routeEntry: 0,
     markedEntry: 0,
+    discoveryDirty: true,
     scanTimer: null,
     progressTimer: null,
+    progressPending: null,
     toastTimer: null,
     exportTimer: null,
     exportUrl: null,
@@ -166,10 +168,6 @@
       return false;
     }
     model.lastError = "";
-    if (result.state && typeof result.state === "object") {
-      model.snapshot = result.state;
-      applySortPreference(model.snapshot);
-    }
     renderStorageState();
     if (successMessage) showToast(successMessage);
     return true;
@@ -522,6 +520,20 @@
     return assembleSource(entries);
   }
 
+  function ensureDiscovery() {
+    if (model.destroyed || !model.panelOpen || !model.discoveryDirty) return;
+    var generation = model.generation;
+    var items = [];
+    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
+    if (model.destroyed || generation !== model.generation) return;
+    model.pageItems = [];
+    items.forEach(function (item) {
+      var copy = copyRecord(item, item && (item.key || item.url), "card");
+      if (copy) model.pageItems.push(copy);
+    });
+    model.discoveryDirty = false;
+  }
+
   function discoveryItems() {
     var result = model.scope === "local" ? localSourceItems() : pageSourceItems();
     if (!model.sort) return result;
@@ -656,7 +668,6 @@
       event.stopPropagation();
       var result = storageResult(function () { return storage.toggleSaved(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
-      renderDiscovery();
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
     actionGroup.appendChild(save);
@@ -673,7 +684,6 @@
       var scrollTop = panel.scrollTop;
       var result = storageResult(function () { return storage.toggleIgnored(key, item.title || ""); });
       if (!applyMutationResult(result)) return;
-      renderDiscovery();
       restorePanelScroll(scrollTop);
       showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
     });
@@ -696,7 +706,7 @@
     dateSort.setAttribute("aria-label", "Datum sortieren, aktuell " + (dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"));
     commentSort.setAttribute("aria-label", "Kommentare sortieren, aktuell " + (commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"));
     dateHeader.setAttribute("aria-sort", dateDirection);
-    commentHeader.setAttribute("aria-sort", commentDirection);
+    ensureDiscovery();
 
     while (list.firstChild) list.removeChild(list.firstChild);
     var query = text(model.query).toLocaleLowerCase();
@@ -1016,6 +1026,7 @@
     updateTabs();
     if (model.panelOpen && model.activeTab === "article") renderArticle();
     if (model.panelOpen && model.activeTab === "data") renderData();
+    if (model.panelOpen && model.activeTab === "discover") renderDiscovery();
   }
 
   function articleBounds() {
@@ -1051,21 +1062,24 @@
     }
   }
 
+  function flushProgress() {
+    clearProgressTimer();
+    var pending = model.progressPending;
+    model.progressPending = null;
+    if (!pending || model.destroyed) return;
+    if (pending.value === progressFor(pending.key)) return;
+    applyMutationResult(storageResult(function () { return storage.setProgress(pending.key, pending.value); }));
+  }
+
   function onScroll() {
     var key = currentKey();
     if (!key || !currentArticle() || model.destroyed || routeIdentity() !== model.routeIdentity) return;
+    var value = progressNow();
+    model.progressPending = { key: key, value: value, identity: model.routeIdentity };
     clearProgressTimer();
-    var capturedKey = key;
-    var capturedIdentity = model.routeIdentity;
-    var capturedGeneration = model.generation;
-    model.progressTimer = global.setTimeout(function () {
-      model.progressTimer = null;
-      if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
-      var value = progressNow();
-      if (value === progressFor(capturedKey)) return;
-      applyMutationResult(storageResult(function () { return storage.setProgress(capturedKey, value); }));
-    }, 250);
+    model.progressTimer = global.setTimeout(flushProgress, 250);
   }
+
 
   function resumeReading() {
     var key = currentKey();
@@ -1104,6 +1118,7 @@
   }
 
   function invalidateRoute(identity, force) {
+    flushProgress();
     var changed = identity !== model.routeIdentity;
     if (!changed && !force) return false;
     model.routeIdentity = identity;
@@ -1115,6 +1130,7 @@
       model.routeEntry += 1;
       model.pageArticle = null;
       model.pageItems = [];
+      model.discoveryDirty = true;
       model.resumeKey = "";
       model.resumeValue = 0;
       model.resumeEntry = -1;
@@ -1134,9 +1150,11 @@
   function markCurrentVisited() {
     var key = model.routeKey;
     var article = currentArticle();
-    if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
+    if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return false;
     var result = storageResult(function () { return storage.markVisited(key, article.title || ""); });
-    if (applyMutationResult(result)) model.markedEntry = model.routeEntry;
+    if (!applyMutationResult(result)) return false;
+    model.markedEntry = model.routeEntry;
+    return true;
   }
 
   function scan() {
@@ -1145,17 +1163,12 @@
     invalidateRoute(routeIdentity(), false);
     var generation = model.generation;
     var page = null;
-    var items = [];
     try { page = site.extractPageArticle(doc); } catch (_) { page = null; }
-    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
     if (model.destroyed || generation > model.generation) return;
     var pageRecord = copyRecord(page, page && page.key, "page");
     model.pageArticle = pageRecord && model.routeKey && pageRecord.key === model.routeKey ? pageRecord : null;
-    model.pageItems = [];
-    items.forEach(function (item) {
-      var copy = copyRecord(item, item && (item.key || item.url), "card");
-      if (copy) model.pageItems.push(copy);
-    });
+    model.discoveryDirty = true;
+    ensureDiscovery();
     var article = currentArticle();
     var key = article && article.key === model.routeKey ? model.routeKey : "";
     if (!key) {
@@ -1170,19 +1183,19 @@
       model.resumeEntry = model.routeEntry;
     }
     syncCommentsLifecycle();
-    markCurrentVisited();
     updateTabs();
-    if (model.panelOpen) render();
+    var marked = markCurrentVisited();
+    if (model.panelOpen && !marked) render();
   }
 
   function startRoutePolling() {
-    if (model.destroyed || model.routePollTimer !== null) return;
-    model.routePollTimer = global.setTimeout(pollRoute, 250);
+    if (model.destroyed || model.routePollTimer !== null || doc.hidden) return;
+    model.routePollTimer = global.setTimeout(pollRoute, 2000);
   }
 
   function pollRoute() {
     model.routePollTimer = null;
-    if (model.destroyed) return;
+    if (model.destroyed || doc.hidden) return;
     if (invalidateRoute(routeIdentity(), false)) scheduleScan();
     startRoutePolling();
   }
@@ -1190,6 +1203,23 @@
   function onRouteEvent() {
     if (invalidateRoute(routeIdentity(), true)) scheduleScan();
   }
+  function onVisibilityChange() {
+    if (doc.hidden) {
+      if (model.routePollTimer !== null) {
+        global.clearTimeout(model.routePollTimer);
+        model.routePollTimer = null;
+      }
+      flushProgress();
+      return;
+    }
+    if (invalidateRoute(routeIdentity(), false)) scheduleScan();
+    startRoutePolling();
+  }
+
+  function onPagehide() {
+    flushProgress();
+  }
+
 
   function onStorageChange(next) {
     if (model.destroyed) return;
@@ -1227,23 +1257,27 @@
   function onScopeChange() { model.scope = scope.value === "local" ? "local" : "page"; renderDiscovery(); }
   function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
   function cycleSort(field) {
-    if (model.sort !== field) {
-      model.sort = field;
-      model.sortAscending = false;
-    } else if (!model.sortAscending) {
-      model.sortAscending = true;
+    var nextSort = model.sort;
+    var nextAscending = model.sortAscending;
+    if (nextSort !== field) {
+      nextSort = field;
+      nextAscending = false;
+    } else if (!nextAscending) {
+      nextAscending = true;
     } else {
-      model.sort = "";
-      model.sortAscending = false;
+      nextSort = "";
+      nextAscending = false;
     }
     var result = storageResult(function () {
       return storage.setPreferences({
-        discoverySort: model.sort,
-        discoverySortAscending: model.sortAscending
+        discoverySort: nextSort,
+        discoverySortAscending: nextAscending
       });
     });
-    if (!applyMutationResult(result)) applySortPreference(model.snapshot);
-    if (model.panelOpen) renderDiscovery();
+    if (!applyMutationResult(result)) {
+      applySortPreference(model.snapshot);
+      if (model.panelOpen) renderDiscovery();
+    }
   }
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
@@ -1265,8 +1299,8 @@
       model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
       comments.sort(model.commentSort);
       commentSortSelect.value = model.commentSort;
+      if (model.panelOpen && model.activeTab === "article") renderComments();
     }
-    renderComments();
   }
 
 
@@ -1395,7 +1429,7 @@
     if (!applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) return;
     model.pendingImport = null;
     importInput.value = "";
-    render();
+    renderData();
     focusWithoutScroll(importInput);
   }
 
@@ -1421,7 +1455,7 @@
     var result = storageResult(function () { return storage.clearVisited(); }, "clear-visited-failed");
     if (!applyMutationResult(result, "Besuchsverlauf gelöscht")) return;
     model.clearPending = false;
-    render();
+    renderData();
     focusWithoutScroll(clearButton);
   }
 
@@ -1453,13 +1487,12 @@
   }
 
   function teardown() {
-    if (model.destroyed) return;
+    flushProgress();
     model.destroyed = true;
     model.generation += 1;
     discardImportRead();
     clearReadingFocusTarget();
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
-    if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
     if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
@@ -1491,6 +1524,8 @@
     global.removeEventListener("scroll", onScroll);
     global.removeEventListener("popstate", onRouteEvent);
     global.removeEventListener("hashchange", onRouteEvent);
+    global.removeEventListener("pagehide", onPagehide);
+    doc.removeEventListener("visibilitychange", onVisibilityChange);
     doc.removeEventListener("keydown", onKeydown);
     if (host.parentNode) host.parentNode.removeChild(host);
     global.__DSUXEnhancerController = false;
@@ -1526,6 +1561,8 @@
     model.observer = new global.MutationObserver(function () { scheduleScan(); });
     model.observer.observe(doc.documentElement, { childList: true, subtree: true });
   }
+  global.addEventListener("pagehide", onPagehide);
+  doc.addEventListener("visibilitychange", onVisibilityChange);
   model.unsubscribe = storage.subscribe(onStorageChange);
   global.DSUXEnhancerTeardown = teardown;
   scan();
