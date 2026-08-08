@@ -23,31 +23,50 @@ class FakeElement {
     return this;
   }
 
-  get firstChild() { return this.children[0] || null; }
+  get firstChild() {
+    return this.children[0] || null;
+  }
   get nextSibling() {
     if (!this.parentElement) return null;
     const index = this.parentElement.children.indexOf(this);
     return this.parentElement.children[index + 1] || null;
   }
-  get textContent() { return this._text + this.children.map((child) => child.textContent).join(""); }
-  get nodeName() { return this.tagName; }
-  get href() { return this.attributes.href || ""; }
+  get textContent() {
+    return this._text + this.children.map((child) => child.textContent).join("");
+  }
+  get nodeName() {
+    return this.tagName;
+  }
+  get href() {
+    return this.attributes.href || "";
+  }
 
-  getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null; }
-  setAttribute(name, value) { this.attributes[name] = String(value); }
+  getAttribute(name) {
+    return Object.hasOwn(this.attributes, name) ? this.attributes[name] : null;
+  }
+  setAttribute(name, value) {
+    this.attributes[name] = String(value);
+  }
 
   matches(selector) {
     return selector.split(",").some((part) => {
       const value = part.trim();
-      if (value === "article.story-article") return this.localName === "article" && String(this.attributes.class || "").split(/\s+/).indexOf("story-article") !== -1;
+      if (value === "article.story-article")
+        return (
+          this.localName === "article" &&
+          String(this.attributes.class || "")
+            .split(/\s+/)
+            .indexOf("story-article") !== -1
+        );
       if (value === "li") return this.localName === "li";
       if (value === "a[href]") return this.localName === "a" && !!this.getAttribute("href");
       if (value === "h3.teaser-title") return this.localName === "h3" && this.attributes.class === "teaser-title";
-      if (value === "dst-rl-timestamp[date]") return this.localName === "dst-rl-timestamp" && !!this.getAttribute("date");
+      if (value === "dst-rl-timestamp[date]")
+        return this.localName === "dst-rl-timestamp" && !!this.getAttribute("date");
       if (value === ".js-forum-postingcount") return this.attributes.class === "js-forum-postingcount";
       if (value === ".article-postingcount") return this.attributes.class === "article-postingcount";
       if (value === ".teaser-postingcount") return this.attributes.class === "teaser-postingcount";
-      if (value === '[aria-labelledby]') return !!this.getAttribute("aria-labelledby");
+      if (value === "[aria-labelledby]") return !!this.getAttribute("aria-labelledby");
       if (value === '[class*="teaser"]') return String(this.attributes.class || "").includes("teaser");
       return false;
     });
@@ -65,7 +84,9 @@ class FakeElement {
     return found;
   }
 
-  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  querySelector(selector) {
+    return this.querySelectorAll(selector)[0] || null;
+  }
 
   closest(selector) {
     let node = this;
@@ -88,7 +109,9 @@ class FakeDocument extends FakeElement {
     this.append(...children);
   }
 
-  getElementById(id) { return this.querySelector(`[id="${id}"]`); }
+  getElementById(id) {
+    return this.querySelector(`[id="${id}"]`);
+  }
 }
 
 function makeSite() {
@@ -103,7 +126,7 @@ function makeCard(href, title, comments, date) {
     new FakeElement("a", { href }),
     new FakeElement("h3", { class: "teaser-title" }, title),
     new FakeElement("span", { class: "teaser-postingcount" }, comments),
-    new FakeElement("dst-rl-timestamp", { date }),
+    new FakeElement("dst-rl-timestamp", { date })
   );
   return card;
 }
@@ -111,12 +134,18 @@ function makeCard(href, title, comments, date) {
 test("article identity normalizes protocol, credentials, ports, and article query data", () => {
   const site = makeSite();
   expect(site.canonicalUrl("http://derstandard.at/story/123/title")).toBe("https://derstandard.at/story/123/title");
-  expect(site.canonicalUrl("https://reader:secret@derstandard.at/story/123/title")).toBe("https://derstandard.at/story/123/title");
-  expect(site.canonicalUrl("https://derstandard.at:8443/story/123/title")).toBe("https://derstandard.at/story/123/title");
+  expect(site.canonicalUrl("https://reader:secret@derstandard.at/story/123/title")).toBe(
+    "https://derstandard.at/story/123/title"
+  );
+  expect(site.canonicalUrl("https://derstandard.at:8443/story/123/title")).toBe(
+    "https://derstandard.at/story/123/title"
+  );
   const input = "http://reader:secret@www.derstandard.at:8443/story/123/title?utm_source=newsletter&foo=bar#comments";
   expect(site.canonicalUrl(input)).toBe("https://derstandard.at/story/123/title?foo=bar");
   expect(site.articleKey(input)).toBe("https://derstandard.at/story/123/title");
-  expect(site.articleKey("https://derstandard.at/story/123/title?arbitrary=value#section")).toBe("https://derstandard.at/story/123/title");
+  expect(site.articleKey("https://derstandard.at/story/123/title?arbitrary=value#section")).toBe(
+    "https://derstandard.at/story/123/title"
+  );
   expect(site.isArticleUrl("https://derstandard.at/story/123/title?arbitrary=value#section")).toBe(true);
 });
 
@@ -143,13 +172,13 @@ test("article extraction prefers nested teaser metadata over an outer article", 
     new FakeElement("a", { href: "/story/321/nested-title" }),
     new FakeElement("h3", { class: "teaser-title" }, "Nested headline"),
     new FakeElement("span", { class: "teaser-postingcount" }, "12 Kommentare"),
-    new FakeElement("dst-rl-timestamp", { date: "2025-02-03" }),
+    new FakeElement("dst-rl-timestamp", { date: "2025-02-03" })
   );
   outer.append(
     new FakeElement("h3", { class: "teaser-title" }, "Outer headline"),
     new FakeElement("span", { class: "teaser-postingcount" }, "999 Kommentare"),
     new FakeElement("dst-rl-timestamp", { date: "2024-01-01" }),
-    teaser,
+    teaser
   );
 
   const articles = makeSite().extractArticles(new FakeDocument([outer]));
@@ -162,7 +191,6 @@ test("article extraction prefers nested teaser metadata over an outer article", 
     section: "Innen",
   });
 });
-
 
 test("comment counts accept localized integer formatting", () => {
   const site = makeSite();
@@ -185,5 +213,10 @@ test("article extraction deduplicates canonical links and keeps card metadata", 
     "https://derstandard.at/story/123/title",
     "https://derstandard.at/story/456/zweite",
   ]);
-  expect(articles[0]).toMatchObject({ title: "Erste Meldung", commentCount: 1234, publishedAt: "2025-01-02", source: "card" });
+  expect(articles[0]).toMatchObject({
+    title: "Erste Meldung",
+    commentCount: 1234,
+    publishedAt: "2025-01-02",
+    source: "card",
+  });
 });

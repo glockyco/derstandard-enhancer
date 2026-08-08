@@ -1,11 +1,9 @@
-(function (global) {
-  'use strict';
-
+((global) => {
   if (!global) {
     return;
   }
 
-  var mode = 'native';
+  var mode = "native";
   var changeHandler = null;
   var documentObserver = null;
   var shadowObservers = [];
@@ -16,23 +14,21 @@
   var active = false;
 
   function normalizeMode(value) {
-    return value === 'positive' || value === 'negative' || value === 'total'
-      ? value
-      : 'native';
+    return value === "positive" || value === "negative" || value === "total" ? value : "native";
   }
 
   function notify(count, available) {
     var payload = {
       count: count,
       mode: mode,
-      available: available
+      available: available,
     };
-    var signature = String(count) + '|' + String(mode) + '|' + String(available);
+    var signature = `${String(count)}|${String(mode)}|${String(available)}`;
     if (signature === lastNotification) {
       return;
     }
     lastNotification = signature;
-    if (typeof changeHandler === 'function') {
+    if (typeof changeHandler === "function") {
       try {
         changeHandler(payload);
       } catch (_) {
@@ -42,7 +38,7 @@
   }
 
   function parseRating(node, attribute) {
-    if (!node || typeof node.getAttribute !== 'function') {
+    if (!node || typeof node.getAttribute !== "function") {
       return 0;
     }
     var raw;
@@ -51,7 +47,7 @@
     } catch (_) {
       return 0;
     }
-    if (typeof raw !== 'string') {
+    if (typeof raw !== "string") {
       return 0;
     }
     raw = raw.trim();
@@ -63,14 +59,14 @@
   }
 
   function visible(node) {
-    if (!node || typeof node.getAttribute !== 'function') {
+    if (!node || typeof node.getAttribute !== "function") {
       return false;
     }
     try {
-      if (node.hidden || node.getAttribute('aria-hidden') === 'true') {
+      if (node.hidden || node.getAttribute("aria-hidden") === "true") {
         return false;
       }
-      var style = node.getAttribute('style') || '';
+      var style = node.getAttribute("style") || "";
       if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style)) {
         return false;
       }
@@ -86,10 +82,10 @@
     }
     var logs = [];
     try {
-      if (typeof node.querySelectorAll === 'function') {
-        logs = Array.prototype.slice.call(node.querySelectorAll('dst-posting--ratinglog'));
-      } else if (typeof node.querySelector === 'function') {
-        var log = node.querySelector('dst-posting--ratinglog');
+      if (typeof node.querySelectorAll === "function") {
+        logs = Array.prototype.slice.call(node.querySelectorAll("dst-posting--ratinglog"));
+      } else if (typeof node.querySelector === "function") {
+        var log = node.querySelector("dst-posting--ratinglog");
         if (log) {
           logs = [log];
         }
@@ -103,7 +99,7 @@
       }
       var candidates = [logs[i]];
       try {
-        var descendants = logs[i].querySelectorAll('[' + attribute + ']');
+        var descendants = logs[i].querySelectorAll(`[${attribute}]`);
         for (var j = 0; j < descendants.length; j += 1) {
           candidates.push(descendants[j]);
         }
@@ -115,7 +111,7 @@
           continue;
         }
         var raw = candidates[k].getAttribute(attribute);
-        if (typeof raw === 'string' && /^[+]?\d+$/.test(raw.trim())) {
+        if (typeof raw === "string" && /^[+]?\d+$/.test(raw.trim())) {
           var value = Number(raw.trim());
           if (Number.isFinite(value)) {
             return value;
@@ -127,27 +123,27 @@
   }
 
   function ratings(node) {
-    var positive = visibleRating(node, 'positiveratings');
-    var negative = visibleRating(node, 'negativeratings');
+    var positive = visibleRating(node, "positiveratings");
+    var negative = visibleRating(node, "negativeratings");
     if (positive === null) {
-      positive = parseRating(node, 'positiveratings');
+      positive = parseRating(node, "positiveratings");
     }
     if (negative === null) {
-      negative = parseRating(node, 'negativeratings');
+      negative = parseRating(node, "negativeratings");
     }
     return {
       positive: positive,
       negative: negative,
-      total: positive + negative
+      total: positive + negative,
     };
   }
 
   function findMain(root) {
-    if (!root || typeof root.querySelector !== 'function') {
+    if (!root || typeof root.querySelector !== "function") {
       return null;
     }
     try {
-      return root.querySelector('section#forum main.forum--main');
+      return root.querySelector("section#forum main.forum--main");
     } catch (_) {
       return null;
     }
@@ -155,13 +151,13 @@
 
   function discoverMain() {
     var doc = global.document;
-    if (!doc || typeof doc.querySelectorAll !== 'function') {
+    if (!doc || typeof doc.querySelectorAll !== "function") {
       return null;
     }
 
     var hosts;
     try {
-      hosts = doc.querySelectorAll('dst-forum');
+      hosts = doc.querySelectorAll("dst-forum");
     } catch (_) {
       return null;
     }
@@ -192,37 +188,35 @@
       }
     }
 
-    if (typeof global.MutationObserver !== 'function') {
+    if (typeof global.MutationObserver !== "function") {
       return;
     }
 
     var observer;
     try {
-      observer = new global.MutationObserver(function () {
+      observer = new global.MutationObserver(() => {
         refresh();
       });
       observer.observe(shadow, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['positiveratings', 'negativeratings', 'style', 'hidden', 'aria-hidden']
+        attributeFilter: ["positiveratings", "negativeratings", "style", "hidden", "aria-hidden"],
       });
       shadowObservers.push({ shadow: shadow, observer: observer });
     } catch (_) {
-      if (observer && typeof observer.disconnect === 'function') {
+      if (observer && typeof observer.disconnect === "function") {
         observer.disconnect();
       }
     }
   }
 
   function collectNodes(main) {
-    if (!main || typeof main.querySelectorAll !== 'function') {
+    if (!main || typeof main.querySelectorAll !== "function") {
       return [];
     }
     try {
-      return Array.prototype.slice.call(
-        main.querySelectorAll("dst-posting[data-level='0']")
-      );
+      return Array.prototype.slice.call(main.querySelectorAll("dst-posting[data-level='0']"));
     } catch (_) {
       return [];
     }
@@ -238,7 +232,7 @@
   }
 
   function synchronizeNativeOrder(record, nodes, preserveBaseline) {
-    if (mode === 'native' && !preserveBaseline) {
+    if (mode === "native" && !preserveBaseline) {
       record.nativeOrder = nodes.slice();
       return;
     }
@@ -253,8 +247,8 @@
   function compareNodes(a, b, sortMode) {
     var ar = ratings(a.node);
     var br = ratings(b.node);
-    var av = sortMode === 'positive' ? ar.positive : sortMode === 'negative' ? ar.negative : ar.total;
-    var bv = sortMode === 'positive' ? br.positive : sortMode === 'negative' ? br.negative : br.total;
+    var av = sortMode === "positive" ? ar.positive : sortMode === "negative" ? ar.negative : ar.total;
+    var bv = sortMode === "positive" ? br.positive : sortMode === "negative" ? br.negative : br.total;
     if (av !== bv) {
       return bv - av;
     }
@@ -274,7 +268,7 @@
         break;
       }
     }
-    if (unchanged || !parent || typeof parent.insertBefore !== 'function') {
+    if (unchanged || !parent || typeof parent.insertBefore !== "function") {
       return;
     }
 
@@ -296,7 +290,7 @@
 
     var fragment;
     var doc = global.document;
-    if (doc && typeof doc.createDocumentFragment === 'function') {
+    if (doc && typeof doc.createDocumentFragment === "function") {
       fragment = doc.createDocumentFragment();
       for (var m = 0; m < nodes.length; m += 1) {
         fragment.appendChild(nodes[m]);
@@ -327,7 +321,7 @@
       entries.push({
         node: nodes[i],
         nativeIndex: indexOfNode(record.nativeOrder, nodes[i]),
-        position: i
+        position: i,
       });
     }
 
@@ -357,28 +351,28 @@
       for (var c = 0; c < groupEntries.length; c += 1) {
         current.push(groupEntries[c].node);
       }
-      var desired = groupEntries.slice().sort(function (a, b) {
-        if (orderMode === 'native') {
-          var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
-          var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
-          return ai - bi || a.position - b.position;
-        }
-        return compareNodes(a, b, orderMode);
-      }).map(function (entry) {
-        return entry.node;
-      });
+      var desired = groupEntries
+        .slice()
+        .sort((a, b) => {
+          if (orderMode === "native") {
+            var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+            var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+            return ai - bi || a.position - b.position;
+          }
+          return compareNodes(a, b, orderMode);
+        })
+        .map((entry) => entry.node);
       // The selector returns document order, which is the native/current order.
       reorderGroup(groups[h].parent, current, desired);
     }
   }
 
   function restoreNativeOrder(record) {
-    if (!record || !record.main) {
+    if (!record?.main) {
       return;
     }
-    applyOrder(record, collectNodes(record.main), 'native');
+    applyOrder(record, collectNodes(record.main), "native");
   }
-
 
   function scheduleRetry() {
     if (
@@ -386,12 +380,12 @@
       currentRecord ||
       retryTimer !== null ||
       retryAttempts >= 40 ||
-      typeof global.setTimeout !== 'function'
+      typeof global.setTimeout !== "function"
     ) {
       return;
     }
     retryAttempts += 1;
-    retryTimer = global.setTimeout(function () {
+    retryTimer = global.setTimeout(() => {
       retryTimer = null;
       refresh();
       if (active && !currentRecord) {
@@ -405,7 +399,7 @@
       return;
     }
     var main = discoverMain();
-    if (main !== (currentRecord && currentRecord.main)) {
+    if (main !== currentRecord?.main) {
       currentRecord = main ? { main: main, nativeOrder: [] } : null;
     }
 
@@ -415,7 +409,7 @@
       return;
     }
 
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+    if (retryTimer !== null && typeof global.clearTimeout === "function") {
       global.clearTimeout(retryTimer);
       retryTimer = null;
     }
@@ -429,17 +423,17 @@
     disconnect();
     active = true;
     retryAttempts = 0;
-    changeHandler = typeof onChange === 'function' ? onChange : null;
+    changeHandler = typeof onChange === "function" ? onChange : null;
     lastNotification = null;
     var doc = global.document;
-    if (doc && typeof global.MutationObserver === 'function') {
+    if (doc && typeof global.MutationObserver === "function") {
       try {
-        documentObserver = new global.MutationObserver(function () {
+        documentObserver = new global.MutationObserver(() => {
           refresh();
         });
         documentObserver.observe(doc.documentElement || doc, {
           childList: true,
-          subtree: true
+          subtree: true,
         });
       } catch (_) {
         documentObserver = null;
@@ -452,7 +446,7 @@
     var previousMode = mode;
     mode = normalizeMode(nextMode);
     if (active) {
-      refresh(mode === 'native' && previousMode !== 'native');
+      refresh(mode === "native" && previousMode !== "native");
     }
     return mode;
   }
@@ -469,17 +463,17 @@
         // A detached or partially torn-down forum must not block cleanup.
       }
     }
-    if (documentObserver && typeof documentObserver.disconnect === 'function') {
+    if (documentObserver && typeof documentObserver.disconnect === "function") {
       documentObserver.disconnect();
     }
     documentObserver = null;
     for (var j = 0; j < shadowObservers.length; j += 1) {
-      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === 'function') {
+      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === "function") {
         shadowObservers[j].observer.disconnect();
       }
     }
     shadowObservers = [];
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+    if (retryTimer !== null && typeof global.clearTimeout === "function") {
       global.clearTimeout(retryTimer);
     }
     retryTimer = null;
@@ -494,6 +488,6 @@
     init: init,
     sort: sort,
     currentMode: currentMode,
-    disconnect: disconnect
+    disconnect: disconnect,
   };
-}(typeof window !== 'undefined' ? window : null));
+})(typeof window !== "undefined" ? window : null);

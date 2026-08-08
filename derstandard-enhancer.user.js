@@ -12,19 +12,20 @@
 // ==/UserScript==
 
 
-(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-danger: #9c2f21;\n  --dsux-danger-surface: #fcebea;\n  --dsux-launcher-width: 7rem;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: var(--dsux-launcher-width);\n  min-height: 3.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0.65rem 0.9rem;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.95rem;\n  font-weight: 700;\n  line-height: 1.2;\n  white-space: nowrap;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.25rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-control-field {\n  display: grid;\n  min-width: 0;\n  gap: 0.2rem;\n}\n\n.dsux-control-label {\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n  font-weight: 700;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-shortcuts {\n  margin: 1rem 0 0;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n.dsux-data-view .dsux-help {\n  padding-top: 0;\n  border-top: 0;\n}\n\n.dsux-data-view .dsux-help p,\n.dsux-import-preview p,\n.dsux-clear-confirmation p {\n  margin: 0.4rem 0 0;\n}\n\n.dsux-import-preview,\n.dsux-clear-confirmation {\n  margin-top: 0.85rem;\n  padding: 0.85rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface-muted);\n  color: var(--dsux-ink);\n}\n\n.dsux-import-summary {\n  display: grid;\n  grid-template-columns: auto auto;\n  justify-content: start;\n  gap: 0.25rem 1.25rem;\n  margin: 0.75rem 0 0;\n}\n\n.dsux-import-summary dt {\n  font-weight: 700;\n}\n\n.dsux-import-summary dd {\n  margin: 0;\n  font-variant-numeric: tabular-nums;\n}\n\n.dsux-storage-error {\n  margin: 0 0 0.85rem;\n  padding: 0.75rem;\n  border: 1px solid var(--dsux-danger);\n  border-radius: 0.25rem;\n  background: var(--dsux-danger-surface);\n  color: var(--dsux-danger);\n  font-size: 0.9rem;\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button {\n  border-color: var(--dsux-danger);\n  color: var(--dsux-danger);\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button:hover {\n  border-color: var(--dsux-danger);\n  background: var(--dsux-danger-surface);\n}\n\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n.dsux-comment-controls {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 0.5rem 0.65rem;\n  margin-top: 0.75rem;\n}\n\n.dsux-comment-controls label {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.45rem;\n  color: var(--dsux-ink);\n  font-size: 0.82rem;\n  font-weight: 700;\n}\n\n.dsux-comment-sort {\n  min-height: 2rem;\n  box-sizing: border-box;\n  padding: 0.3rem 0.5rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.82rem;\n}\n\n.dsux-comment-sort:hover {\n  border-color: var(--dsux-accent);\n}\n\n.dsux-comment-status {\n  margin: 0 0 0 auto;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n  font-variant-numeric: tabular-nums;\n}\n\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: calc(1rem + var(--dsux-launcher-width) + 0.75rem);\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - var(--dsux-launcher-width) - 2.75rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n  pointer-events: none;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: var(--dsux-launcher-width);\n    min-height: 3.25rem;\n    padding: 0.65rem 0.8rem;\n  }\n\n  .dsux-toast {\n    right: calc(0.75rem + var(--dsux-launcher-width) + 0.6rem);\n    bottom: 0.75rem;\n    max-width: calc(100vw - var(--dsux-launcher-width) - 2.1rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n  .dsux-comment-controls {\n    align-items: stretch;\n  }\n\n  .dsux-comment-controls label {\n    flex: 1 1 100%;\n    align-items: stretch;\n    flex-direction: column;\n  }\n\n  .dsux-comment-status {\n    margin-left: 0;\n  }\n\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
+(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-danger: #9c2f21;\n  --dsux-danger-surface: #fcebea;\n  --dsux-launcher-width: 7rem;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: var(--dsux-launcher-width);\n  min-height: 3.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0.65rem 0.9rem;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.95rem;\n  font-weight: 700;\n  line-height: 1.2;\n  white-space: nowrap;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.25rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-control-field {\n  display: grid;\n  min-width: 0;\n  gap: 0.2rem;\n}\n\n.dsux-control-label {\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n  font-weight: 700;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-data-view .dsux-help {\n  padding-top: 0;\n  border-top: 0;\n}\n\n.dsux-data-view .dsux-help p,\n.dsux-data-view .dsux-import-preview p,\n.dsux-data-view .dsux-clear-confirmation p {\n  margin: 0.4rem 0 0;\n}\n\n.dsux-import-preview,\n.dsux-clear-confirmation {\n  margin-top: 0.85rem;\n  padding: 0.85rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface-muted);\n  color: var(--dsux-ink);\n}\n\n.dsux-import-summary {\n  display: grid;\n  grid-template-columns: auto auto;\n  justify-content: start;\n  gap: 0.25rem 1.25rem;\n  margin: 0.75rem 0 0;\n}\n\n.dsux-import-summary dt {\n  font-weight: 700;\n}\n\n.dsux-import-summary dd {\n  margin: 0;\n  font-variant-numeric: tabular-nums;\n}\n\n.dsux-storage-error {\n  margin: 0 0 0.85rem;\n  padding: 0.75rem;\n  border: 1px solid var(--dsux-danger);\n  border-radius: 0.25rem;\n  background: var(--dsux-danger-surface);\n  color: var(--dsux-danger);\n  font-size: 0.9rem;\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button {\n  border-color: var(--dsux-danger);\n  color: var(--dsux-danger);\n  font-weight: 700;\n}\n\n.dsux-actions .dsux-danger-button:hover {\n  border-color: var(--dsux-danger);\n  background: var(--dsux-danger-surface);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n.dsux-comment-controls {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 0.5rem 0.65rem;\n  margin-top: 0.75rem;\n}\n\n.dsux-comment-controls label {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.45rem;\n  color: var(--dsux-ink);\n  font-size: 0.82rem;\n  font-weight: 700;\n}\n\n.dsux-comment-sort {\n  min-height: 2rem;\n  box-sizing: border-box;\n  padding: 0.3rem 0.5rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.82rem;\n}\n\n.dsux-comment-sort:hover {\n  border-color: var(--dsux-accent);\n}\n\n.dsux-comment-status {\n  margin: 0 0 0 auto;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n  font-variant-numeric: tabular-nums;\n}\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: calc(1rem + var(--dsux-launcher-width) + 0.75rem);\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - var(--dsux-launcher-width) - 2.75rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n  pointer-events: none;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: var(--dsux-launcher-width);\n    min-height: 3.25rem;\n    padding: 0.65rem 0.8rem;\n  }\n\n  .dsux-toast {\n    right: calc(0.75rem + var(--dsux-launcher-width) + 0.6rem);\n    bottom: 0.75rem;\n    max-width: calc(100vw - var(--dsux-launcher-width) - 2.1rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n  .dsux-comment-controls {\n    align-items: stretch;\n  }\n\n  .dsux-comment-controls label {\n    flex: 1 1 100%;\n    align-items: stretch;\n    flex-direction: column;\n  }\n\n  .dsux-comment-status {\n    margin-left: 0;\n  }\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
 
-(function () {
-  "use strict";
-
+(() => {
   if (typeof window === "undefined") return;
 
   var SITE_HOST = "derstandard.at";
-  var TRACKING_PARAM = /^(?:utm_[^=]+|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|_ga|_gl|pk_campaign|pk_kwd|pk_source|ref|rank|referrer|source|cmpid|campaignid|wt_mc)$/i;
+  var TRACKING_PARAM =
+    /^(?:utm_[^=]+|fbclid|gclid|dclid|msclkid|mc_cid|mc_eid|_ga|_gl|pk_campaign|pk_kwd|pk_source|ref|rank|referrer|source|cmpid|campaignid|wt_mc)$/i;
 
   function isSameSite(hostname) {
-    var host = String(hostname || "").toLowerCase().replace(/\.$/, "");
-    return host === SITE_HOST || host.slice(-(SITE_HOST.length + 1)) === "." + SITE_HOST;
+    var host = String(hostname || "")
+      .toLowerCase()
+      .replace(/\.$/, "");
+    return host === SITE_HOST || host.slice(-(SITE_HOST.length + 1)) === `.${SITE_HOST}`;
   }
 
   function toUrl(value, base) {
@@ -50,11 +51,11 @@
     parsed.port = "";
     parsed.hash = "";
     var params = [];
-    parsed.searchParams.forEach(function (paramValue, paramName) {
+    parsed.searchParams.forEach((paramValue, paramName) => {
       if (!TRACKING_PARAM.test(paramName)) params.push([paramName, paramValue]);
     });
     parsed.search = "";
-    params.forEach(function (entry) {
+    params.forEach((entry) => {
       parsed.searchParams.append(entry[0], entry[1]);
     });
     return parsed.href;
@@ -84,18 +85,26 @@
     return parsed.href;
   }
 
-
   function textOf(node) {
     if (!node) return "";
-    return String(node.textContent || "").replace(/\s+/g, " ").trim();
+    return String(node.textContent || "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function isVisible(node) {
-    if (!node || node.nodeType !== 1 || node.hidden || node.getAttribute("aria-hidden") === "true") return false;
-    var view = node.ownerDocument && node.ownerDocument.defaultView;
+    if (node?.nodeType !== 1 || node.hidden || node.getAttribute("aria-hidden") === "true") return false;
+    var view = node.ownerDocument?.defaultView;
     if (view && typeof view.getComputedStyle === "function") {
       var style = view.getComputedStyle(node);
-      if (style && (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || style.opacity === "0")) return false;
+      if (
+        style &&
+        (style.display === "none" ||
+          style.visibility === "hidden" ||
+          style.visibility === "collapse" ||
+          style.opacity === "0")
+      )
+        return false;
     }
     return true;
   }
@@ -103,7 +112,8 @@
   function parseCommentCount(value) {
     var node = value && typeof value === "object" && value.nodeType === 1 ? value : null;
     if (node && !isVisible(node)) return null;
-    if (typeof value === "number") return Number.isFinite(value) && value >= 0 && Math.floor(value) === value ? value : null;
+    if (typeof value === "number")
+      return Number.isFinite(value) && value >= 0 && Math.floor(value) === value ? value : null;
     var raw = node ? textOf(node) : typeof value === "string" ? value : "";
     if (!raw) return null;
     var match = raw.match(/\d[\d\s.,]*/);
@@ -111,7 +121,13 @@
     var token = match[0].trim();
     var following = raw.slice((match.index || 0) + match[0].length);
     if (/^[.,]\d/.test(following)) return null;
-    if (/[.,\s]/.test(token) && !/^\d+$/.test(token) && !/^\d{1,3}(?:[.,]\d{3})+$/.test(token) && !/^\d{1,3}(?:\s\d{3})+$/.test(token)) return null;
+    if (
+      /[.,\s]/.test(token) &&
+      !/^\d+$/.test(token) &&
+      !/^\d{1,3}(?:[.,]\d{3})+$/.test(token) &&
+      !/^\d{1,3}(?:\s\d{3})+$/.test(token)
+    )
+      return null;
     var digits = token.replace(/[^0-9]/g, "");
     if (!digits) return null;
     var parsed = Number(digits);
@@ -122,20 +138,19 @@
     return root && typeof root.querySelector === "function" ? root.querySelector(selector) : null;
   }
 
-
   function pageUrl(doc) {
     var canonical = first(doc, 'link[rel~="canonical"]');
     var original = first(doc, "meta[data-original-url]");
-    var base = (doc && (doc.baseURI || doc.URL)) || (window.location && window.location.href);
+    var base = (doc && (doc.baseURI || doc.URL)) || window.location?.href;
     var candidates = [
-      canonical && canonical.getAttribute("href"),
+      canonical?.getAttribute("href"),
       original && (original.getAttribute("content") || original.getAttribute("data-original-url")),
-      doc && doc.URL,
-      window.location && window.location.href
+      doc?.URL,
+      window.location?.href,
     ];
     for (var i = 0; i < candidates.length; i += 1) {
       var candidate = toUrl(candidates[i], base);
-      var key = articleKey(candidate && candidate.href);
+      var key = articleKey(candidate?.href);
       if (key) return key;
     }
     return "";
@@ -150,7 +165,7 @@
       section: section || "",
       publishedAt: publishedAt || "",
       commentCount: commentCount == null ? null : commentCount,
-      source: source || ""
+      source: source || "",
     };
   }
 
@@ -170,16 +185,20 @@
       : dateNode
         ? String(dateNode.getAttribute("date") || textOf(dateNode)).trim()
         : "";
-    var countNode = first(article, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount") || first(doc, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount");
+    var countNode =
+      first(article, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount") ||
+      first(doc, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount");
     return record(key, title, subtitle, section, publishedAt, parseCommentCount(countNode), "page");
   }
 
   function isStoryArticle(node) {
-    return localName(node) === "article" && /(^|\s)story-article(?:\s|$)/i.test(String(node.getAttribute && node.getAttribute("class") || ""));
+    return (
+      localName(node) === "article" && /(^|\s)story-article(?:\s|$)/i.test(String(node.getAttribute?.("class") || ""))
+    );
   }
 
   function isInsideStoryArticle(node) {
-    var current = node && node.parentElement;
+    var current = node?.parentElement;
     while (current) {
       if (isStoryArticle(current)) return true;
       current = current.parentElement;
@@ -199,12 +218,12 @@
   }
 
   function findLabelledTitle(node, root) {
-    var labels = node && node.getAttribute && node.getAttribute("aria-labelledby");
+    var labels = node?.getAttribute?.("aria-labelledby");
     if (!labels) return "";
     var doc = (node.ownerDocument || root) && (node.ownerDocument || root);
     if (!doc || typeof doc.getElementById !== "function") return "";
     var result = [];
-    labels.split(/\s+/).forEach(function (id) {
+    labels.split(/\s+/).forEach((id) => {
       if (!id) return;
       var labelled = doc.getElementById(id);
       if (labelled) result.push(textOf(labelled));
@@ -225,88 +244,51 @@
   function extractArticles(root) {
     if (!root || typeof root.querySelectorAll !== "function") return [];
     var anchors = [];
-    if (root.nodeType === 1 && String(root.tagName || "").toLowerCase() === "a" && root.getAttribute("href")) anchors.push(root);
+    if (root.nodeType === 1 && String(root.tagName || "").toLowerCase() === "a" && root.getAttribute("href"))
+      anchors.push(root);
     var found = root.querySelectorAll("a[href]");
     for (var i = 0; i < found.length; i += 1) anchors.push(found[i]);
 
     var articles = [];
     var seen = Object.create(null);
-    anchors.forEach(function (anchor) {
+    anchors.forEach((anchor) => {
       if (isInsideStoryArticle(anchor)) return;
       var href = anchor.href || anchor.getAttribute("href");
-      var base = (anchor.ownerDocument && (anchor.ownerDocument.baseURI || anchor.ownerDocument.URL)) || root.baseURI || root.URL;
+      var base =
+        (anchor.ownerDocument && (anchor.ownerDocument.baseURI || anchor.ownerDocument.URL)) ||
+        root.baseURI ||
+        root.URL;
       var resolved = toUrl(href, base);
-      var key = articleKey(resolved && resolved.href);
+      var key = articleKey(resolved?.href);
       if (!key || seen[key]) return;
       var card = nearestCard(anchor);
       var title = cardTitle(anchor, card, root);
       var dateNode = first(card, "dst-rl-timestamp[date]");
       var countNode = first(card, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount");
-      var section = String((card && (card.getAttribute("data-section") || card.getAttribute("data-ressort"))) || "").trim();
+      var section = String(
+        (card && (card.getAttribute("data-section") || card.getAttribute("data-ressort"))) || ""
+      ).trim();
       seen[key] = true;
-      articles.push(record(key, title, "", section, dateNode ? String(dateNode.getAttribute("date") || "").trim() : "", parseCommentCount(countNode), "card"));
+      articles.push(
+        record(
+          key,
+          title,
+          "",
+          section,
+          dateNode ? String(dateNode.getAttribute("date") || "").trim() : "",
+          parseCommentCount(countNode),
+          "card"
+        )
+      );
     });
     return articles;
   }
 
   function localName(node) {
-    return String(node && (node.localName || node.nodeName) || "").split(":").pop().toLowerCase();
-  }
-
-  function childByName(node, names) {
-    if (!node) return null;
-    var wanted = Object.create(null);
-    names.forEach(function (name) { wanted[name] = true; });
-    for (var child = node.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType === 1 && wanted[localName(child)]) return child;
-    }
-    var descendants = node.getElementsByTagName ? node.getElementsByTagName("*") : [];
-    for (var i = 0; i < descendants.length; i += 1) {
-      if (wanted[localName(descendants[i])]) return descendants[i];
-    }
-    return null;
-  }
-
-  function childText(node, names) {
-    return textOf(childByName(node, names));
-  }
-
-  function extractRss(text, feedUrl) {
-    if (typeof text !== "string" || !text.trim()) return [];
-    var Parser = window.DOMParser;
-    if (typeof Parser !== "function") return [];
-    var xml;
-    try {
-      xml = new Parser().parseFromString(text, "application/xml");
-    } catch (_) {
-      return [];
-    }
-    if (!xml || typeof xml.getElementsByTagName !== "function") return [];
-    var nodes = xml.getElementsByTagName("item");
-    if (!nodes.length) {
-      var all = xml.getElementsByTagName("*");
-      var items = [];
-      for (var i = 0; i < all.length; i += 1) if (localName(all[i]) === "item") items.push(all[i]);
-      nodes = items;
-    }
-    var output = [];
-    var seen = Object.create(null);
-    for (var index = 0; index < nodes.length; index += 1) {
-      var item = nodes[index];
-      var linkNode = childByName(item, ["link"]);
-      var href = linkNode && (linkNode.getAttribute("href") || textOf(linkNode));
-      if (!href) {
-        var guid = childByName(item, ["guid"]);
-        href = guid && textOf(guid);
-      }
-      var key = articleKey(toUrl(href, feedUrl || "") || href);
-      if (!key || seen[key]) continue;
-      var title = childText(item, ["title"]);
-      var date = childText(item, ["pubdate", "date", "published", "updated"]);
-      seen[key] = true;
-      output.push(record(key, title, "", "", date, null, "rss"));
-    }
-    return output;
+    return String((node && (node.localName || node.nodeName)) || "")
+      .split(":")
+      .pop()
+      .toLowerCase();
   }
 
   window.DSUXSite = {
@@ -315,15 +297,12 @@
     articleKey: articleKey,
     extractPageArticle: extractPageArticle,
     extractArticles: extractArticles,
-    extractRss: extractRss,
-    parseCommentCount: parseCommentCount
+    parseCommentCount: parseCommentCount,
   };
-}());
+})();
 
 
-(function (root) {
-  "use strict";
-
+((root) => {
   var STORAGE_KEY = "derstandard-enhancer-state";
   var LEGACY_KEYS = ["dsux-state-v1", "derstandard-userscript-state"];
   var MAX_ENTRIES = 500;
@@ -348,8 +327,8 @@
       prefs: {
         commentSort: "native",
         discoverySort: "",
-        discoverySortAscending: false
-      }
+        discoverySortAscending: false,
+      },
     };
   }
 
@@ -358,7 +337,7 @@
   }
 
   function hasOwn(value, key) {
-    return isRecord(value) && Object.prototype.hasOwnProperty.call(value, key);
+    return isRecord(value) && Object.hasOwn(value, key);
   }
 
   function rawText(value) {
@@ -370,7 +349,7 @@
   }
 
   function finiteNumber(value) {
-    return typeof value === "number" && isFinite(value) ? value : null;
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
   }
 
   function progressValue(value) {
@@ -398,8 +377,8 @@
 
   function storage() {
     try {
-      if (root && root.localStorage) return root.localStorage;
-    } catch (error) {
+      if (root?.localStorage) return root.localStorage;
+    } catch (_error) {
       // localStorage may be disabled or inaccessible.
     }
     return null;
@@ -408,20 +387,22 @@
   function urlConstructor() {
     try {
       if (root && typeof root.URL === "function") return root.URL;
-    } catch (error) {
+    } catch (_error) {
       // URL may be unavailable on a test host.
     }
     try {
       if (typeof URL === "function") return URL;
-    } catch (error) {
+    } catch (_error) {
       // URL may be unavailable in an old browser.
     }
     return null;
   }
 
   function isArticleHost(hostname) {
-    var host = String(hostname || "").toLowerCase().replace(/\.$/, "");
-    return host === "derstandard.at" || host.slice(-(".derstandard.at".length)) === ".derstandard.at";
+    var host = String(hostname || "")
+      .toLowerCase()
+      .replace(/\.$/, "");
+    return host === "derstandard.at" || host.slice(-".derstandard.at".length) === ".derstandard.at";
   }
 
   function isArticlePath(pathname) {
@@ -436,7 +417,12 @@
     if (Constructor) {
       try {
         var parsed = new Constructor(raw);
-        if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || !isArticleHost(parsed.hostname) || (requireArticlePath && !isArticlePath(parsed.pathname))) return "";
+        if (
+          (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
+          !isArticleHost(parsed.hostname) ||
+          (requireArticlePath && !isArticlePath(parsed.pathname))
+        )
+          return "";
         parsed.protocol = "https:";
         parsed.hostname = "derstandard.at";
         parsed.username = "";
@@ -446,16 +432,17 @@
         parsed.hash = "";
         var canonical = parsed.href;
         return canonical.length <= MAX_URL_LENGTH ? canonical : "";
-      } catch (error) {
+      } catch (_error) {
         return "";
       }
     }
     var noQuery = raw.split("#")[0].split("?")[0];
     if (!/^https?:\/\/([^/?#]+)(\/[^?#]*)?$/i.test(noQuery)) return "";
-    if (noQuery.slice(0, 7).toLowerCase() === "http://") noQuery = "https://" + noQuery.slice(7);
+    if (noQuery.slice(0, 7).toLowerCase() === "http://") noQuery = `https://${noQuery.slice(7)}`;
     var hostMatch = noQuery.match(/^https:\/\/([^/?#]+)(\/.*)?$/i);
-    if (!hostMatch || !isArticleHost(hostMatch[1]) || (requireArticlePath && !isArticlePath(hostMatch[2] || "/"))) return "";
-    noQuery = "https://derstandard.at" + (hostMatch[2] || "/");
+    if (!hostMatch || !isArticleHost(hostMatch[1]) || (requireArticlePath && !isArticlePath(hostMatch[2] || "/")))
+      return "";
+    noQuery = `https://derstandard.at${hostMatch[2] || "/"}`;
     return noQuery.length <= MAX_URL_LENGTH ? noQuery : "";
   }
 
@@ -466,10 +453,10 @@
     var site = null;
     var hasArticleKey = false;
     try {
-      site = root && root.DSUXSite;
+      site = root?.DSUXSite;
       hasArticleKey = !!(site && typeof site.articleKey === "function");
       if (hasArticleKey) canonical = site.articleKey(rawText(candidate));
-    } catch (error) {
+    } catch (_error) {
       canonical = "";
     }
     if (hasArticleKey) {
@@ -479,34 +466,39 @@
     return normalizeCanonical(candidate, true);
   }
 
-
   function mapEntries(value) {
     if (Array.isArray(value)) {
-      return value.map(function (entry) {
+      return value.map((entry) => {
         if (Array.isArray(entry) && entry.length > 1) return [entry[0], entry[1]];
         return [isRecord(entry) ? entry.key || entry.url : "", entry];
       });
     }
     if (!isRecord(value)) return [];
-    return Object.keys(value).map(function (key) { return [key, value[key]]; });
+    return Object.keys(value).map((key) => [key, value[key]]);
   }
 
   function sortAndBound(map, timeField) {
     var keys = Object.keys(map);
-    keys.sort(function (left, right) {
+    keys.sort((left, right) => {
       var leftTime = map[left][timeField];
       var rightTime = map[right][timeField];
       if (rightTime !== leftTime) return rightTime - leftTime;
       return left < right ? -1 : left > right ? 1 : 0;
     });
     var bounded = emptyMap();
-    keys.slice(0, MAX_ENTRIES).forEach(function (key) { bounded[key] = map[key]; });
+    keys.slice(0, MAX_ENTRIES).forEach((key) => {
+      bounded[key] = map[key];
+    });
     return bounded;
   }
 
   function putRecord(map, ties, key, value, timeField, tie) {
     var existing = map[key];
-    if (!existing || value[timeField] > existing[timeField] || (value[timeField] === existing[timeField] && tie < ties[key])) {
+    if (
+      !existing ||
+      value[timeField] > existing[timeField] ||
+      (value[timeField] === existing[timeField] && tie < ties[key])
+    ) {
       map[key] = value;
       ties[key] = tie;
       noteTime(value[timeField]);
@@ -532,7 +524,11 @@
 
   function putProgress(map, ties, key, value, tie) {
     var existing = map[key];
-    if (!existing || value.updatedAt > existing.updatedAt || (value.updatedAt === existing.updatedAt && tie < ties[key])) {
+    if (
+      !existing ||
+      value.updatedAt > existing.updatedAt ||
+      (value.updatedAt === existing.updatedAt && tie < ties[key])
+    ) {
       map[key] = value;
       ties[key] = tie;
       noteTime(value.updatedAt);
@@ -541,7 +537,17 @@
 
   function sourceState(input) {
     if (!isRecord(input)) return null;
-    var known = hasOwn(input, "version") || hasOwn(input, "visited") || hasOwn(input, "saved") || hasOwn(input, "ignored") || hasOwn(input, "progress") || hasOwn(input, "readingProgress") || hasOwn(input, "history") || hasOwn(input, "bookmarks") || hasOwn(input, "prefs") || hasOwn(input, "preferences");
+    var known =
+      hasOwn(input, "version") ||
+      hasOwn(input, "visited") ||
+      hasOwn(input, "saved") ||
+      hasOwn(input, "ignored") ||
+      hasOwn(input, "progress") ||
+      hasOwn(input, "readingProgress") ||
+      hasOwn(input, "history") ||
+      hasOwn(input, "bookmarks") ||
+      hasOwn(input, "prefs") ||
+      hasOwn(input, "preferences");
     if (!known && isRecord(input.state)) return input.state;
     return input;
   }
@@ -559,7 +565,7 @@
     var progress = emptyMap();
     var progressTies = emptyMap();
 
-    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach(function (pair) {
+    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach((pair) => {
       var item = pair[1];
       var object = isRecord(item) ? item : null;
       var key = keyFor(pair[0]);
@@ -569,12 +575,12 @@
       if (visitedAt === null) visitedAt = 0;
       var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
       var record = { url: key, title: title, visitedAt: visitedAt };
-      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      var tie = `${rawText(pair[0])}\u0000${title}\u0000${key}`;
       putRecord(visited, visitedTies, key, record, "visitedAt", tie);
       if (visitedTimes[key] === undefined || visitedAt > visitedTimes[key]) visitedTimes[key] = visitedAt;
     });
 
-    mapEntries(hasOwn(source, "saved") ? source.saved : source.bookmarks).forEach(function (pair) {
+    mapEntries(hasOwn(source, "saved") ? source.saved : source.bookmarks).forEach((pair) => {
       var item = pair[1];
       var object = isRecord(item) ? item : null;
       var key = keyFor(pair[0]);
@@ -584,11 +590,11 @@
       if (savedAt === null) savedAt = 0;
       var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
       var record = { url: key, title: title, savedAt: savedAt };
-      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      var tie = `${rawText(pair[0])}\u0000${title}\u0000${key}`;
       putRecord(saved, savedTies, key, record, "savedAt", tie);
     });
 
-    mapEntries(source.ignored).forEach(function (pair) {
+    mapEntries(source.ignored).forEach((pair) => {
       var item = pair[1];
       var object = isRecord(item) ? item : null;
       var key = keyFor(pair[0]);
@@ -598,12 +604,12 @@
       if (ignoredAt === null) ignoredAt = 0;
       var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
       var record = { url: key, title: title, ignoredAt: ignoredAt };
-      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      var tie = `${rawText(pair[0])}\u0000${title}\u0000${key}`;
       putRecord(ignored, ignoredTies, key, record, "ignoredAt", tie);
     });
 
     function collectProgress(raw, kind) {
-      mapEntries(raw).forEach(function (pair) {
+      mapEntries(raw).forEach((pair) => {
         var key = keyFor(pair[0]);
         var object = isRecord(pair[1]) ? pair[1] : null;
         if (!key && object) key = keyFor(object.key || object.url);
@@ -611,7 +617,7 @@
         var fallbackTime = visitedTimes[key] === undefined ? 0 : visitedTimes[key];
         var candidate = progressCandidate(pair[1], fallbackTime);
         if (!candidate) return;
-        var tie = rawText(pair[0]) + "\u0000" + kind + "\u0000" + String(candidate.value);
+        var tie = `${rawText(pair[0])}\u0000${kind}\u0000${String(candidate.value)}`;
         putProgress(progress, progressTies, key, candidate, tie);
       });
     }
@@ -619,7 +625,7 @@
     collectProgress(hasOwn(source, "progress") ? source.progress : null, "progress");
     collectProgress(source.readingProgress, "readingProgress");
 
-    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach(function (pair) {
+    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach((pair) => {
       var object = isRecord(pair[1]) ? pair[1] : null;
       if (!object) return;
       var key = keyFor(pair[0]);
@@ -628,7 +634,7 @@
       var nestedTime = timestamp(object.visitedAt);
       var candidate = progressCandidate(object.progress, nestedTime === null ? 0 : nestedTime);
       if (!candidate) return;
-      var tie = rawText(pair[0]) + "\u0000visited\u0000" + String(candidate.value);
+      var tie = `${rawText(pair[0])}\u0000visited\u0000${String(candidate.value)}`;
       putProgress(progress, progressTies, key, candidate, tie);
     });
 
@@ -643,19 +649,25 @@
       if (COMMENT_MODES[commentSort]) output.prefs.commentSort = commentSort;
       var discoverySort = text(prefs.discoverySort, MAX_PREF_LENGTH);
       if (discoverySort === "" || DISCOVERY_SORTS[discoverySort]) output.prefs.discoverySort = discoverySort;
-      if (typeof prefs.discoverySortAscending === "boolean") output.prefs.discoverySortAscending = prefs.discoverySortAscending;
+      if (typeof prefs.discoverySortAscending === "boolean")
+        output.prefs.discoverySortAscending = prefs.discoverySortAscending;
     }
     return output;
   }
 
   function touchStateTimes(value) {
-    var maps = [value && value.visited, value && value.saved, value && value.ignored];
+    var maps = [value?.visited, value?.saved, value?.ignored];
     var fields = ["visitedAt", "savedAt", "ignoredAt"];
-    maps.forEach(function (map, index) {
+    maps.forEach((map, index) => {
       if (!isRecord(map)) return;
-      Object.keys(map).forEach(function (key) { noteTime(timestamp(map[key] && map[key][fields[index]])); });
+      Object.keys(map).forEach((key) => {
+        noteTime(timestamp(map[key]?.[fields[index]]));
+      });
     });
-    if (value && isRecord(value.progress)) Object.keys(value.progress).forEach(function (key) { noteTime(timestamp(value.progress[key] && value.progress[key].updatedAt)); });
+    if (value && isRecord(value.progress))
+      Object.keys(value.progress).forEach((key) => {
+        noteTime(timestamp(value.progress[key]?.updatedAt));
+      });
   }
 
   function cloneState(value) {
@@ -664,10 +676,11 @@
 
   function stableStringify(value) {
     if (value === null || typeof value !== "object") return JSON.stringify(value);
-    if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
-    return "{" + Object.keys(value).sort().map(function (key) {
-      return JSON.stringify(key) + ":" + stableStringify(value[key]);
-    }).join(",") + "}";
+    if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(",")}}`;
   }
 
   function statesEqual(left, right) {
@@ -677,7 +690,9 @@
   function futureVersion(input) {
     var source = sourceState(input);
     if (!source || !hasOwn(source, "version")) return false;
-    return typeof source.version !== "number" || !isFinite(source.version) || source.version > 2 || source.version < 1;
+    return (
+      typeof source.version !== "number" || !Number.isFinite(source.version) || source.version > 2 || source.version < 1
+    );
   }
 
   function writeState(store, value) {
@@ -686,7 +701,7 @@
     try {
       store.setItem(STORAGE_KEY, serialized);
       return store.getItem(STORAGE_KEY) === serialized;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -709,23 +724,27 @@
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       return { ok: false, state: null, error: "storage-read-failed" };
     }
     if (sourceRaw === null) return { ok: true, state: emptyState() };
 
     var parsed = null;
-    try { parsed = JSON.parse(sourceRaw); } catch (error) { parsed = null; }
+    try {
+      parsed = JSON.parse(sourceRaw);
+    } catch (_error) {
+      parsed = null;
+    }
     if (futureVersion(parsed)) return { ok: false, state: null, error: "unsupported-version" };
     var normalized = sanitizeState(parsed);
     var serialized = stableStringify(normalized);
     var needsMigration = sourceKey !== STORAGE_KEY || sourceRaw !== serialized;
     if (needsMigration) {
       if (!writeState(store, normalized)) return { ok: false, state: null, error: "storage-write-failed" };
-      LEGACY_KEYS.forEach(function (legacyKey) {
+      LEGACY_KEYS.forEach((legacyKey) => {
         try {
           if (typeof store.removeItem === "function") store.removeItem(legacyKey);
-        } catch (error) {
+        } catch (_error) {
           // A successful current-key write is the durable migration boundary.
         }
       });
@@ -741,9 +760,13 @@
   var storageListenerAttached = false;
 
   function notify() {
-    listeners.slice().forEach(function (listener) {
+    listeners.slice().forEach((listener) => {
       var snapshot = cloneState(state);
-      try { listener(snapshot); } catch (error) { /* subscriber errors are isolated */ }
+      try {
+        listener(snapshot);
+      } catch (_error) {
+        /* subscriber errors are isolated */
+      }
     });
   }
 
@@ -769,7 +792,7 @@
       ok: ok,
       changed: changed,
       state: cloneState(state),
-      error: error || null
+      error: error || null,
     };
   }
 
@@ -784,7 +807,7 @@
   }
 
   function failMutation(context, error) {
-    if (context && context.externalChanged) notify();
+    if (context?.externalChanged) notify();
     return result(false, false, error);
   }
 
@@ -810,58 +833,87 @@
 
   function setPreferences(patch) {
     var keys = ["commentSort", "discoverySort", "discoverySortAscending"];
-    return runMutation(function () {
-      if (!isRecord(patch)) return false;
-      var found = false;
-      for (var index = 0; index < keys.length; index += 1) if (hasOwn(patch, keys[index])) found = true;
-      return found;
-    }, function (next) {
-      var commentSort = text(patch.commentSort, MAX_PREF_LENGTH);
-      var discoverySort = text(patch.discoverySort, MAX_PREF_LENGTH);
-      if (hasOwn(patch, "commentSort") && COMMENT_MODES[commentSort]) next.prefs.commentSort = commentSort;
-      if (hasOwn(patch, "discoverySort") && (discoverySort === "" || DISCOVERY_SORTS[discoverySort])) next.prefs.discoverySort = discoverySort;
-      if (hasOwn(patch, "discoverySortAscending") && typeof patch.discoverySortAscending === "boolean") next.prefs.discoverySortAscending = patch.discoverySortAscending;
-    });
+    return runMutation(
+      () => {
+        if (!isRecord(patch)) return false;
+        var found = false;
+        for (var index = 0; index < keys.length; index += 1) if (hasOwn(patch, keys[index])) found = true;
+        return found;
+      },
+      (next) => {
+        var commentSort = text(patch.commentSort, MAX_PREF_LENGTH);
+        var discoverySort = text(patch.discoverySort, MAX_PREF_LENGTH);
+        if (hasOwn(patch, "commentSort") && COMMENT_MODES[commentSort]) next.prefs.commentSort = commentSort;
+        if (hasOwn(patch, "discoverySort") && (discoverySort === "" || DISCOVERY_SORTS[discoverySort]))
+          next.prefs.discoverySort = discoverySort;
+        if (hasOwn(patch, "discoverySortAscending") && typeof patch.discoverySortAscending === "boolean")
+          next.prefs.discoverySortAscending = patch.discoverySortAscending;
+      }
+    );
   }
 
   function markVisited(url, title) {
     var key = keyFor(url);
-    return runMutation(function () { return !!key; }, function (next) {
-      var current = next.visited[key];
-      next.visited[key] = {
-        url: key,
-        title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : current ? current.title : "",
-        visitedAt: now()
-      };
-    });
+    return runMutation(
+      () => !!key,
+      (next) => {
+        var current = next.visited[key];
+        next.visited[key] = {
+          url: key,
+          title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : current ? current.title : "",
+          visitedAt: now(),
+        };
+      }
+    );
   }
 
   function setProgress(url, value) {
     var key = keyFor(url);
     var progress = progressValue(value);
-    return runMutation(function () { return !!key && progress !== null; }, function (next) {
-      next.progress[key] = { value: progress, updatedAt: now() };
-    });
+    return runMutation(
+      () => !!key && progress !== null,
+      (next) => {
+        next.progress[key] = { value: progress, updatedAt: now() };
+      }
+    );
   }
 
   function toggleSaved(url, title) {
     var key = keyFor(url);
-    return runMutation(function () { return !!key; }, function (next) {
-      if (next.saved[key]) delete next.saved[key];
-      else next.saved[key] = { url: key, title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "", savedAt: now() };
-    });
+    return runMutation(
+      () => !!key,
+      (next) => {
+        if (next.saved[key]) delete next.saved[key];
+        else
+          next.saved[key] = {
+            url: key,
+            title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "",
+            savedAt: now(),
+          };
+      }
+    );
   }
 
   function toggleIgnored(url, title) {
     var key = keyFor(url);
-    return runMutation(function () { return !!key; }, function (next) {
-      if (next.ignored[key]) delete next.ignored[key];
-      else next.ignored[key] = { url: key, title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "", ignoredAt: now() };
-    });
+    return runMutation(
+      () => !!key,
+      (next) => {
+        if (next.ignored[key]) delete next.ignored[key];
+        else
+          next.ignored[key] = {
+            url: key,
+            title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "",
+            ignoredAt: now(),
+          };
+      }
+    );
   }
 
   function clearVisited() {
-    return runMutation(null, function (next) { next.visited = emptyMap(); });
+    return runMutation(null, (next) => {
+      next.visited = emptyMap();
+    });
   }
 
   function importSummary(value) {
@@ -869,23 +921,46 @@
       visited: Object.keys(value.visited).length,
       saved: Object.keys(value.saved).length,
       ignored: Object.keys(value.ignored).length,
-      progress: Object.keys(value.progress).length
+      progress: Object.keys(value.progress).length,
     };
   }
 
   function hasMeaningfulData(value) {
-    return Object.keys(value.visited).length > 0 || Object.keys(value.saved).length > 0 || Object.keys(value.ignored).length > 0 || Object.keys(value.progress).length > 0 || value.prefs.commentSort !== "native" || value.prefs.discoverySort !== "" || value.prefs.discoverySortAscending !== false;
+    return (
+      Object.keys(value.visited).length > 0 ||
+      Object.keys(value.saved).length > 0 ||
+      Object.keys(value.ignored).length > 0 ||
+      Object.keys(value.progress).length > 0 ||
+      value.prefs.commentSort !== "native" ||
+      value.prefs.discoverySort !== "" ||
+      value.prefs.discoverySortAscending !== false
+    );
   }
 
   function prepareImport(json) {
     var parsed = json;
     if (typeof json === "string") {
-      try { parsed = JSON.parse(json); } catch (error) { return { ok: false, error: "invalid-json", state: null, summary: null }; }
+      try {
+        parsed = JSON.parse(json);
+      } catch (_error) {
+        return { ok: false, error: "invalid-json", state: null, summary: null };
+      }
     }
     if (!isRecord(parsed)) return { ok: false, error: "invalid-import", state: null, summary: null };
     var source = sourceState(parsed);
-    if (!source || futureVersion(source)) return { ok: false, error: "unsupported-version", state: null, summary: null };
-    var recognized = hasOwn(source, "version") || hasOwn(source, "visited") || hasOwn(source, "saved") || hasOwn(source, "ignored") || hasOwn(source, "progress") || hasOwn(source, "readingProgress") || hasOwn(source, "history") || hasOwn(source, "bookmarks") || hasOwn(source, "prefs") || hasOwn(source, "preferences");
+    if (!source || futureVersion(source))
+      return { ok: false, error: "unsupported-version", state: null, summary: null };
+    var recognized =
+      hasOwn(source, "version") ||
+      hasOwn(source, "visited") ||
+      hasOwn(source, "saved") ||
+      hasOwn(source, "ignored") ||
+      hasOwn(source, "progress") ||
+      hasOwn(source, "readingProgress") ||
+      hasOwn(source, "history") ||
+      hasOwn(source, "bookmarks") ||
+      hasOwn(source, "prefs") ||
+      hasOwn(source, "preferences");
     if (!recognized) return { ok: false, error: "unrelated-import", state: null, summary: null };
     var normalized = sanitizeState(source);
     if (!hasMeaningfulData(normalized)) return { ok: false, error: "empty-import", state: null, summary: null };
@@ -893,7 +968,16 @@
   }
 
   function validPrepared(value) {
-    return isRecord(value) && value.version === 2 && isRecord(value.visited) && isRecord(value.saved) && isRecord(value.ignored) && isRecord(value.progress) && isRecord(value.prefs) && hasMeaningfulData(sanitizeState(value));
+    return (
+      isRecord(value) &&
+      value.version === 2 &&
+      isRecord(value.visited) &&
+      isRecord(value.saved) &&
+      isRecord(value.ignored) &&
+      isRecord(value.progress) &&
+      isRecord(value.prefs) &&
+      hasMeaningfulData(sanitizeState(value))
+    );
   }
 
   function importPrepared(prepared) {
@@ -919,7 +1003,7 @@
   }
 
   function subscribe(callback) {
-    if (typeof callback !== "function") return function () {};
+    if (typeof callback !== "function") return () => {};
     listeners.push(callback);
     return function unsubscribe() {
       var index = listeners.indexOf(callback);
@@ -934,7 +1018,11 @@
     else {
       if (typeof event.newValue !== "string") return;
       var parsed;
-      try { parsed = JSON.parse(event.newValue); } catch (error) { return; }
+      try {
+        parsed = JSON.parse(event.newValue);
+      } catch (_error) {
+        return;
+      }
       if (futureVersion(parsed)) return;
       next = sanitizeState(parsed);
     }
@@ -950,7 +1038,7 @@
     if (!storageListenerAttached) return;
     try {
       if (root && typeof root.removeEventListener === "function") root.removeEventListener("storage", onStorageEvent);
-    } catch (error) {
+    } catch (_error) {
       // Listener removal is best effort on partial test hosts.
     }
     storageListenerAttached = false;
@@ -960,7 +1048,7 @@
     try {
       root.addEventListener("storage", onStorageEvent);
       storageListenerAttached = true;
-    } catch (error) {
+    } catch (_error) {
       storageListenerAttached = false;
     }
   }
@@ -977,19 +1065,17 @@
     importPrepared: importPrepared,
     exportJson: exportJson,
     subscribe: subscribe,
-    disconnect: disconnect
+    disconnect: disconnect,
   };
 })(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this);
 
 
-(function (global) {
-  'use strict';
-
+((global) => {
   if (!global) {
     return;
   }
 
-  var mode = 'native';
+  var mode = "native";
   var changeHandler = null;
   var documentObserver = null;
   var shadowObservers = [];
@@ -1000,23 +1086,21 @@
   var active = false;
 
   function normalizeMode(value) {
-    return value === 'positive' || value === 'negative' || value === 'total'
-      ? value
-      : 'native';
+    return value === "positive" || value === "negative" || value === "total" ? value : "native";
   }
 
   function notify(count, available) {
     var payload = {
       count: count,
       mode: mode,
-      available: available
+      available: available,
     };
-    var signature = String(count) + '|' + String(mode) + '|' + String(available);
+    var signature = `${String(count)}|${String(mode)}|${String(available)}`;
     if (signature === lastNotification) {
       return;
     }
     lastNotification = signature;
-    if (typeof changeHandler === 'function') {
+    if (typeof changeHandler === "function") {
       try {
         changeHandler(payload);
       } catch (_) {
@@ -1026,7 +1110,7 @@
   }
 
   function parseRating(node, attribute) {
-    if (!node || typeof node.getAttribute !== 'function') {
+    if (!node || typeof node.getAttribute !== "function") {
       return 0;
     }
     var raw;
@@ -1035,7 +1119,7 @@
     } catch (_) {
       return 0;
     }
-    if (typeof raw !== 'string') {
+    if (typeof raw !== "string") {
       return 0;
     }
     raw = raw.trim();
@@ -1047,14 +1131,14 @@
   }
 
   function visible(node) {
-    if (!node || typeof node.getAttribute !== 'function') {
+    if (!node || typeof node.getAttribute !== "function") {
       return false;
     }
     try {
-      if (node.hidden || node.getAttribute('aria-hidden') === 'true') {
+      if (node.hidden || node.getAttribute("aria-hidden") === "true") {
         return false;
       }
-      var style = node.getAttribute('style') || '';
+      var style = node.getAttribute("style") || "";
       if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style)) {
         return false;
       }
@@ -1070,10 +1154,10 @@
     }
     var logs = [];
     try {
-      if (typeof node.querySelectorAll === 'function') {
-        logs = Array.prototype.slice.call(node.querySelectorAll('dst-posting--ratinglog'));
-      } else if (typeof node.querySelector === 'function') {
-        var log = node.querySelector('dst-posting--ratinglog');
+      if (typeof node.querySelectorAll === "function") {
+        logs = Array.prototype.slice.call(node.querySelectorAll("dst-posting--ratinglog"));
+      } else if (typeof node.querySelector === "function") {
+        var log = node.querySelector("dst-posting--ratinglog");
         if (log) {
           logs = [log];
         }
@@ -1087,7 +1171,7 @@
       }
       var candidates = [logs[i]];
       try {
-        var descendants = logs[i].querySelectorAll('[' + attribute + ']');
+        var descendants = logs[i].querySelectorAll(`[${attribute}]`);
         for (var j = 0; j < descendants.length; j += 1) {
           candidates.push(descendants[j]);
         }
@@ -1099,7 +1183,7 @@
           continue;
         }
         var raw = candidates[k].getAttribute(attribute);
-        if (typeof raw === 'string' && /^[+]?\d+$/.test(raw.trim())) {
+        if (typeof raw === "string" && /^[+]?\d+$/.test(raw.trim())) {
           var value = Number(raw.trim());
           if (Number.isFinite(value)) {
             return value;
@@ -1111,27 +1195,27 @@
   }
 
   function ratings(node) {
-    var positive = visibleRating(node, 'positiveratings');
-    var negative = visibleRating(node, 'negativeratings');
+    var positive = visibleRating(node, "positiveratings");
+    var negative = visibleRating(node, "negativeratings");
     if (positive === null) {
-      positive = parseRating(node, 'positiveratings');
+      positive = parseRating(node, "positiveratings");
     }
     if (negative === null) {
-      negative = parseRating(node, 'negativeratings');
+      negative = parseRating(node, "negativeratings");
     }
     return {
       positive: positive,
       negative: negative,
-      total: positive + negative
+      total: positive + negative,
     };
   }
 
   function findMain(root) {
-    if (!root || typeof root.querySelector !== 'function') {
+    if (!root || typeof root.querySelector !== "function") {
       return null;
     }
     try {
-      return root.querySelector('section#forum main.forum--main');
+      return root.querySelector("section#forum main.forum--main");
     } catch (_) {
       return null;
     }
@@ -1139,13 +1223,13 @@
 
   function discoverMain() {
     var doc = global.document;
-    if (!doc || typeof doc.querySelectorAll !== 'function') {
+    if (!doc || typeof doc.querySelectorAll !== "function") {
       return null;
     }
 
     var hosts;
     try {
-      hosts = doc.querySelectorAll('dst-forum');
+      hosts = doc.querySelectorAll("dst-forum");
     } catch (_) {
       return null;
     }
@@ -1176,37 +1260,35 @@
       }
     }
 
-    if (typeof global.MutationObserver !== 'function') {
+    if (typeof global.MutationObserver !== "function") {
       return;
     }
 
     var observer;
     try {
-      observer = new global.MutationObserver(function () {
+      observer = new global.MutationObserver(() => {
         refresh();
       });
       observer.observe(shadow, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['positiveratings', 'negativeratings', 'style', 'hidden', 'aria-hidden']
+        attributeFilter: ["positiveratings", "negativeratings", "style", "hidden", "aria-hidden"],
       });
       shadowObservers.push({ shadow: shadow, observer: observer });
     } catch (_) {
-      if (observer && typeof observer.disconnect === 'function') {
+      if (observer && typeof observer.disconnect === "function") {
         observer.disconnect();
       }
     }
   }
 
   function collectNodes(main) {
-    if (!main || typeof main.querySelectorAll !== 'function') {
+    if (!main || typeof main.querySelectorAll !== "function") {
       return [];
     }
     try {
-      return Array.prototype.slice.call(
-        main.querySelectorAll("dst-posting[data-level='0']")
-      );
+      return Array.prototype.slice.call(main.querySelectorAll("dst-posting[data-level='0']"));
     } catch (_) {
       return [];
     }
@@ -1222,7 +1304,7 @@
   }
 
   function synchronizeNativeOrder(record, nodes, preserveBaseline) {
-    if (mode === 'native' && !preserveBaseline) {
+    if (mode === "native" && !preserveBaseline) {
       record.nativeOrder = nodes.slice();
       return;
     }
@@ -1237,8 +1319,8 @@
   function compareNodes(a, b, sortMode) {
     var ar = ratings(a.node);
     var br = ratings(b.node);
-    var av = sortMode === 'positive' ? ar.positive : sortMode === 'negative' ? ar.negative : ar.total;
-    var bv = sortMode === 'positive' ? br.positive : sortMode === 'negative' ? br.negative : br.total;
+    var av = sortMode === "positive" ? ar.positive : sortMode === "negative" ? ar.negative : ar.total;
+    var bv = sortMode === "positive" ? br.positive : sortMode === "negative" ? br.negative : br.total;
     if (av !== bv) {
       return bv - av;
     }
@@ -1258,7 +1340,7 @@
         break;
       }
     }
-    if (unchanged || !parent || typeof parent.insertBefore !== 'function') {
+    if (unchanged || !parent || typeof parent.insertBefore !== "function") {
       return;
     }
 
@@ -1280,7 +1362,7 @@
 
     var fragment;
     var doc = global.document;
-    if (doc && typeof doc.createDocumentFragment === 'function') {
+    if (doc && typeof doc.createDocumentFragment === "function") {
       fragment = doc.createDocumentFragment();
       for (var m = 0; m < nodes.length; m += 1) {
         fragment.appendChild(nodes[m]);
@@ -1311,7 +1393,7 @@
       entries.push({
         node: nodes[i],
         nativeIndex: indexOfNode(record.nativeOrder, nodes[i]),
-        position: i
+        position: i,
       });
     }
 
@@ -1341,28 +1423,28 @@
       for (var c = 0; c < groupEntries.length; c += 1) {
         current.push(groupEntries[c].node);
       }
-      var desired = groupEntries.slice().sort(function (a, b) {
-        if (orderMode === 'native') {
-          var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
-          var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
-          return ai - bi || a.position - b.position;
-        }
-        return compareNodes(a, b, orderMode);
-      }).map(function (entry) {
-        return entry.node;
-      });
+      var desired = groupEntries
+        .slice()
+        .sort((a, b) => {
+          if (orderMode === "native") {
+            var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+            var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+            return ai - bi || a.position - b.position;
+          }
+          return compareNodes(a, b, orderMode);
+        })
+        .map((entry) => entry.node);
       // The selector returns document order, which is the native/current order.
       reorderGroup(groups[h].parent, current, desired);
     }
   }
 
   function restoreNativeOrder(record) {
-    if (!record || !record.main) {
+    if (!record?.main) {
       return;
     }
-    applyOrder(record, collectNodes(record.main), 'native');
+    applyOrder(record, collectNodes(record.main), "native");
   }
-
 
   function scheduleRetry() {
     if (
@@ -1370,12 +1452,12 @@
       currentRecord ||
       retryTimer !== null ||
       retryAttempts >= 40 ||
-      typeof global.setTimeout !== 'function'
+      typeof global.setTimeout !== "function"
     ) {
       return;
     }
     retryAttempts += 1;
-    retryTimer = global.setTimeout(function () {
+    retryTimer = global.setTimeout(() => {
       retryTimer = null;
       refresh();
       if (active && !currentRecord) {
@@ -1389,7 +1471,7 @@
       return;
     }
     var main = discoverMain();
-    if (main !== (currentRecord && currentRecord.main)) {
+    if (main !== currentRecord?.main) {
       currentRecord = main ? { main: main, nativeOrder: [] } : null;
     }
 
@@ -1399,7 +1481,7 @@
       return;
     }
 
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+    if (retryTimer !== null && typeof global.clearTimeout === "function") {
       global.clearTimeout(retryTimer);
       retryTimer = null;
     }
@@ -1413,17 +1495,17 @@
     disconnect();
     active = true;
     retryAttempts = 0;
-    changeHandler = typeof onChange === 'function' ? onChange : null;
+    changeHandler = typeof onChange === "function" ? onChange : null;
     lastNotification = null;
     var doc = global.document;
-    if (doc && typeof global.MutationObserver === 'function') {
+    if (doc && typeof global.MutationObserver === "function") {
       try {
-        documentObserver = new global.MutationObserver(function () {
+        documentObserver = new global.MutationObserver(() => {
           refresh();
         });
         documentObserver.observe(doc.documentElement || doc, {
           childList: true,
-          subtree: true
+          subtree: true,
         });
       } catch (_) {
         documentObserver = null;
@@ -1436,7 +1518,7 @@
     var previousMode = mode;
     mode = normalizeMode(nextMode);
     if (active) {
-      refresh(mode === 'native' && previousMode !== 'native');
+      refresh(mode === "native" && previousMode !== "native");
     }
     return mode;
   }
@@ -1453,17 +1535,17 @@
         // A detached or partially torn-down forum must not block cleanup.
       }
     }
-    if (documentObserver && typeof documentObserver.disconnect === 'function') {
+    if (documentObserver && typeof documentObserver.disconnect === "function") {
       documentObserver.disconnect();
     }
     documentObserver = null;
     for (var j = 0; j < shadowObservers.length; j += 1) {
-      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === 'function') {
+      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === "function") {
         shadowObservers[j].observer.disconnect();
       }
     }
     shadowObservers = [];
-    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+    if (retryTimer !== null && typeof global.clearTimeout === "function") {
       global.clearTimeout(retryTimer);
     }
     retryTimer = null;
@@ -1478,15 +1560,13 @@
     init: init,
     sort: sort,
     currentMode: currentMode,
-    disconnect: disconnect
+    disconnect: disconnect,
   };
-}(typeof window !== 'undefined' ? window : null));
+})(typeof window !== "undefined" ? window : null);
 
 
-(function (global) {
-  "use strict";
-
-  if (!global || !global.document || !global.document.documentElement) return;
+((global) => {
+  if (!global?.document?.documentElement) return;
   if (global.__DSUXEnhancerController) return;
 
   var doc = global.document;
@@ -1540,11 +1620,11 @@
     readingFocusTarget: null,
     readingFocusAdded: false,
     readingFocusBlur: null,
-    destroyed: false
+    destroyed: false,
   };
 
   function own(map, key) {
-    return !!(map && key && Object.prototype.hasOwnProperty.call(map, key));
+    return !!(map && key && Object.hasOwn(map, key));
   }
 
   function text(value) {
@@ -1552,7 +1632,7 @@
   }
 
   function finite(value) {
-    return typeof value === "number" && isFinite(value) ? value : null;
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
   }
 
   function clamp(value, minimum, maximum) {
@@ -1567,14 +1647,14 @@
 
   function dateValue(value) {
     var parsed = Date.parse(value || "");
-    return isNaN(parsed) ? null : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
 
   function dateText(value) {
     var raw = text(value);
     if (!raw) return "—";
     var parsed = new Date(raw);
-    if (isNaN(parsed.getTime())) return raw.slice(0, 40);
+    if (Number.isNaN(parsed.getTime())) return raw.slice(0, 40);
     try {
       return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(parsed);
     } catch (_) {
@@ -1610,7 +1690,7 @@
       section: text(raw.section),
       publishedAt: text(raw.publishedAt),
       commentCount: finite(raw.commentCount) === null ? null : Math.max(0, Math.floor(raw.commentCount)),
-      source: source || text(raw.source)
+      source: source || text(raw.source),
     };
   }
 
@@ -1619,7 +1699,7 @@
   }
 
   function applySortPreference(snapshot) {
-    var prefs = snapshot && snapshot.prefs || {};
+    var prefs = snapshot?.prefs || {};
     var sort = prefs.discoverySort;
     model.sort = sort === "date" || sort === "comments" ? sort : "";
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
@@ -1647,8 +1727,8 @@
   }
 
   function applyMutationResult(result, successMessage, failureMessage) {
-    if (!result || result.ok !== true) {
-      setStorageError(result && result.error ? result.error : "mutation-failed");
+    if (result?.ok !== true) {
+      setStorageError(result?.error ? result.error : "mutation-failed");
       showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
       return false;
     }
@@ -1659,7 +1739,7 @@
   }
 
   function progressFor(key) {
-    var record = model.snapshot.progress && model.snapshot.progress[key];
+    var record = model.snapshot.progress?.[key];
     var value = record && typeof record === "object" ? record.value : null;
     return clamp(value, 0, 1);
   }
@@ -1676,7 +1756,6 @@
     return own(model.snapshot.ignored, key);
   }
 
-
   function make(tag, className, label) {
     var node = doc.createElement(tag);
     if (className) node.className = className;
@@ -1690,13 +1769,6 @@
     return node;
   }
 
-  var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
-  fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
-  fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
-  fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
-  fallbackStyle += ".dsux-data-view .dsux-help{border-top:0}.dsux-import-preview,.dsux-clear-confirmation,.dsux-storage-error{margin-top:.75rem;padding:.75rem;border:1px solid #8b8f94}.dsux-storage-error{color:#8b1e14}.dsux-import-summary{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.25rem 1rem}.dsux-import-summary dt{font-weight:700}.dsux-import-summary dd{margin:0}";
-  fallbackStyle += ".dsux-launcher{width:7rem;height:auto;min-height:3.25rem;padding:.65rem .9rem;border-radius:.45rem;font-size:.95rem;font-weight:700}.dsux-toast{right:8.75rem;max-width:min(31rem,calc(100vw - 9.75rem));pointer-events:none}.dsux-controls{grid-template-columns:minmax(0,1fr) minmax(9rem,auto) minmax(9rem,auto)}.dsux-control-field{display:grid;gap:.2rem}.dsux-control-label,.dsux-shortcuts{font-size:.82rem}.dsux-shortcuts{padding-top:.7rem;border-top:1px solid #ccc}@media(max-width:38rem){.dsux-launcher{right:.75rem;width:7rem}.dsux-toast{right:8.35rem;max-width:calc(100vw - 9.1rem)}.dsux-controls{grid-template-columns:minmax(0,1fr)}}";
-
   var host = doc.createElement("div");
   var shadow;
   try {
@@ -1708,8 +1780,7 @@
   doc.documentElement.appendChild(host);
 
   var style = make("style");
-  var configuredStyle = String(global.DSUXStyles || "");
-  style.textContent = configuredStyle.trim() ? configuredStyle : fallbackStyle;
+  style.textContent = global.DSUXStyles || "";
   shadow.appendChild(style);
 
   var launcher = button("Entdecken", "dsux-launcher");
@@ -1785,7 +1856,10 @@
   scopeLabel.appendChild(make("span", "dsux-control-label", "Quelle"));
   var scope = make("select", "dsux-scope");
   scope.setAttribute("aria-label", "Artikelquelle");
-  [["page", "Aktuelle Seite"], ["local", "Meine Artikel"]].forEach(function (entry) {
+  [
+    ["page", "Aktuelle Seite"],
+    ["local", "Meine Artikel"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     scope.appendChild(option);
@@ -1795,7 +1869,13 @@
   filterLabel.appendChild(make("span", "dsux-control-label", "Status"));
   var filter = make("select");
   filter.setAttribute("aria-label", "Artikel filtern");
-  [["all", "Alle"], ["unread", "Ungelesen"], ["read", "Gelesen"], ["saved", "Gespeichert"], ["ignored", "Ignoriert"]].forEach(function (entry) {
+  [
+    ["all", "Alle"],
+    ["unread", "Ungelesen"],
+    ["read", "Gelesen"],
+    ["saved", "Gespeichert"],
+    ["ignored", "Ignoriert"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     filter.appendChild(option);
@@ -1815,7 +1895,7 @@
   table.setAttribute("aria-label", "Artikelübersicht");
   var thead = make("thead");
   var headingRow = make("tr");
-  ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach(function (label) {
+  ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach((label) => {
     var th = make("th", "", label);
     th.scope = "col";
     headingRow.appendChild(th);
@@ -1844,7 +1924,9 @@
 
   var help = make("div", "dsux-help");
   help.appendChild(make("strong", "", "Lokale Daten"));
-  help.appendChild(make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  help.appendChild(
+    make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser.")
+  );
   var dataActions = make("div", "dsux-actions");
   var exportButton = button("Daten exportieren");
   var importLabel = make("label", "", "JSON-Datei auswählen");
@@ -1870,7 +1952,12 @@
   var importSaved = make("dd");
   var importIgnored = make("dd");
   var importProgress = make("dd");
-  [["Besuche", importVisited], ["Lesezeichen", importSaved], ["Ignorierte", importIgnored], ["Fortschritte", importProgress]].forEach(function (entry) {
+  [
+    ["Besuche", importVisited],
+    ["Lesezeichen", importSaved],
+    ["Ignorierte", importIgnored],
+    ["Fortschritte", importProgress],
+  ].forEach((entry) => {
     importSummary.appendChild(make("dt", "", entry[0]));
     importSummary.appendChild(entry[1]);
   });
@@ -1887,7 +1974,13 @@
   clearConfirmation.hidden = true;
   clearConfirmation.setAttribute("aria-label", "Löschen bestätigen");
   clearConfirmation.appendChild(make("strong", "", "Verlauf wirklich löschen?"));
-  clearConfirmation.appendChild(make("p", "", "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."));
+  clearConfirmation.appendChild(
+    make(
+      "p",
+      "",
+      "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."
+    )
+  );
   var clearActions = make("div", "dsux-actions dsux-confirm-actions");
   var clearCancelButton = button("Abbrechen", "dsux-clear-cancel");
   var clearConfirmButton = button("Endgültig löschen", "dsux-clear-confirm dsux-danger-button");
@@ -1919,7 +2012,12 @@
   var commentLabel = make("label");
   commentLabel.appendChild(make("span", "", "Kommentare sortieren"));
   var commentSortSelect = make("select", "dsux-comment-sort");
-  [["native", "Originalreihenfolge"], ["positive", "Meiste positive Bewertungen"], ["negative", "Meiste negative Bewertungen"], ["total", "Meiste Bewertungen insgesamt"]].forEach(function (entry) {
+  [
+    ["native", "Originalreihenfolge"],
+    ["positive", "Meiste positive Bewertungen"],
+    ["negative", "Meiste negative Bewertungen"],
+    ["total", "Meiste Bewertungen insgesamt"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     commentSortSelect.appendChild(option);
@@ -1937,9 +2035,6 @@
   outline.appendChild(outlineList);
   articleView.appendChild(outline);
 
-  var shortcutHelp = make("p", "dsux-shortcuts", "Tastatur: Alt+Shift+O öffnet oder schließt den Enhancer · Alt+Shift+R setzt das Lesen auf Artikelseiten fort · Esc schließt den Enhancer");
-  panel.appendChild(shortcutHelp);
-
   var toast = make("div", "dsux-toast");
   toast.hidden = true;
   toast.setAttribute("role", "status");
@@ -1948,13 +2043,14 @@
 
   function currentArticle() {
     var article = model.pageArticle;
-    if (!article || !article.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity) return null;
+    if (!article?.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity)
+      return null;
     return article;
   }
 
   function currentKey() {
     var article = currentArticle();
-    return model.routeKey || article && article.key || "";
+    return model.routeKey || article?.key || "";
   }
 
   function mergeRecord(existing, item) {
@@ -1968,9 +2064,9 @@
   function assembleSource(entries) {
     var result = [];
     var seen = Object.create(null);
-    entries.forEach(function (entry) {
-      var value = entry && entry.value;
-      var item = copyRecord(value, entry && entry.fallbackKey || value && (value.key || value.url), entry && entry.source);
+    entries.forEach((entry) => {
+      var value = entry?.value;
+      var item = copyRecord(value, entry?.fallbackKey || (value && (value.key || value.url)), entry?.source);
       if (!item) return;
       if (seen[item.key]) {
         mergeRecord(seen[item.key], item);
@@ -1985,7 +2081,7 @@
   function pageSourceItems() {
     var entries = [];
     if (model.pageArticle) entries.push({ value: model.pageArticle, source: "page" });
-    model.pageItems.forEach(function (item) {
+    model.pageItems.forEach((item) => {
       entries.push({ value: item, source: "card" });
     });
     return assembleSource(entries);
@@ -1993,13 +2089,13 @@
 
   function localSourceItems() {
     var entries = [];
-    ["visited", "saved", "ignored"].forEach(function (field) {
+    ["visited", "saved", "ignored"].forEach((field) => {
       var records = model.snapshot[field] || {};
-      Object.keys(records).forEach(function (key) {
+      Object.keys(records).forEach((key) => {
         entries.push({ value: records[key], fallbackKey: key, source: field });
       });
     });
-    Object.keys(model.snapshot.progress || {}).forEach(function (key) {
+    Object.keys(model.snapshot.progress || {}).forEach((key) => {
       entries.push({ value: null, fallbackKey: key, source: "progress" });
     });
     return assembleSource(entries);
@@ -2009,10 +2105,14 @@
     if (model.destroyed || !model.panelOpen || !model.discoveryDirty) return;
     var generation = model.generation;
     var items = [];
-    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
+    try {
+      items = site.extractArticles(doc) || [];
+    } catch (_) {
+      items = [];
+    }
     if (model.destroyed || generation !== model.generation) return;
     model.pageItems = [];
-    items.forEach(function (item) {
+    items.forEach((item) => {
       var copy = copyRecord(item, item && (item.key || item.url), "card");
       if (copy) model.pageItems.push(copy);
     });
@@ -2022,7 +2122,7 @@
   function discoveryItems() {
     var result = model.scope === "local" ? localSourceItems() : pageSourceItems();
     if (!model.sort) return result;
-    result.sort(function (left, right) {
+    result.sort((left, right) => {
       var leftValue;
       var rightValue;
       if (model.sort === "comments") {
@@ -2045,7 +2145,7 @@
     toast.textContent = message;
     toast.hidden = false;
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
-    model.toastTimer = global.setTimeout(function () {
+    model.toastTimer = global.setTimeout(() => {
       model.toastTimer = null;
       if (!model.destroyed) toast.hidden = true;
     }, 3200);
@@ -2057,14 +2157,14 @@
     } else if (!shown) {
       discoverStatus.textContent = "Keine passenden Artikel.";
     } else {
-      discoverStatus.textContent = shown + " von " + total + " Artikel" + (total === 1 ? "" : "n");
+      discoverStatus.textContent = `${shown} von ${total} Artikel${total === 1 ? "" : "n"}`;
     }
   }
 
   function restorePanelScroll(scrollTop) {
     var routeEntry = model.routeEntry;
     panel.scrollTop = scrollTop;
-    var restore = function () {
+    var restore = () => {
       if (!model.destroyed && model.panelOpen && model.routeEntry === routeEntry) panel.scrollTop = scrollTop;
     };
     if (typeof global.requestAnimationFrame === "function") global.requestAnimationFrame(restore);
@@ -2074,8 +2174,8 @@
   function captureDiscoveryFocus() {
     var active = shadow.activeElement;
     if (!active || !list.contains(active)) return null;
-    var action = active.getAttribute && active.getAttribute("data-action");
-    var key = active.getAttribute && active.getAttribute("data-key");
+    var action = active.getAttribute?.("data-action");
+    var key = active.getAttribute?.("data-key");
     if (!action || !key) return null;
     var row = active;
     while (row && row.parentNode !== list) row = row.parentNode;
@@ -2126,7 +2226,7 @@
       progress.setAttribute("aria-valuemax", "100");
       progress.setAttribute("aria-valuenow", String(percent(value)));
       var fill = make("span");
-      fill.style.width = percent(value) + "%";
+      fill.style.width = `${percent(value)}%`;
       progress.appendChild(fill);
       titleCell.appendChild(progress);
     }
@@ -2135,8 +2235,8 @@
     row.appendChild(make("td", "dsux-count-cell", item.commentCount === null ? "—" : String(item.commentCount)));
     var status = make("td", "dsux-status-cell");
     if (isRead(key)) {
-      status.textContent = value >= 0.99 ? "✓" : percent(value) + "%";
-      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : "Lesefortschritt " + percent(value) + "%");
+      status.textContent = value >= 0.99 ? "✓" : `${percent(value)}%`;
+      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : `Lesefortschritt ${percent(value)}%`);
     }
     row.appendChild(status);
 
@@ -2148,10 +2248,10 @@
     save.setAttribute("title", isSaved(key) ? "Lesezeichen entfernen" : "Speichern");
     save.setAttribute("data-action", "save");
     save.setAttribute("data-key", key);
-    save.addEventListener("click", function (event) {
+    save.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      var result = storageResult(function () { return storage.toggleSaved(key, item.title || ""); });
+      var result = storageResult(() => storage.toggleSaved(key, item.title || ""));
       if (!applyMutationResult(result)) return;
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
@@ -2163,11 +2263,11 @@
     ignore.setAttribute("title", isIgnored(key) ? "Wiederherstellen" : "Ignorieren");
     ignore.setAttribute("data-action", "ignore");
     ignore.setAttribute("data-key", key);
-    ignore.addEventListener("click", function (event) {
+    ignore.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      var result = storageResult(function () { return storage.toggleIgnored(key, item.title || ""); });
+      var result = storageResult(() => storage.toggleIgnored(key, item.title || ""));
       if (!applyMutationResult(result)) return;
       restorePanelScroll(scrollTop);
       showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
@@ -2188,32 +2288,51 @@
     var commentDirection = model.sort === "comments" ? (model.sortAscending ? "ascending" : "descending") : "none";
     dateSort.setAttribute("data-direction", dateDirection);
     commentSort.setAttribute("data-direction", commentDirection);
-    dateSort.setAttribute("aria-label", "Datum sortieren, aktuell " + (dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"));
-    commentSort.setAttribute("aria-label", "Kommentare sortieren, aktuell " + (commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    dateSort.setAttribute(
+      "aria-label",
+      `Datum sortieren, aktuell ${dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"}`
+    );
+    commentSort.setAttribute(
+      "aria-label",
+      `Kommentare sortieren, aktuell ${commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"}`
+    );
     dateHeader.setAttribute("aria-sort", dateDirection);
     ensureDiscovery();
 
     while (list.firstChild) list.removeChild(list.firstChild);
     var query = text(model.query).toLocaleLowerCase();
     var all = discoveryItems();
-    var result = all.filter(function (item) {
+    var result = all.filter((item) => {
       var ignored = isIgnored(item.key);
       if (model.filter === "ignored" ? !ignored : ignored) return false;
       if (model.filter === "read" && !isRead(item.key)) return false;
       if (model.filter === "unread" && isRead(item.key)) return false;
       if (model.filter === "saved" && !isSaved(item.key)) return false;
-      if (query && [item.title, item.subtitle, item.section, item.publishedAt, item.key].join(" ").toLocaleLowerCase().indexOf(query) === -1) return false;
+      if (
+        query &&
+        [item.title, item.subtitle, item.section, item.publishedAt, item.key]
+          .join(" ")
+          .toLocaleLowerCase()
+          .indexOf(query) === -1
+      )
+        return false;
       return true;
     });
     renderStatus(all.length, result.length);
     if (!result.length) {
       var emptyRow = make("tr", "dsux-empty");
-      var emptyCell = make("td", "", model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel.");
+      var emptyCell = make(
+        "td",
+        "",
+        model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel."
+      );
       emptyCell.colSpan = 5;
       emptyRow.appendChild(emptyCell);
       list.appendChild(emptyRow);
     } else {
-      result.forEach(function (item) { list.appendChild(renderRow(item)); });
+      result.forEach((item) => {
+        list.appendChild(renderRow(item));
+      });
     }
     restoreDiscoveryFocus(focusState);
   }
@@ -2237,7 +2356,7 @@
       "import-failed": "Die Daten konnten nicht importiert werden.",
       "clear-visited-failed": "Der Besuchsverlauf konnte nicht gelöscht werden.",
       "mutation-failed": "Die Änderung konnte nicht gespeichert werden.",
-      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen."
+      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen.",
     };
     return messages[error] || "Der lokale Speichervorgang ist fehlgeschlagen.";
   }
@@ -2250,14 +2369,19 @@
     importPreview.hidden = !pending;
     if (pending) {
       var summary = pending.summary || {};
-      importVisited.textContent = String(finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited)));
+      importVisited.textContent = String(
+        finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited))
+      );
       importSaved.textContent = String(finite(summary.saved) === null ? 0 : Math.max(0, Math.floor(summary.saved)));
-      importIgnored.textContent = String(finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored)));
-      importProgress.textContent = String(finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress)));
+      importIgnored.textContent = String(
+        finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored))
+      );
+      importProgress.textContent = String(
+        finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress))
+      );
     }
     clearConfirmation.hidden = !model.clearPending;
   }
-
 
   function updateTabs() {
     var available = !!currentArticle();
@@ -2287,9 +2411,8 @@
       commentStatus.textContent = "Kommentare derzeit nicht verfügbar.";
       return;
     }
-    commentStatus.textContent = model.commentCount === 1
-      ? "1 Kommentar verfügbar."
-      : model.commentCount + " Kommentare verfügbar.";
+    commentStatus.textContent =
+      model.commentCount === 1 ? "1 Kommentar verfügbar." : `${model.commentCount} Kommentare verfügbar.`;
   }
 
   function stopComments() {
@@ -2302,7 +2425,14 @@
   }
 
   function onCommentsChange(payload, identity) {
-    if (model.destroyed || !model.commentsActive || model.commentsIdentity !== identity || model.routeIdentity !== identity || !currentArticle()) return;
+    if (
+      model.destroyed ||
+      !model.commentsActive ||
+      model.commentsIdentity !== identity ||
+      model.routeIdentity !== identity ||
+      !currentArticle()
+    )
+      return;
     var state = payload && typeof payload === "object" ? payload : {};
     model.commentAvailable = state.available === true;
     model.commentCount = finite(state.count) === null ? 0 : Math.max(0, Math.floor(state.count));
@@ -2323,22 +2453,23 @@
     model.commentAvailable = false;
     model.commentCount = 0;
     comments.sort(model.commentSort);
-    comments.init(function (payload) {
+    comments.init((payload) => {
       onCommentsChange(payload, identity);
     });
   }
 
-
   function outlineEntries() {
     model.outline = [];
     var article = doc.querySelector("article.story-article");
-    var body = article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
+    var body =
+      article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
     if (!body) return model.outline;
     var headings = body.querySelectorAll("h2,h3,h4");
     for (var index = 0; index < headings.length; index += 1) {
       var heading = headings[index];
       var label = text(heading.textContent);
-      if (label) model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
+      if (label)
+        model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
     }
     return model.outline;
   }
@@ -2356,7 +2487,7 @@
     var entries = outlineEntries();
     outline.hidden = !entries.length;
     var stack = [{ level: 1, item: null, list: outlineList }];
-    entries.forEach(function (entry) {
+    entries.forEach((entry) => {
       var level = Math.max(2, Math.min(4, Number(entry.level) || 2));
       while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
       var parent = stack[stack.length - 1];
@@ -2366,7 +2497,7 @@
       }
       var item = make("li");
       var jump = button(entry.label);
-      jump.addEventListener("click", function () {
+      jump.addEventListener("click", () => {
         if (entry.node && typeof entry.node.scrollIntoView === "function") {
           entry.node.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
         }
@@ -2392,10 +2523,10 @@
     articleTitle.textContent = article.title || "Artikel";
     var key = currentKey() || article.key;
     var value = progressFor(key);
-    articleStatus.textContent = percent(value) + "% gelesen";
+    articleStatus.textContent = `${percent(value)}% gelesen`;
     articleProgress.hidden = false;
     articleProgress.setAttribute("aria-valuenow", String(percent(value)));
-    articleFill.style.width = percent(value) + "%";
+    articleFill.style.width = `${percent(value)}%`;
     articleActions.hidden = false;
     var target = model.resumeKey === key ? model.resumeValue : 0;
     resumeButton.disabled = !(target > 0.01 && target < 0.99);
@@ -2423,7 +2554,7 @@
   function nodeConnected(node) {
     if (!node) return false;
     if (typeof node.isConnected === "boolean") return node.isConnected;
-    return !!(doc.documentElement && doc.documentElement.contains(node)) || shadow.contains(node);
+    return !!doc.documentElement?.contains(node) || shadow.contains(node);
   }
 
   function canRestoreFocus(node) {
@@ -2431,16 +2562,27 @@
     var current = node;
     while (current) {
       if (current.hidden || current.inert || current.disabled) return false;
-      if (current.hasAttribute && (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.hasAttribute("disabled"))) return false;
-      if (current.getAttribute && String(current.getAttribute("aria-hidden") || "").toLowerCase() === "true") return false;
+      if (
+        current.hasAttribute &&
+        (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.hasAttribute("disabled"))
+      )
+        return false;
+      if (current.getAttribute && String(current.getAttribute("aria-hidden") || "").toLowerCase() === "true")
+        return false;
       if (current.nodeType === 1 && typeof global.getComputedStyle === "function") {
         var currentStyle = global.getComputedStyle(current);
-        if (currentStyle && (currentStyle.display === "none" || currentStyle.visibility === "hidden" || currentStyle.visibility === "collapse")) return false;
+        if (
+          currentStyle &&
+          (currentStyle.display === "none" ||
+            currentStyle.visibility === "hidden" ||
+            currentStyle.visibility === "collapse")
+        )
+          return false;
       }
       var parent = current.parentElement;
       if (!parent && typeof current.getRootNode === "function") {
         var root = current.getRootNode();
-        parent = root && root.host || null;
+        parent = root?.host || null;
       }
       current = parent;
     }
@@ -2449,21 +2591,15 @@
     if (tag === "BUTTON" || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return true;
     if (tag === "A" && node.hasAttribute && node.hasAttribute("href")) return true;
     if (node.isContentEditable) return true;
-    return !!(node.hasAttribute && node.hasAttribute("tabindex"));
-  }
-
-  function triggerForEvent(event) {
-    var active = shadow.activeElement || doc.activeElement;
-    if (canRestoreFocus(active)) return active;
-    var target = event && event.target;
-    return canRestoreFocus(target) ? target : launcher;
+    return !!node.hasAttribute?.("tabindex");
   }
 
   function clearReadingFocusTarget() {
     var target = model.readingFocusTarget;
     var onBlur = model.readingFocusBlur;
     if (target && onBlur) target.removeEventListener("blur", onBlur);
-    if (target && model.readingFocusAdded && target.getAttribute("tabindex") === "-1") target.removeAttribute("tabindex");
+    if (target && model.readingFocusAdded && target.getAttribute("tabindex") === "-1")
+      target.removeAttribute("tabindex");
     model.readingFocusTarget = null;
     model.readingFocusAdded = false;
     model.readingFocusBlur = null;
@@ -2475,7 +2611,7 @@
     var added = !node.hasAttribute("tabindex");
     if (added) {
       node.setAttribute("tabindex", "-1");
-      var onBlur = function () {
+      var onBlur = () => {
         if (model.readingFocusTarget === node) clearReadingFocusTarget();
       };
       model.readingFocusTarget = node;
@@ -2490,7 +2626,7 @@
   function setOpen(open, trigger) {
     var next = !!open;
     var changed = next !== model.panelOpen;
-    if (next && changed) model.openTrigger = canRestoreFocus(trigger) ? trigger : triggerForEvent(null);
+    if (next && changed) model.openTrigger = canRestoreFocus(trigger) ? trigger : launcher;
     model.panelOpen = next;
     panel.hidden = !model.panelOpen;
     launcher.setAttribute("aria-expanded", model.panelOpen ? "true" : "false");
@@ -2553,7 +2689,7 @@
     model.progressPending = null;
     if (!pending || model.destroyed) return;
     if (pending.value === progressFor(pending.key)) return;
-    applyMutationResult(storageResult(function () { return storage.setProgress(pending.key, pending.value); }));
+    applyMutationResult(storageResult(() => storage.setProgress(pending.key, pending.value)));
   }
 
   function onScroll() {
@@ -2564,7 +2700,6 @@
     clearProgressTimer();
     model.progressTimer = global.setTimeout(flushProgress, 250);
   }
-
 
   function resumeReading() {
     var key = currentKey();
@@ -2598,7 +2733,7 @@
   }
 
   function routeIdentity() {
-    var href = global.location && global.location.href || doc.URL || "";
+    var href = global.location?.href || doc.URL || "";
     return articleKey(href) || canonicalUrl(href) || href;
   }
 
@@ -2607,7 +2742,7 @@
     var changed = identity !== model.routeIdentity;
     if (!changed && !force) return false;
     model.routeIdentity = identity;
-    model.routeKey = articleKey(global.location && global.location.href || doc.URL || "");
+    model.routeKey = articleKey(global.location?.href || doc.URL || "");
     model.generation += 1;
     clearProgressTimer();
     if (changed) {
@@ -2626,7 +2761,7 @@
   function scheduleScan() {
     if (model.destroyed) return;
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
-    model.scanTimer = global.setTimeout(function () {
+    model.scanTimer = global.setTimeout(() => {
       model.scanTimer = null;
       scan();
     }, 120);
@@ -2636,7 +2771,7 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return false;
-    var result = storageResult(function () { return storage.markVisited(key, article.title || ""); });
+    var result = storageResult(() => storage.markVisited(key, article.title || ""));
     if (!applyMutationResult(result)) return false;
     model.markedEntry = model.routeEntry;
     return true;
@@ -2648,9 +2783,13 @@
     invalidateRoute(routeIdentity(), false);
     var generation = model.generation;
     var page = null;
-    try { page = site.extractPageArticle(doc); } catch (_) { page = null; }
+    try {
+      page = site.extractPageArticle(doc);
+    } catch (_) {
+      page = null;
+    }
     if (model.destroyed || generation > model.generation) return;
-    var pageRecord = copyRecord(page, page && page.key, "page");
+    var pageRecord = copyRecord(page, page?.key, "page");
     model.pageArticle = pageRecord && model.routeKey && pageRecord.key === model.routeKey ? pageRecord : null;
     model.discoveryDirty = true;
     ensureDiscovery();
@@ -2705,7 +2844,6 @@
     flushProgress();
   }
 
-
   function onStorageChange(next) {
     if (model.destroyed) return;
     if (!next || typeof next !== "object") return;
@@ -2716,11 +2854,17 @@
     if (model.panelOpen) render();
   }
 
-  function onLauncherClick(event) { setOpen(!model.panelOpen, event.currentTarget); }
-  function onCloseClick() { setOpen(false); }
-  function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
+  function onLauncherClick(event) {
+    setOpen(!model.panelOpen, event.currentTarget);
+  }
+  function onCloseClick() {
+    setOpen(false);
+  }
+  function onTabClick(event) {
+    setTab(event.currentTarget.getAttribute("data-tab"));
+  }
   function visibleTabs() {
-    return [discoverTab, articleTab, dataTab].filter(function (tab) { return !tab.hidden; });
+    return [discoverTab, articleTab, dataTab].filter((tab) => !tab.hidden);
   }
   function onTabsKeydown(event) {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -2738,9 +2882,18 @@
     setTab(nextTab.getAttribute("data-tab"));
     focusWithoutScroll(nextTab);
   }
-  function onSearchInput() { model.query = search.value || ""; renderDiscovery(); }
-  function onScopeChange() { model.scope = scope.value === "local" ? "local" : "page"; renderDiscovery(); }
-  function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
+  function onSearchInput() {
+    model.query = search.value || "";
+    renderDiscovery();
+  }
+  function onScopeChange() {
+    model.scope = scope.value === "local" ? "local" : "page";
+    renderDiscovery();
+  }
+  function onFilterChange() {
+    model.filter = filter.value || "all";
+    renderDiscovery();
+  }
   function cycleSort(field) {
     var nextSort = model.sort;
     var nextAscending = model.sortAscending;
@@ -2753,20 +2906,26 @@
       nextSort = "";
       nextAscending = false;
     }
-    var result = storageResult(function () {
-      return storage.setPreferences({
+    var result = storageResult(() =>
+      storage.setPreferences({
         discoverySort: nextSort,
-        discoverySortAscending: nextAscending
-      });
-    });
+        discoverySortAscending: nextAscending,
+      })
+    );
     if (!applyMutationResult(result)) {
       applySortPreference(model.snapshot);
       if (model.panelOpen) renderDiscovery();
     }
   }
-  function onDateSort() { cycleSort("date"); }
-  function onCommentSort() { cycleSort("comments"); }
-  function onResumeClick() { resumeReading(); }
+  function onDateSort() {
+    cycleSort("date");
+  }
+  function onCommentSort() {
+    cycleSort("comments");
+  }
+  function onResumeClick() {
+    resumeReading();
+  }
   function onCommentOrderChange() {
     var previousMode = model.commentSort;
     var mode = normalizeCommentMode(commentSortSelect.value);
@@ -2779,15 +2938,14 @@
     }
     model.commentSort = mode;
     commentSortSelect.value = mode;
-    var result = storageResult(function () { return storage.setPreferences({ commentSort: mode }); });
+    var result = storageResult(() => storage.setPreferences({ commentSort: mode }));
     if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
-      model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
+      model.commentSort = normalizeCommentMode(model.snapshot?.prefs?.commentSort);
       comments.sort(model.commentSort);
       commentSortSelect.value = model.commentSort;
       if (model.panelOpen && model.activeTab === "article") renderComments();
     }
   }
-
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
@@ -2800,7 +2958,8 @@
     try {
       var json = storage.exportJson();
       var blob = new global.Blob([json], { type: "application/json" });
-      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function")
+        global.URL.revokeObjectURL(model.exportUrl);
       url = global.URL.createObjectURL(blob);
       model.exportUrl = url;
       download = make("a");
@@ -2810,7 +2969,7 @@
       download.click();
       shadow.removeChild(download);
     } catch (_) {
-      if (download && download.parentNode) download.parentNode.removeChild(download);
+      if (download?.parentNode) download.parentNode.removeChild(download);
       if (url && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
       setStorageError("export-failed");
@@ -2820,7 +2979,7 @@
     model.lastError = "";
     renderData();
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
-    model.exportTimer = global.setTimeout(function () {
+    model.exportTimer = global.setTimeout(() => {
       model.exportTimer = null;
       if (typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
@@ -2844,7 +3003,7 @@
     discardImportRead();
     model.pendingImport = null;
     model.clearPending = false;
-    var file = importInput.files && importInput.files[0];
+    var file = importInput.files?.[0];
     if (!file) {
       renderData();
       return;
@@ -2863,7 +3022,7 @@
     var generation = model.importGeneration;
     var reader = new global.FileReader();
     model.importReader = reader;
-    reader.onload = function () {
+    reader.onload = () => {
       if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
       model.importReader = null;
       reader.onload = null;
@@ -2874,9 +3033,9 @@
       } catch (_) {
         prepared = { ok: false, error: "prepare-import-failed" };
       }
-      if (!prepared || prepared.ok !== true) {
+      if (prepared?.ok !== true) {
         model.pendingImport = null;
-        setStorageError(prepared && prepared.error ? prepared.error : "invalid-import");
+        setStorageError(prepared?.error ? prepared.error : "invalid-import");
         showToast("Import abgelehnt");
         importInput.value = "";
         return;
@@ -2887,7 +3046,7 @@
       renderData();
       focusWithoutScroll(importCancelButton);
     };
-    reader.onerror = function () {
+    reader.onerror = () => {
       if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
       model.importReader = null;
       reader.onload = null;
@@ -2910,7 +3069,7 @@
   function onImportConfirm() {
     if (!model.pendingImport) return;
     var prepared = model.pendingImport;
-    var result = storageResult(function () { return storage.importPrepared(prepared.state); }, "import-failed");
+    var result = storageResult(() => storage.importPrepared(prepared.state), "import-failed");
     if (!applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) return;
     model.pendingImport = null;
     importInput.value = "";
@@ -2937,7 +3096,7 @@
 
   function onClearConfirm() {
     if (!model.clearPending) return;
-    var result = storageResult(function () { return storage.clearVisited(); }, "clear-visited-failed");
+    var result = storageResult(() => storage.clearVisited(), "clear-visited-failed");
     if (!applyMutationResult(result, "Besuchsverlauf gelöscht")) return;
     model.clearPending = false;
     renderData();
@@ -2951,24 +3110,9 @@
   }
 
   function onKeydown(event) {
-    if (event.key === "Escape" && model.panelOpen) {
-      event.preventDefault();
-      setOpen(false);
-      return;
-    }
-    if (!event.altKey || !event.shiftKey) return;
-    var key = String(event.key || "").toLowerCase();
-    if (key === "o") {
-      var openTrigger = triggerForEvent(event);
-      event.preventDefault();
-      setOpen(!model.panelOpen, openTrigger);
-    } else if (key === "r") {
-      var resumeTrigger = triggerForEvent(event);
-      event.preventDefault();
-      setOpen(true, resumeTrigger);
-      setTab("article");
-      resumeReading();
-    }
+    if (event.key !== "Escape" || !model.panelOpen) return;
+    event.preventDefault();
+    setOpen(false);
   }
 
   function teardown() {
@@ -2980,7 +3124,8 @@
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
-    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function")
+      global.URL.revokeObjectURL(model.exportUrl);
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
@@ -3011,7 +3156,7 @@
     global.removeEventListener("hashchange", onRouteEvent);
     global.removeEventListener("pagehide", onPagehide);
     doc.removeEventListener("visibilitychange", onVisibilityChange);
-    doc.removeEventListener("keydown", onKeydown);
+    doc.removeEventListener("keydown", onKeydown, true);
     if (host.parentNode) host.parentNode.removeChild(host);
     global.__DSUXEnhancerController = false;
     global.DSUXEnhancerTeardown = null;
@@ -3040,10 +3185,12 @@
   global.addEventListener("scroll", onScroll, { passive: true });
   global.addEventListener("popstate", onRouteEvent);
   global.addEventListener("hashchange", onRouteEvent);
-  doc.addEventListener("keydown", onKeydown);
+  doc.addEventListener("keydown", onKeydown, true);
 
   if (typeof global.MutationObserver === "function") {
-    model.observer = new global.MutationObserver(function () { scheduleScan(); });
+    model.observer = new global.MutationObserver(() => {
+      scheduleScan();
+    });
     model.observer.observe(doc.documentElement, { childList: true, subtree: true });
   }
   global.addEventListener("pagehide", onPagehide);
@@ -3052,4 +3199,4 @@
   global.DSUXEnhancerTeardown = teardown;
   scan();
   startRoutePolling();
-}(typeof window !== "undefined" ? window : null));
+})(typeof window !== "undefined" ? window : null);

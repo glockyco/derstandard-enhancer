@@ -1,9 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import path from "node:path";
+import { expect, test } from "@playwright/test";
 
 const ROOT = process.cwd();
 const GENERATED_PATH = path.join(ROOT, "derstandard-enhancer.user.js");
-const SOURCE_PATHS = ["src/site.js", "src/storage.js", "src/comments.js", "src/controller.js"].map((file) => path.join(ROOT, file));
+const SOURCE_PATHS = ["src/site.js", "src/storage.js", "src/comments.js", "src/controller.js"].map((file) =>
+  path.join(ROOT, file)
+);
+const CONTROLLER_CSS = readFileSync(path.join(ROOT, "src/controller.css"), "utf8");
 
 const FIXTURE_HTML = `<!doctype html>
 <html lang="de">
@@ -79,10 +83,6 @@ const COMMENT_ARTICLE_HTML = `<!doctype html>
 </html>`;
 
 const HOME_URL = "https://www.derstandard.at/";
-const SHORTCUT_FIXTURE_HTML = FIXTURE_HTML.replace(
-  "</body>",
-  '  <button id="page-trigger" type="button">Seitensteuerung</button>\n</body>',
-);
 const CURRENT_KEYS = [
   "https://derstandard.at/story/123/erste-meldung",
   "https://derstandard.at/story/456/zweite-meldung",
@@ -127,13 +127,24 @@ async function fixture(page, { html = FIXTURE_HTML, url = HOME_URL } = {}) {
 
 async function installEnhancer(page, useGenerated = false) {
   const paths = useGenerated ? [GENERATED_PATH] : SOURCE_PATHS;
+  if (!useGenerated)
+    await page.evaluate((styles) => {
+      window.DSUXStyles = styles;
+    }, CONTROLLER_CSS);
   for (const file of paths) await page.addScriptTag({ path: file });
   // addScriptTag is test setup; remove its tags so page-mutation assertions cover the product only.
-  await page.evaluate(() => document.querySelectorAll("script").forEach((node) => node.remove()));
+  await page.evaluate(() => {
+    document.querySelectorAll("script").forEach((node) => {
+      node.remove();
+    });
+  });
   await expect(page.locator("html > div")).toHaveCount(1);
 }
- 
+
 async function installInstrumented(page, { siteHook = null, storageHook = null, preControllerHook = null } = {}) {
+  await page.evaluate((styles) => {
+    window.DSUXStyles = styles;
+  }, CONTROLLER_CSS);
   await page.addScriptTag({ path: path.join(ROOT, "src/site.js") });
   if (siteHook) await page.evaluate(siteHook);
   await page.addScriptTag({ path: path.join(ROOT, "src/storage.js") });
@@ -141,40 +152,49 @@ async function installInstrumented(page, { siteHook = null, storageHook = null, 
   if (preControllerHook) await page.evaluate(preControllerHook);
   await page.addScriptTag({ path: path.join(ROOT, "src/comments.js") });
   await page.addScriptTag({ path: path.join(ROOT, "src/controller.js") });
-  await page.evaluate(() => document.querySelectorAll("script").forEach((node) => node.remove()));
+  await page.evaluate(() => {
+    document.querySelectorAll("script").forEach((node) => {
+      node.remove();
+    });
+  });
   await expect(page.locator("html > div")).toHaveCount(1);
 }
-
 
 function host(page) {
   return page.locator("html > div").first();
 }
 
 async function discoveryRowKeys(enhancer) {
-  return enhancer.locator(".dsux-table tbody [data-action='save'][data-key]").evaluateAll((actions) => (
-    actions.map((action) => action.getAttribute("data-key")).sort()
-  ));
+  return enhancer
+    .locator(".dsux-table tbody [data-action='save'][data-key]")
+    .evaluateAll((actions) => actions.map((action) => action.getAttribute("data-key")).sort());
 }
-test("generated comments module sorts an article forum inside the enhancer panel and restores native order", async ({ page }) => {
+test("generated comments module sorts an article forum inside the enhancer panel and restores native order", async ({
+  page,
+}) => {
   await fixture(page, { html: COMMENT_ARTICLE_HTML, url: ARTICLE_URL });
   await page.evaluate(() => window.localStorage.clear());
   await installEnhancer(page, true);
 
   expect(await page.evaluate(() => typeof window.DSUXComments)).toBe("object");
-  const nativeOrder = async () => page.evaluate(() => {
-    const forum = document.querySelector("#fixture-forum");
-    const main = forum && forum.shadowRoot && forum.shadowRoot.querySelector("section#forum main.forum--main");
-    return main ? Array.from(main.querySelectorAll("dst-posting[data-level='0']")).map((node) => node.id) : [];
-  });
-  const forumMainChildSequence = async () => page.evaluate(() => {
-    const forum = document.querySelector("#fixture-forum");
-    const main = forum && forum.shadowRoot && forum.shadowRoot.querySelector("section#forum main.forum--main");
-    return main ? Array.from(main.childNodes).map((node) => ({
-      nodeType: node.nodeType,
-      nodeName: node.nodeName,
-      value: node.nodeType === Node.ELEMENT_NODE ? node.outerHTML : node.nodeValue,
-    })) : [];
-  });
+  const nativeOrder = async () =>
+    page.evaluate(() => {
+      const forum = document.querySelector("#fixture-forum");
+      const main = forum?.shadowRoot?.querySelector("section#forum main.forum--main");
+      return main ? Array.from(main.querySelectorAll("dst-posting[data-level='0']")).map((node) => node.id) : [];
+    });
+  const forumMainChildSequence = async () =>
+    page.evaluate(() => {
+      const forum = document.querySelector("#fixture-forum");
+      const main = forum?.shadowRoot?.querySelector("section#forum main.forum--main");
+      return main
+        ? Array.from(main.childNodes).map((node) => ({
+            nodeType: node.nodeType,
+            nodeName: node.nodeName,
+            value: node.nodeType === Node.ELEMENT_NODE ? node.outerHTML : node.nodeValue,
+          }))
+        : [];
+    });
   await expect.poll(nativeOrder).toEqual(["low", "high", "medium"]);
   const nativeChildren = await forumMainChildSequence();
 
@@ -185,17 +205,19 @@ test("generated comments module sorts an article forum inside the enhancer panel
   const select = enhancer.locator(".dsux-comment-sort");
   await expect(select).toHaveCount(1);
   await expect(enhancer.locator(".dsux-comment-status")).toContainText("3");
-  expect(await page.evaluate(() => {
-    const forum = document.querySelector("#fixture-forum");
-    const enhancerShadow = document.querySelector("html > div")?.shadowRoot;
-    const controls = ".dsux-comment-sort, .dsux-comment-status";
-    return {
-      pageLightDom: document.querySelectorAll(controls).length,
-      forumShadowRoot: forum?.shadowRoot?.querySelectorAll(controls).length || 0,
-      enhancerSort: enhancerShadow?.querySelectorAll(".dsux-comment-sort").length || 0,
-      enhancerStatus: enhancerShadow?.querySelectorAll(".dsux-comment-status").length || 0,
-    };
-  })).toEqual({
+  expect(
+    await page.evaluate(() => {
+      const forum = document.querySelector("#fixture-forum");
+      const enhancerShadow = document.querySelector("html > div")?.shadowRoot;
+      const controls = ".dsux-comment-sort, .dsux-comment-status";
+      return {
+        pageLightDom: document.querySelectorAll(controls).length,
+        forumShadowRoot: forum?.shadowRoot?.querySelectorAll(controls).length || 0,
+        enhancerSort: enhancerShadow?.querySelectorAll(".dsux-comment-sort").length || 0,
+        enhancerStatus: enhancerShadow?.querySelectorAll(".dsux-comment-status").length || 0,
+      };
+    })
+  ).toEqual({
     pageLightDom: 0,
     forumShadowRoot: 0,
     enhancerSort: 1,
@@ -204,10 +226,14 @@ test("generated comments module sorts an article forum inside the enhancer panel
 
   await select.selectOption("positive");
   await expect.poll(nativeOrder).toEqual(["high", "medium", "low"]);
-  await expect.poll(async () => page.evaluate(() => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state") || "{}");
-    return state.prefs && state.prefs.commentSort;
-  })).toBe("positive");
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state") || "{}");
+        return state.prefs?.commentSort;
+      })
+    )
+    .toBe("positive");
 
   await page.evaluate(() => window.DSUXEnhancerTeardown());
   await expect(page.locator("html > div")).toHaveCount(0);
@@ -258,9 +284,9 @@ test("discovery scope separates current teasers from persisted local records", a
   expect(pageRows.some((key) => LOCAL_KEYS.includes(key))).toBe(false);
 
   await scope.selectOption("local");
-  await expect.poll(() => discoveryRowKeys(enhancer)).toEqual(
-    LOCAL_KEYS.filter((key) => key !== LOCAL_IGNORED_KEY).sort(),
-  );
+  await expect
+    .poll(() => discoveryRowKeys(enhancer))
+    .toEqual(LOCAL_KEYS.filter((key) => key !== LOCAL_IGNORED_KEY).sort());
   const localRows = await discoveryRowKeys(enhancer);
   expect(localRows.some((key) => CURRENT_KEYS.includes(key))).toBe(false);
 
@@ -293,33 +319,35 @@ test("visible tablist uses roving focus, labelled tabpanels, and keyboard naviga
   await expect(tabs).toHaveCount(3);
 
   const assertTabState = async () => {
-    const state = await tabs.evaluateAll((nodes) => nodes.map((tab) => {
-      const controls = tab.getAttribute("aria-controls");
-      const root = tab.getRootNode();
-      const panel = controls && root.getElementById(controls);
-      const panelStyle = panel && getComputedStyle(panel);
-      return {
-        id: tab.id,
-        controls,
-        selected: tab.getAttribute("aria-selected"),
-        tabIndex: tab.tabIndex,
-        hidden: tab.hidden,
-        panelRole: panel?.getAttribute("role") || "",
-        panelLabelledBy: panel?.getAttribute("aria-labelledby") || "",
-        panelVisible: !!panel
-          && !panel.hidden
-          && panelStyle.display !== "none"
-          && panelStyle.visibility !== "hidden",
-      };
-    }));
-    expect(state.every((tab) => (
-      tab.id
-      && tab.controls
-      && (tab.selected === "true" || tab.selected === "false")
-      && (tab.tabIndex === 0 || tab.tabIndex === -1)
-      && tab.panelRole === "tabpanel"
-      && tab.panelLabelledBy === tab.id
-    ))).toBe(true);
+    const state = await tabs.evaluateAll((nodes) =>
+      nodes.map((tab) => {
+        const controls = tab.getAttribute("aria-controls");
+        const root = tab.getRootNode();
+        const panel = controls && root.getElementById(controls);
+        const panelStyle = panel && getComputedStyle(panel);
+        return {
+          id: tab.id,
+          controls,
+          selected: tab.getAttribute("aria-selected"),
+          tabIndex: tab.tabIndex,
+          hidden: tab.hidden,
+          panelRole: panel?.getAttribute("role") || "",
+          panelLabelledBy: panel?.getAttribute("aria-labelledby") || "",
+          panelVisible: !!panel && !panel.hidden && panelStyle.display !== "none" && panelStyle.visibility !== "hidden",
+        };
+      })
+    );
+    expect(
+      state.every(
+        (tab) =>
+          tab.id &&
+          tab.controls &&
+          (tab.selected === "true" || tab.selected === "false") &&
+          (tab.tabIndex === 0 || tab.tabIndex === -1) &&
+          tab.panelRole === "tabpanel" &&
+          tab.panelLabelledBy === tab.id
+      )
+    ).toBe(true);
     const visibleTabs = state.filter((tab) => !tab.hidden);
     expect(visibleTabs.filter((tab) => tab.selected === "true")).toHaveLength(1);
     expect(visibleTabs.filter((tab) => tab.tabIndex === 0)).toHaveLength(1);
@@ -351,47 +379,43 @@ test("visible tablist uses roving focus, labelled tabpanels, and keyboard naviga
   await assertTabState();
 });
 
-test("Escape, close, and Alt+Shift+O restore the exact opener, with hidden fallback to launcher", async ({ page }) => {
-  await fixture(page, { html: SHORTCUT_FIXTURE_HTML });
+test("Escape and close restore focus to the launcher", async ({ page }) => {
+  await fixture(page);
   await installEnhancer(page);
 
   const enhancer = host(page);
-  const trigger = page.locator("#page-trigger");
-  await trigger.evaluate((node) => {
-    const wrapper = document.createElement("div");
-    wrapper.id = "trigger-wrapper";
-    node.parentNode.insertBefore(wrapper, node);
-    wrapper.appendChild(node);
-  });
   const launcher = enhancer.locator(".dsux-launcher");
   const panel = enhancer.locator(".dsux-panel");
-  const close = enhancer.locator(".dsux-close");
 
-  await trigger.focus();
-  await page.keyboard.press("Alt+Shift+O");
+  await launcher.click();
   await expect(panel).toBeVisible();
-  await close.click();
+  await enhancer.locator(".dsux-close").click();
   await expect(panel).toBeHidden();
-  await expect(trigger).toBeFocused();
+  await expect(launcher).toBeFocused();
 
-  await trigger.focus();
-  await page.keyboard.press("Alt+Shift+O");
+  await launcher.click();
   await expect(panel).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
-  await expect(trigger).toBeFocused();
+  await expect(launcher).toBeFocused();
+});
 
-  await trigger.focus();
-  await page.keyboard.press("Alt+Shift+O");
-  await expect(panel).toBeVisible();
-  await page.keyboard.press("Alt+Shift+O");
-  await expect(panel).toBeHidden();
-  await expect(trigger).toBeFocused();
+test("Escape survives publisher keydown propagation blockers", async ({ page }) => {
+  await fixture(page);
+  await page.evaluate(() => {
+    document.addEventListener("keydown", (event) => {
+      event.stopImmediatePropagation();
+    });
+  });
+  await installEnhancer(page);
 
-  await trigger.focus();
-  await page.keyboard.press("Alt+Shift+O");
+  const enhancer = host(page);
+  const launcher = enhancer.locator(".dsux-launcher");
+  const panel = enhancer.locator(".dsux-panel");
+
+  await launcher.click();
   await expect(panel).toBeVisible();
-  await trigger.evaluate((node) => { node.parentElement.hidden = true; });
+  await enhancer.locator('[data-tab="data"]').click();
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
   await expect(launcher).toBeFocused();
@@ -409,13 +433,17 @@ test("save and ignore rerenders preserve logical row-action focus", async ({ pag
   expect(firstKey).toBeTruthy();
   await firstSave.focus();
   await firstSave.click();
-  await expect.poll(async () => page.evaluate(() => {
-    const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
-    return {
-      action: active?.getAttribute("data-action") || "",
-      key: active?.getAttribute("data-key") || "",
-    };
-  })).toEqual({ action: "save", key: firstKey });
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
+        return {
+          action: active?.getAttribute("data-action") || "",
+          key: active?.getAttribute("data-key") || "",
+        };
+      })
+    )
+    .toEqual({ action: "save", key: firstKey });
 
   const secondRow = enhancer.locator(".dsux-table tbody tr").nth(1);
   const secondIgnore = secondRow.locator('[data-action="ignore"]');
@@ -424,13 +452,17 @@ test("save and ignore rerenders preserve logical row-action focus", async ({ pag
   await secondIgnore.focus();
   await secondIgnore.click();
   await expect(enhancer.locator(`[data-action="ignore"][data-key="${secondKey}"]`)).toHaveCount(0);
-  await expect.poll(async () => page.evaluate(() => {
-    const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
-    return {
-      action: active?.getAttribute("data-action") || "",
-      key: active?.getAttribute("data-key") || "",
-    };
-  })).toEqual({ action: "ignore", key: firstKey });
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
+        return {
+          action: active?.getAttribute("data-action") || "",
+          key: active?.getAttribute("data-key") || "",
+        };
+      })
+    )
+    .toEqual({ action: "ignore", key: firstKey });
   await expect(firstIgnore).toBeFocused();
 });
 
@@ -441,31 +473,17 @@ test("discover has one live status region and tbody is not live", async ({ page 
   const enhancer = host(page);
   await enhancer.locator(".dsux-launcher").click();
   const discover = enhancer.locator("#dsux-view-discover");
-  const liveRegions = await discover.evaluate((node) => Array.from(
-    node.querySelectorAll('[role="status"], [aria-live]'),
-  ).map((region) => ({
-    role: region.getAttribute("role"),
-    live: region.getAttribute("aria-live"),
-  })));
+  const liveRegions = await discover.evaluate((node) =>
+    Array.from(node.querySelectorAll('[role="status"], [aria-live]')).map((region) => ({
+      role: region.getAttribute("role"),
+      live: region.getAttribute("aria-live"),
+    }))
+  );
   expect(liveRegions).toEqual([{ role: "status", live: "polite" }]);
   const tbody = discover.locator("tbody");
   await expect(tbody).not.toHaveAttribute("role", "status");
   await expect(tbody).not.toHaveAttribute("aria-live");
   await expect(tbody.locator('[role="status"], [aria-live]')).toHaveCount(0);
-});
-
-test("shortcut help visibly names each action and qualifies article resume", async ({ page }) => {
-  await fixture(page);
-  await installEnhancer(page);
-
-  const enhancer = host(page);
-  await enhancer.locator(".dsux-launcher").click();
-  const shortcuts = enhancer.locator(".dsux-shortcuts");
-  await expect(shortcuts).toBeVisible();
-  const copy = await shortcuts.innerText();
-  expect(copy).toMatch(/Alt\+Shift\+O[\s\S]*(öffnet|öffnen)[\s\S]*(schließt|schließen)/i);
-  expect(copy).toMatch(/Alt\+Shift\+R[\s\S]*(Artikel|artikel)[\s\S]*(fort|weiter)/i);
-  expect(copy).toMatch(/Esc[\s\S]*(schließt|schließen)/i);
 });
 
 test("discovery controls expose the visible labels Suche, Quelle, and Status", async ({ page }) => {
@@ -476,11 +494,15 @@ test("discovery controls expose the visible labels Suche, Quelle, and Status", a
   await enhancer.locator(".dsux-launcher").click();
   const fields = enhancer.locator("#dsux-view-discover .dsux-control-field");
   await expect(fields).toHaveCount(3);
-  expect(await fields.evaluateAll((nodes) => nodes.map((field) => ({
-    tag: field.tagName,
-    label: field.querySelector(".dsux-control-label")?.textContent.trim() || "",
-    controls: field.querySelectorAll("input, select").length,
-  })))).toEqual([
+  expect(
+    await fields.evaluateAll((nodes) =>
+      nodes.map((field) => ({
+        tag: field.tagName,
+        label: field.querySelector(".dsux-control-label")?.textContent.trim() || "",
+        controls: field.querySelectorAll("input, select").length,
+      }))
+    )
+  ).toEqual([
     { tag: "LABEL", label: "Suche", controls: 1 },
     { tag: "LABEL", label: "Quelle", controls: 1 },
     { tag: "LABEL", label: "Status", controls: 1 },
@@ -504,25 +526,28 @@ test("visible toast does not overlap the widened launcher", async ({ page }) => 
   const launcherBox = await launcher.boundingBox();
   expect(toastBox).toBeTruthy();
   expect(launcherBox).toBeTruthy();
-  const separated = toastBox.x + toastBox.width <= launcherBox.x
-    || launcherBox.x + launcherBox.width <= toastBox.x
-    || toastBox.y + toastBox.height <= launcherBox.y
-    || launcherBox.y + launcherBox.height <= toastBox.y;
+  const separated =
+    toastBox.x + toastBox.width <= launcherBox.x ||
+    launcherBox.x + launcherBox.width <= toastBox.x ||
+    toastBox.y + toastBox.height <= launcherBox.y ||
+    launcherBox.y + launcherBox.height <= toastBox.y;
   expect(separated).toBe(true);
 });
-
 
 test("outline and resume jumps focus the page reading target with temporary tabindex", async ({ page }) => {
   await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
   await page.evaluate((key) => {
-    window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify({
-      version: 2,
-      visited: {},
-      saved: {},
-      ignored: {},
-      progress: { [key]: { value: 0.35, updatedAt: 1700000000000 } },
-      prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
-    }));
+    window.localStorage.setItem(
+      "derstandard-enhancer-state",
+      JSON.stringify({
+        version: 2,
+        visited: {},
+        saved: {},
+        ignored: {},
+        progress: { [key]: { value: 0.35, updatedAt: 1700000000000 } },
+        prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
+      })
+    );
   }, ARTICLE_KEY);
   await installEnhancer(page);
 
@@ -531,36 +556,52 @@ test("outline and resume jumps focus the page reading target with temporary tabi
   await enhancer.locator('[data-tab="article"]').click();
   const outlineHeading = page.locator(".article-body h2").first();
   await enhancer.getByRole("button", { name: "Einordnung" }).click();
-  await expect.poll(() => page.evaluate(() => {
-    const hostNode = document.querySelector("html > div");
-    const article = document.querySelector("article.story-article");
-    const active = document.activeElement;
-    return !!active && !!article?.contains(active) && active !== hostNode;
-  })).toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const hostNode = document.querySelector("html > div");
+        const article = document.querySelector("article.story-article");
+        const active = document.activeElement;
+        return !!active && !!article?.contains(active) && active !== hostNode;
+      })
+    )
+    .toBe(true);
   await expect(outlineHeading).toBeFocused();
   await expect(outlineHeading).toHaveAttribute("tabindex", "-1");
   await enhancer.locator(".dsux-launcher").click();
-  await expect.poll(() => page.evaluate(() => (
-    document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
-  ))).toBe(0);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
+      )
+    )
+    .toBe(0);
 
   await enhancer.locator(".dsux-launcher").click();
   await enhancer.locator('[data-tab="article"]').click();
   const resume = enhancer.getByRole("button", { name: "Fortsetzen" });
   await expect(resume).toBeEnabled();
   await resume.click();
-  await expect.poll(() => page.evaluate(() => {
-    const hostNode = document.querySelector("html > div");
-    const article = document.querySelector("article.story-article");
-    const active = document.activeElement;
-    return !!active && !!article?.contains(active) && active !== hostNode;
-  })).toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const hostNode = document.querySelector("html > div");
+        const article = document.querySelector("article.story-article");
+        const active = document.activeElement;
+        return !!active && !!article?.contains(active) && active !== hostNode;
+      })
+    )
+    .toBe(true);
   await expect(page.locator(".article-body")).toBeFocused();
   await expect(page.locator(".article-body")).toHaveAttribute("tabindex", "-1");
   await enhancer.locator(".dsux-launcher").click();
-  await expect.poll(() => page.evaluate(() => (
-    document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
-  ))).toBe(0);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
+      )
+    )
+    .toBe(0);
 });
 
 test("source modules open, close, and restore focus through Escape", async ({ page }) => {
@@ -595,18 +636,30 @@ test("controller leaves fixture markup and attributes unchanged outside its host
   await fixture(page);
   const before = await page.evaluate(() => ({
     body: document.body.outerHTML,
-    htmlAttributes: Array.from(document.documentElement.attributes).map((attribute) => [attribute.name, attribute.value]),
+    htmlAttributes: Array.from(document.documentElement.attributes).map((attribute) => [
+      attribute.name,
+      attribute.value,
+    ]),
     htmlChildren: Array.from(document.documentElement.children).map((node) => node.outerHTML),
   }));
 
   await installEnhancer(page, true);
   const after = await page.evaluate(() => {
-    const hostNode = Array.from(document.documentElement.children).find((node) => node.shadowRoot && node.shadowRoot.querySelector(".dsux-launcher"));
+    const hostNode = Array.from(document.documentElement.children).find((node) =>
+      node.shadowRoot?.querySelector(".dsux-launcher")
+    );
     return {
       body: document.body.outerHTML,
-      htmlAttributes: Array.from(document.documentElement.attributes).map((attribute) => [attribute.name, attribute.value]),
-      htmlChildren: Array.from(document.documentElement.children).filter((node) => node !== hostNode).map((node) => node.outerHTML),
-      hostCount: Array.from(document.documentElement.children).filter((node) => node.shadowRoot && node.shadowRoot.querySelector(".dsux-launcher")).length,
+      htmlAttributes: Array.from(document.documentElement.attributes).map((attribute) => [
+        attribute.name,
+        attribute.value,
+      ]),
+      htmlChildren: Array.from(document.documentElement.children)
+        .filter((node) => node !== hostNode)
+        .map((node) => node.outerHTML),
+      hostCount: Array.from(document.documentElement.children).filter((node) =>
+        node.shadowRoot?.querySelector(".dsux-launcher")
+      ).length,
     };
   });
 
@@ -627,7 +680,7 @@ test("browser rejects imports over 1 MiB before constructing FileReader", async 
   const durableBefore = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
   await page.evaluate(() => {
     window.__dsuxFileReaderConstructed = false;
-    window.FileReader = function () {
+    window.FileReader = function FileReaderSentinel() {
       window.__dsuxFileReaderConstructed = true;
       throw new Error("FileReader must not be constructed for oversized imports");
     };
@@ -681,7 +734,10 @@ test("browser previews a valid v2 backup, cancels without mutation, then confirm
       discoverySortAscending: false,
     },
   };
-  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
+  await page.evaluate(
+    (state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)),
+    initial
+  );
   await installEnhancer(page);
 
   const enhancer = host(page);
@@ -762,7 +818,9 @@ test("browser previews a valid v2 backup, cancels without mutation, then confirm
   });
   await expect(preview).toBeVisible();
   await enhancer.locator(".dsux-import-confirm").click();
-  await expect.poll(async () => page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state")))).toEqual(backup);
+  await expect
+    .poll(async () => page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"))))
+    .toEqual(backup);
   await expect(input).toBeFocused();
 });
 
@@ -799,7 +857,10 @@ test("Verlauf löschen confirms, cancels safely, and preserves non-visited durab
     progress: { [progressKey]: { value: 0.4, updatedAt: 1700000000003 } },
     prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
   };
-  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
+  await page.evaluate(
+    (state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)),
+    initial
+  );
   await installEnhancer(page);
 
   const enhancer = host(page);
@@ -823,10 +884,19 @@ test("Verlauf löschen confirms, cancels safely, and preserves non-visited durab
 
   await clear.click();
   await enhancer.locator(".dsux-clear-confirm").click();
-  await expect.poll(async () => page.evaluate(() => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return { visited: Object.keys(state.visited), saved: state.saved, ignored: state.ignored, progress: state.progress };
-  })).toEqual({ visited: [], saved: initial.saved, ignored: initial.ignored, progress: initial.progress });
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+        return {
+          visited: Object.keys(state.visited),
+          saved: state.saved,
+          ignored: state.ignored,
+          progress: state.progress,
+        };
+      })
+    )
+    .toEqual({ visited: [], saved: initial.saved, ignored: initial.ignored, progress: initial.progress });
 });
 
 test("storage failures remain visible across data rerenders and clear after a later success", async ({ page }) => {
@@ -840,7 +910,10 @@ test("storage failures remain visible across data rerenders and clear after a la
     progress: {},
     prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
   };
-  await page.evaluate((state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)), initial);
+  await page.evaluate(
+    (state) => window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state)),
+    initial
+  );
   await installEnhancer(page);
 
   const enhancer = host(page);
@@ -848,7 +921,9 @@ test("storage failures remain visible across data rerenders and clear after a la
   await enhancer.locator('[data-tab="data"]').click();
   await page.evaluate(() => {
     window.__dsuxOriginalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function () { throw new Error("forced localStorage failure"); };
+    Storage.prototype.setItem = () => {
+      throw new Error("forced localStorage failure");
+    };
   });
 
   await enhancer.getByRole("button", { name: "Verlauf löschen" }).click();
@@ -856,17 +931,25 @@ test("storage failures remain visible across data rerenders and clear after a la
   await enhancer.locator(".dsux-clear-confirm").click();
   const error = enhancer.locator(".dsux-storage-error[role='alert']");
   await expect(error).toBeVisible();
-  await expect(error).toHaveText(/Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./);
+  await expect(error).toHaveText(
+    /Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./
+  );
   const failureText = await error.innerText();
   expect(failureText.trim()).not.toBe("");
-  expect(failureText).toMatch(/Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./);
-  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBeforeFinalDelete);
+  expect(failureText).toMatch(
+    /Lokale Daten konnten nicht gespeichert werden\.|Besuchsverlauf konnte nicht gelöscht werden\./
+  );
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(
+    durableBeforeFinalDelete
+  );
 
   await enhancer.locator('[data-tab="discover"]').click();
   await enhancer.locator('[data-tab="data"]').click();
   await expect(error).toBeVisible();
   await expect(error).toHaveText(failureText);
-  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBeforeFinalDelete);
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(
+    durableBeforeFinalDelete
+  );
 
   await enhancer.locator(".dsux-clear-cancel").click();
   await expect(error).toBeVisible();
@@ -877,28 +960,38 @@ test("storage failures remain visible across data rerenders and clear after a la
   await enhancer.getByRole("button", { name: "Verlauf löschen" }).click();
   await enhancer.locator(".dsux-clear-confirm").click();
   await expect(error).toBeHidden();
-  await expect.poll(async () => page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state")).visited)).toEqual({});
+  await expect
+    .poll(async () =>
+      page.evaluate(() => JSON.parse(window.localStorage.getItem("derstandard-enhancer-state")).visited)
+    )
+    .toEqual({});
 });
 
 test("article initialization persists visited state and scrolling persists separate progress", async ({ page }) => {
   await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
   await installEnhancer(page);
 
-  await expect.poll(async () => page.evaluate((key) => {
-    const raw = window.localStorage.getItem("derstandard-enhancer-state");
-    if (!raw) return null;
-    const state = JSON.parse(raw);
-    const record = state.visited && state.visited[key];
-    return record ? {
-      url: record.url,
-      title: record.title,
-      visitedAt: typeof record.visitedAt,
-    } : null;
-  }, ARTICLE_KEY)).toEqual({
-    url: ARTICLE_KEY,
-    title: "Eine Leseprobe",
-    visitedAt: "number",
-  });
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const raw = window.localStorage.getItem("derstandard-enhancer-state");
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+        const record = state.visited?.[key];
+        return record
+          ? {
+              url: record.url,
+              title: record.title,
+              visitedAt: typeof record.visitedAt,
+            }
+          : null;
+      }, ARTICLE_KEY)
+    )
+    .toEqual({
+      url: ARTICLE_KEY,
+      title: "Eine Leseprobe",
+      visitedAt: "number",
+    });
 
   const enhancer = host(page);
   await enhancer.locator(".dsux-launcher").click();
@@ -907,12 +1000,16 @@ test("article initialization persists visited state and scrolling persists separ
   await page.waitForTimeout(200);
 
   await page.evaluate(() => window.scrollTo(0, 600));
-  await expect.poll(async () => page.evaluate((key) => {
-    const raw = window.localStorage.getItem("derstandard-enhancer-state");
-    if (!raw) return null;
-    const state = JSON.parse(raw);
-    return state.progress && state.progress[key] || null;
-  }, ARTICLE_KEY)).not.toBeNull();
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const raw = window.localStorage.getItem("derstandard-enhancer-state");
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+        return state.progress?.[key] || null;
+      }, ARTICLE_KEY)
+    )
+    .not.toBeNull();
 
   const durable = await page.evaluate((key) => {
     const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
@@ -960,8 +1057,7 @@ test("closed scans defer full discovery until open and refresh only dirty open m
     marker.dataset.closedMutation = "true";
     document.querySelector("#fixture-content").appendChild(marker);
   });
-  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
-    .toBeGreaterThan(initialCalls.page);
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBeGreaterThan(initialCalls.page);
   expect(await page.evaluate(() => window.__dsuxExtractArticlesCalls)).toBe(initialCalls.articles);
 
   const firstClosedMutationCalls = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
@@ -969,21 +1065,26 @@ test("closed scans defer full discovery until open and refresh only dirty open m
     const teaser = document.createElement("article");
     teaser.className = "teaser";
     teaser.dataset.section = "Neue Meldung";
-    teaser.innerHTML = '<a href="/story/999/geschlossene-meldung"><h3 class="teaser-title">Geschlossene Meldung</h3></a>';
+    teaser.innerHTML =
+      '<a href="/story/999/geschlossene-meldung"><h3 class="teaser-title">Geschlossene Meldung</h3></a>';
     document.querySelector("#fixture-content").appendChild(teaser);
   });
-  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
+  await expect
+    .poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
     .toBeGreaterThan(firstClosedMutationCalls);
   expect(await page.evaluate(() => window.__dsuxExtractArticlesCalls)).toBe(initialCalls.articles);
 
   const enhancer = host(page);
   await enhancer.locator(".dsux-launcher").click();
-  await expect.poll(() => page.evaluate(() => window.__dsuxExtractArticlesCalls))
+  await expect
+    .poll(() => page.evaluate(() => window.__dsuxExtractArticlesCalls))
     .toBeGreaterThan(initialCalls.articles);
   await expect(enhancer.locator(".dsux-table tbody")).toContainText("Geschlossene Meldung");
 });
 
-test("mutation UI follows the synchronous durable subscription instead of a stale result envelope", async ({ page }) => {
+test("mutation UI follows the synchronous durable subscription instead of a stale result envelope", async ({
+  page,
+}) => {
   await fixture(page);
   await installInstrumented(page, {
     storageHook: () => {
@@ -998,16 +1099,16 @@ test("mutation UI follows the synchronous durable subscription instead of a stal
         return subscribe.call(this, (next) => {
           const divergent = Object.assign({}, next, { saved: {} });
           const key = window.__dsuxStorageAuthority.key;
-          window.__dsuxStorageAuthority.subscriptionSaved = !!(divergent.saved && divergent.saved[key]);
+          window.__dsuxStorageAuthority.subscriptionSaved = !!divergent.saved?.[key];
           listener(divergent);
         });
       };
       window.DSUXStorage.toggleSaved = function (...args) {
         window.__dsuxStorageAuthority.key = args[0];
         const result = toggleSaved.apply(this, args);
-        window.__dsuxStorageAuthority.resultSaved = !!(result.state.saved && result.state.saved[args[0]]);
+        window.__dsuxStorageAuthority.resultSaved = !!result.state.saved?.[args[0]];
         const durable = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state") || "{}");
-        window.__dsuxStorageAuthority.durableSaved = !!(durable.saved && durable.saved[args[0]]);
+        window.__dsuxStorageAuthority.durableSaved = !!durable.saved?.[args[0]];
         return result;
       };
     },
@@ -1027,19 +1128,25 @@ test("mutation UI follows the synchronous durable subscription instead of a stal
     resultSaved: true,
     durableSaved: true,
   });
-  expect(await page.evaluate((key) => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return !!(state.saved && state.saved[key]);
-  }, CURRENT_KEYS[0])).toBe(true);
+  expect(
+    await page.evaluate((key) => {
+      const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+      return !!state.saved?.[key];
+    }, CURRENT_KEYS[0])
+  ).toBe(true);
 });
 
 test("scroll progress flushes for the old article before route invalidation", async ({ page }) => {
   await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
   await installEnhancer(page);
-  await expect.poll(async () => page.evaluate((key) => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return !!(state.visited && state.visited[key]);
-  }, ARTICLE_KEY)).toBe(true);
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+        return !!state.visited?.[key];
+      }, ARTICLE_KEY)
+    )
+    .toBe(true);
 
   const progress = await page.evaluate((key) => {
     window.scrollTo(0, 600);
@@ -1047,7 +1154,7 @@ test("scroll progress flushes for the old article before route invalidation", as
     history.pushState({}, "", "/story/999/neue-leseprobe");
     window.dispatchEvent(new PopStateEvent("popstate"));
     const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return state.progress && state.progress[key] ? state.progress[key].value : null;
+    return state.progress?.[key] ? state.progress[key].value : null;
   }, ARTICLE_KEY);
   expect(progress).toBeGreaterThan(0);
 });
@@ -1055,17 +1162,21 @@ test("scroll progress flushes for the old article before route invalidation", as
 test("scroll progress flushes synchronously on pagehide before the debounce", async ({ page }) => {
   await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
   await installEnhancer(page);
-  await expect.poll(async () => page.evaluate((key) => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return !!(state.visited && state.visited[key]);
-  }, ARTICLE_KEY)).toBe(true);
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+        return !!state.visited?.[key];
+      }, ARTICLE_KEY)
+    )
+    .toBe(true);
 
   const progress = await page.evaluate((key) => {
     window.scrollTo(0, 600);
     window.dispatchEvent(new Event("scroll"));
     window.dispatchEvent(new Event("pagehide"));
     const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return state.progress && state.progress[key] ? state.progress[key].value : null;
+    return state.progress?.[key] ? state.progress[key].value : null;
   }, ARTICLE_KEY);
   expect(progress).toBeGreaterThan(0);
 });
@@ -1073,17 +1184,21 @@ test("scroll progress flushes synchronously on pagehide before the debounce", as
 test("teardown flushes pending scroll progress before disconnecting storage", async ({ page }) => {
   await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
   await installEnhancer(page);
-  await expect.poll(async () => page.evaluate((key) => {
-    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return !!(state.visited && state.visited[key]);
-  }, ARTICLE_KEY)).toBe(true);
+  await expect
+    .poll(async () =>
+      page.evaluate((key) => {
+        const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+        return !!state.visited?.[key];
+      }, ARTICLE_KEY)
+    )
+    .toBe(true);
 
   const progress = await page.evaluate((key) => {
     window.scrollTo(0, 600);
     window.dispatchEvent(new Event("scroll"));
     window.DSUXEnhancerTeardown();
     const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
-    return state.progress && state.progress[key] ? state.progress[key].value : null;
+    return state.progress?.[key] ? state.progress[key].value : null;
   }, ARTICLE_KEY);
   expect(progress).toBeGreaterThan(0);
 });
@@ -1110,9 +1225,9 @@ test("fallback route polling is slow, pauses while hidden, and route events stil
       });
       Object.defineProperty(document, "visibilityState", {
         configurable: true,
-        get: () => state.hidden ? "hidden" : "visible",
+        get: () => (state.hidden ? "hidden" : "visible"),
       });
-      window.setTimeout = function (callback, delay, ...args) {
+      window.setTimeout = (callback, delay, ...args) => {
         const normalizedDelay = Number(delay) || 0;
         const entry = {
           captured: normalizedDelay >= 2000,
@@ -1125,8 +1240,8 @@ test("fallback route polling is slow, pauses while hidden, and route events stil
         if (entry.captured) return entry;
         return nativeSetTimeout.call(window, callback, normalizedDelay, ...args);
       };
-      window.clearTimeout = function (timer) {
-        if (timer && timer.captured) {
+      window.clearTimeout = (timer) => {
+        if (timer?.captured) {
           timer.cleared = true;
           return;
         }
@@ -1136,11 +1251,11 @@ test("fallback route polling is slow, pauses while hidden, and route events stil
   });
 
   await page.waitForTimeout(180);
-  const initialSlowTimers = await page.evaluate(() => (
+  const initialSlowTimers = await page.evaluate(() =>
     window.__dsuxRuntimeTimerState.schedules
       .filter((entry) => entry.delay >= 2000 && !entry.hidden)
       .map((entry) => ({ delay: entry.delay, hasCallback: typeof entry.callback === "function" }))
-  ));
+  );
   expect(initialSlowTimers.length).toBeGreaterThan(0);
   expect(initialSlowTimers[0].hasCallback).toBe(true);
 
@@ -1157,35 +1272,33 @@ test("fallback route polling is slow, pauses while hidden, and route events stil
   await page.evaluate(() => history.pushState({}, "", "/story/1001/silent-hidden"));
   await page.waitForTimeout(180);
   expect(await page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBe(hiddenBeforeRoute);
-  expect(await page.evaluate(() => (
-    window.__dsuxRuntimeTimerState.schedules.filter((entry) => entry.delay >= 2000 && entry.hidden).length
-  ))).toBe(0);
+  expect(
+    await page.evaluate(
+      () => window.__dsuxRuntimeTimerState.schedules.filter((entry) => entry.delay >= 2000 && entry.hidden).length
+    )
+  ).toBe(0);
 
   const routeEventBefore = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
   await page.evaluate(() => {
     history.pushState({}, "", "/story/1002/route-event");
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
-  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
-    .toBeGreaterThan(routeEventBefore);
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBeGreaterThan(routeEventBefore);
   const routeEventAfter = await page.evaluate(() => window.__dsuxExtractPageArticleCalls);
 
   const fallbackBefore = await page.evaluate(() => {
     window.__dsuxRuntimeTimerState.hidden = false;
     history.pushState({}, "", "/story/1003/silent-fallback");
-    const fallback = window.__dsuxRuntimeTimerState.schedules.find((entry) => (
-      entry.delay >= 2000 && !entry.hidden
-    ));
+    const fallback = window.__dsuxRuntimeTimerState.schedules.find((entry) => entry.delay >= 2000 && !entry.hidden);
     if (!fallback || typeof fallback.callback !== "function") return false;
     fallback.callback();
     return true;
   });
   expect(fallbackBefore).toBe(true);
-  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls))
-    .toBeGreaterThan(routeEventAfter);
-  expect(await page.evaluate(() => (
-    window.__dsuxRuntimeTimerState.schedules.some((entry) => entry.delay >= 2000 && !entry.hidden)
-  ))).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__dsuxExtractPageArticleCalls)).toBeGreaterThan(routeEventAfter);
+  expect(
+    await page.evaluate(() =>
+      window.__dsuxRuntimeTimerState.schedules.some((entry) => entry.delay >= 2000 && !entry.hidden)
+    )
+  ).toBe(true);
 });
-
-

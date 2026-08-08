@@ -12,12 +12,7 @@ const header = `// ==UserScript==
 // ==/UserScript==
 `;
 
-const modules = [
-  "src/site.js",
-  "src/storage.js",
-  "src/comments.js",
-  "src/controller.js",
-];
+const modules = ["src/site.js", "src/storage.js", "src/comments.js", "src/controller.js"];
 
 async function render() {
   const [styles, ...sources] = await Promise.all([

@@ -11,12 +11,16 @@ function makeSharedStorage() {
     values,
     failSetItem: false,
     operations,
-    set(key, value) { values.set(key, String(value)); },
+    set(key, value) {
+      values.set(key, String(value));
+    },
     createBrowser() {
       const listeners = [];
       const browser = {
         localStorage: {
-          getItem(key) { return values.has(key) ? values.get(key) : null; },
+          getItem(key) {
+            return values.has(key) ? values.get(key) : null;
+          },
           setItem(key, value) {
             if (shared.failSetItem || shared.failSetItemKey === key) throw new Error("setItem failed");
             const oldValue = values.has(key) ? values.get(key) : null;
@@ -25,12 +29,14 @@ function makeSharedStorage() {
             values.set(key, newValue);
             browsers.forEach((other) => {
               if (other === browser) return;
-              other.listeners.slice().forEach((listener) => listener({
-                key,
-                oldValue,
-                newValue,
-                storageArea: other.browser.localStorage,
-              }));
+              other.listeners.slice().forEach((listener) => {
+                listener({
+                  key,
+                  oldValue,
+                  newValue,
+                  storageArea: other.browser.localStorage,
+                });
+              });
             });
           },
           removeItem(key) {
@@ -40,12 +46,14 @@ function makeSharedStorage() {
             values.delete(key);
             browsers.forEach((other) => {
               if (other === browser) return;
-              other.listeners.slice().forEach((listener) => listener({
-                key,
-                oldValue,
-                newValue: null,
-                storageArea: other.browser.localStorage,
-              }));
+              other.listeners.slice().forEach((listener) => {
+                listener({
+                  key,
+                  oldValue,
+                  newValue: null,
+                  storageArea: other.browser.localStorage,
+                });
+              });
             });
           },
         },
@@ -134,9 +142,17 @@ test("public mutations expose v2 durable results and keep progress separate", ()
   expect(ignored).toMatchObject({ ok: true, changed: true });
   expect(ignored.state.ignored[key]).toBeDefined();
 
-  const preferences = storage.setPreferences({ commentSort: "positive", discoverySort: "comments", discoverySortAscending: true });
+  const preferences = storage.setPreferences({
+    commentSort: "positive",
+    discoverySort: "comments",
+    discoverySortAscending: true,
+  });
   expect(preferences).toMatchObject({ ok: true, changed: true });
-  expect(preferences.state.prefs).toMatchObject({ commentSort: "positive", discoverySort: "comments", discoverySortAscending: true });
+  expect(preferences.state.prefs).toMatchObject({
+    commentSort: "positive",
+    discoverySort: "comments",
+    discoverySortAscending: true,
+  });
 
   const cleared = storage.clearVisited();
   expect(cleared).toMatchObject({ ok: true, changed: true });
@@ -217,19 +233,22 @@ test("migrates v1 and legacy records into canonical v2 keys without nested visit
   const oldKey = "dsux-state-v1";
   const legacyUrl = "https://www.derstandard.at/story/40/article?utm_source=old";
   const canonicalKey = canonical(40);
-  shared.set(oldKey, JSON.stringify({
-    version: 1,
-    visited: {
-      [legacyUrl]: { url: legacyUrl, title: "  Legacy title ", visitedAt: 10, progress: 0.2 },
-    },
-    saved: {
-      ["http://derstandard.at/story/40/article?ref=old"]: { title: "Saved title", savedAt: 11 },
-    },
-    progress: {
-      ["https://derstandard.at/story/40/article?utm_medium=old"]: { value: 0.8, updatedAt: 99 },
-    },
-    prefs: { commentSort: "negative", discoverySort: "comments", discoverySortAscending: true },
-  }));
+  shared.set(
+    oldKey,
+    JSON.stringify({
+      version: 1,
+      visited: {
+        [legacyUrl]: { url: legacyUrl, title: "  Legacy title ", visitedAt: 10, progress: 0.2 },
+      },
+      saved: {
+        "http://derstandard.at/story/40/article?ref=old": { title: "Saved title", savedAt: 11 },
+      },
+      progress: {
+        "https://derstandard.at/story/40/article?utm_medium=old": { value: 0.8, updatedAt: 99 },
+      },
+      prefs: { commentSort: "negative", discoverySort: "comments", discoverySortAscending: true },
+    })
+  );
 
   const first = makeStorage(shared).storage;
   const migrated = first.load();
@@ -241,17 +260,20 @@ test("migrates v1 and legacy records into canonical v2 keys without nested visit
   expect(Object.keys(migrated.visited)).toEqual([canonicalKey]);
   expect(Object.keys(migrated.saved)).toEqual([canonicalKey]);
   expect(migrated.progress[canonicalKey]).toEqual({ value: 0.8, updatedAt: 99 });
-  expect(Object.values(migrated.visited).every((item) => !Object.prototype.hasOwnProperty.call(item, "progress"))).toBe(true);
+  expect(Object.values(migrated.visited).every((item) => !Object.hasOwn(item, "progress"))).toBe(true);
   expect(shared.values.has("derstandard-enhancer-state")).toBe(true);
   expect(shared.values.has(oldKey)).toBe(false);
 
   const legacyShared = makeSharedStorage();
   const legacyUrl2 = "https://derstandard.at/story/41/article?source=legacy";
-  legacyShared.set("derstandard-userscript-state", JSON.stringify({
-    history: { [legacyUrl2]: { url: legacyUrl2, title: "Legacy history", visitedAt: 12, progress: 0.4 } },
-    bookmarks: { [legacyUrl2]: { url: legacyUrl2, title: "Legacy bookmark", savedAt: 13 } },
-    readingProgress: { [legacyUrl2]: 0.4 },
-  }));
+  legacyShared.set(
+    "derstandard-userscript-state",
+    JSON.stringify({
+      history: { [legacyUrl2]: { url: legacyUrl2, title: "Legacy history", visitedAt: 12, progress: 0.4 } },
+      bookmarks: { [legacyUrl2]: { url: legacyUrl2, title: "Legacy bookmark", savedAt: 13 } },
+      readingProgress: { [legacyUrl2]: 0.4 },
+    })
+  );
   const second = makeStorage(legacyShared).storage.load();
   expect(second.version).toBe(2);
   expect(second.visited[canonical(41)]).toBeDefined();
@@ -295,8 +317,6 @@ test("persists nested-tail livebericht canonical keys", () => {
   expect(loaded.progress[key]).toMatchObject({ value: 0.4 });
   expect(JSON.parse(storage.exportJson()).progress[key]).toMatchObject({ value: 0.4 });
 });
-
-
 
 test("two open instances preserve sequential saved changes and receive storage events", () => {
   const shared = makeSharedStorage();
@@ -344,14 +364,16 @@ test("retains the 501st newest progress entry and evicts the oldest", () => {
   for (let index = 0; index < 501; index += 1) {
     progress[canonical(index)] = { value: index / 500, updatedAt: index };
   }
-  const prepared = storage.prepareImport(JSON.stringify({
-    version: 2,
-    visited: {},
-    saved: {},
-    ignored: {},
-    progress,
-    prefs: {},
-  }));
+  const prepared = storage.prepareImport(
+    JSON.stringify({
+      version: 2,
+      visited: {},
+      saved: {},
+      ignored: {},
+      progress,
+      prefs: {},
+    })
+  );
   expect(prepared.ok).toBe(true);
   const result = storage.importPrepared(prepared.state);
   expect(result.ok).toBe(true);
@@ -359,4 +381,3 @@ test("retains the 501st newest progress entry and evicts the oldest", () => {
   expect(result.state.progress[canonical(0)]).toBeUndefined();
   expect(result.state.progress[canonical(500)]).toEqual({ value: 1, updatedAt: 500 });
 });
-

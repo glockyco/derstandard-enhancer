@@ -1,7 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (!global || !global.document || !global.document.documentElement) return;
+((global) => {
+  if (!global?.document?.documentElement) return;
   if (global.__DSUXEnhancerController) return;
 
   var doc = global.document;
@@ -55,11 +53,11 @@
     readingFocusTarget: null,
     readingFocusAdded: false,
     readingFocusBlur: null,
-    destroyed: false
+    destroyed: false,
   };
 
   function own(map, key) {
-    return !!(map && key && Object.prototype.hasOwnProperty.call(map, key));
+    return !!(map && key && Object.hasOwn(map, key));
   }
 
   function text(value) {
@@ -67,7 +65,7 @@
   }
 
   function finite(value) {
-    return typeof value === "number" && isFinite(value) ? value : null;
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
   }
 
   function clamp(value, minimum, maximum) {
@@ -82,14 +80,14 @@
 
   function dateValue(value) {
     var parsed = Date.parse(value || "");
-    return isNaN(parsed) ? null : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
 
   function dateText(value) {
     var raw = text(value);
     if (!raw) return "—";
     var parsed = new Date(raw);
-    if (isNaN(parsed.getTime())) return raw.slice(0, 40);
+    if (Number.isNaN(parsed.getTime())) return raw.slice(0, 40);
     try {
       return new Intl.DateTimeFormat("de-AT", { dateStyle: "medium" }).format(parsed);
     } catch (_) {
@@ -125,7 +123,7 @@
       section: text(raw.section),
       publishedAt: text(raw.publishedAt),
       commentCount: finite(raw.commentCount) === null ? null : Math.max(0, Math.floor(raw.commentCount)),
-      source: source || text(raw.source)
+      source: source || text(raw.source),
     };
   }
 
@@ -134,7 +132,7 @@
   }
 
   function applySortPreference(snapshot) {
-    var prefs = snapshot && snapshot.prefs || {};
+    var prefs = snapshot?.prefs || {};
     var sort = prefs.discoverySort;
     model.sort = sort === "date" || sort === "comments" ? sort : "";
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
@@ -162,8 +160,8 @@
   }
 
   function applyMutationResult(result, successMessage, failureMessage) {
-    if (!result || result.ok !== true) {
-      setStorageError(result && result.error ? result.error : "mutation-failed");
+    if (result?.ok !== true) {
+      setStorageError(result?.error ? result.error : "mutation-failed");
       showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
       return false;
     }
@@ -174,7 +172,7 @@
   }
 
   function progressFor(key) {
-    var record = model.snapshot.progress && model.snapshot.progress[key];
+    var record = model.snapshot.progress?.[key];
     var value = record && typeof record === "object" ? record.value : null;
     return clamp(value, 0, 1);
   }
@@ -191,7 +189,6 @@
     return own(model.snapshot.ignored, key);
   }
 
-
   function make(tag, className, label) {
     var node = doc.createElement(tag);
     if (className) node.className = className;
@@ -205,13 +202,6 @@
     return node;
   }
 
-  var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
-  fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
-  fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
-  fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
-  fallbackStyle += ".dsux-data-view .dsux-help{border-top:0}.dsux-import-preview,.dsux-clear-confirmation,.dsux-storage-error{margin-top:.75rem;padding:.75rem;border:1px solid #8b8f94}.dsux-storage-error{color:#8b1e14}.dsux-import-summary{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.25rem 1rem}.dsux-import-summary dt{font-weight:700}.dsux-import-summary dd{margin:0}";
-  fallbackStyle += ".dsux-launcher{width:7rem;height:auto;min-height:3.25rem;padding:.65rem .9rem;border-radius:.45rem;font-size:.95rem;font-weight:700}.dsux-toast{right:8.75rem;max-width:min(31rem,calc(100vw - 9.75rem));pointer-events:none}.dsux-controls{grid-template-columns:minmax(0,1fr) minmax(9rem,auto) minmax(9rem,auto)}.dsux-control-field{display:grid;gap:.2rem}.dsux-control-label,.dsux-shortcuts{font-size:.82rem}.dsux-shortcuts{padding-top:.7rem;border-top:1px solid #ccc}@media(max-width:38rem){.dsux-launcher{right:.75rem;width:7rem}.dsux-toast{right:8.35rem;max-width:calc(100vw - 9.1rem)}.dsux-controls{grid-template-columns:minmax(0,1fr)}}";
-
   var host = doc.createElement("div");
   var shadow;
   try {
@@ -223,8 +213,7 @@
   doc.documentElement.appendChild(host);
 
   var style = make("style");
-  var configuredStyle = String(global.DSUXStyles || "");
-  style.textContent = configuredStyle.trim() ? configuredStyle : fallbackStyle;
+  style.textContent = global.DSUXStyles || "";
   shadow.appendChild(style);
 
   var launcher = button("Entdecken", "dsux-launcher");
@@ -300,7 +289,10 @@
   scopeLabel.appendChild(make("span", "dsux-control-label", "Quelle"));
   var scope = make("select", "dsux-scope");
   scope.setAttribute("aria-label", "Artikelquelle");
-  [["page", "Aktuelle Seite"], ["local", "Meine Artikel"]].forEach(function (entry) {
+  [
+    ["page", "Aktuelle Seite"],
+    ["local", "Meine Artikel"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     scope.appendChild(option);
@@ -310,7 +302,13 @@
   filterLabel.appendChild(make("span", "dsux-control-label", "Status"));
   var filter = make("select");
   filter.setAttribute("aria-label", "Artikel filtern");
-  [["all", "Alle"], ["unread", "Ungelesen"], ["read", "Gelesen"], ["saved", "Gespeichert"], ["ignored", "Ignoriert"]].forEach(function (entry) {
+  [
+    ["all", "Alle"],
+    ["unread", "Ungelesen"],
+    ["read", "Gelesen"],
+    ["saved", "Gespeichert"],
+    ["ignored", "Ignoriert"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     filter.appendChild(option);
@@ -330,7 +328,7 @@
   table.setAttribute("aria-label", "Artikelübersicht");
   var thead = make("thead");
   var headingRow = make("tr");
-  ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach(function (label) {
+  ["Artikel", "Datum", "Kommentare", "Status", "Aktionen"].forEach((label) => {
     var th = make("th", "", label);
     th.scope = "col";
     headingRow.appendChild(th);
@@ -359,7 +357,9 @@
 
   var help = make("div", "dsux-help");
   help.appendChild(make("strong", "", "Lokale Daten"));
-  help.appendChild(make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser."));
+  help.appendChild(
+    make("p", "", "Besuche, Fortschritte, Lesezeichen und ignorierte Artikel bleiben in diesem Browser.")
+  );
   var dataActions = make("div", "dsux-actions");
   var exportButton = button("Daten exportieren");
   var importLabel = make("label", "", "JSON-Datei auswählen");
@@ -385,7 +385,12 @@
   var importSaved = make("dd");
   var importIgnored = make("dd");
   var importProgress = make("dd");
-  [["Besuche", importVisited], ["Lesezeichen", importSaved], ["Ignorierte", importIgnored], ["Fortschritte", importProgress]].forEach(function (entry) {
+  [
+    ["Besuche", importVisited],
+    ["Lesezeichen", importSaved],
+    ["Ignorierte", importIgnored],
+    ["Fortschritte", importProgress],
+  ].forEach((entry) => {
     importSummary.appendChild(make("dt", "", entry[0]));
     importSummary.appendChild(entry[1]);
   });
@@ -402,7 +407,13 @@
   clearConfirmation.hidden = true;
   clearConfirmation.setAttribute("aria-label", "Löschen bestätigen");
   clearConfirmation.appendChild(make("strong", "", "Verlauf wirklich löschen?"));
-  clearConfirmation.appendChild(make("p", "", "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."));
+  clearConfirmation.appendChild(
+    make(
+      "p",
+      "",
+      "Nur der Besuchsverlauf wird gelöscht. Fortschritte, Lesezeichen und ignorierte Artikel bleiben erhalten."
+    )
+  );
   var clearActions = make("div", "dsux-actions dsux-confirm-actions");
   var clearCancelButton = button("Abbrechen", "dsux-clear-cancel");
   var clearConfirmButton = button("Endgültig löschen", "dsux-clear-confirm dsux-danger-button");
@@ -434,7 +445,12 @@
   var commentLabel = make("label");
   commentLabel.appendChild(make("span", "", "Kommentare sortieren"));
   var commentSortSelect = make("select", "dsux-comment-sort");
-  [["native", "Originalreihenfolge"], ["positive", "Meiste positive Bewertungen"], ["negative", "Meiste negative Bewertungen"], ["total", "Meiste Bewertungen insgesamt"]].forEach(function (entry) {
+  [
+    ["native", "Originalreihenfolge"],
+    ["positive", "Meiste positive Bewertungen"],
+    ["negative", "Meiste negative Bewertungen"],
+    ["total", "Meiste Bewertungen insgesamt"],
+  ].forEach((entry) => {
     var option = make("option", "", entry[1]);
     option.value = entry[0];
     commentSortSelect.appendChild(option);
@@ -452,9 +468,6 @@
   outline.appendChild(outlineList);
   articleView.appendChild(outline);
 
-  var shortcutHelp = make("p", "dsux-shortcuts", "Tastatur: Alt+Shift+O öffnet oder schließt den Enhancer · Alt+Shift+R setzt das Lesen auf Artikelseiten fort · Esc schließt den Enhancer");
-  panel.appendChild(shortcutHelp);
-
   var toast = make("div", "dsux-toast");
   toast.hidden = true;
   toast.setAttribute("role", "status");
@@ -463,13 +476,14 @@
 
   function currentArticle() {
     var article = model.pageArticle;
-    if (!article || !article.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity) return null;
+    if (!article?.key || !model.routeKey || article.key !== model.routeKey || routeIdentity() !== model.routeIdentity)
+      return null;
     return article;
   }
 
   function currentKey() {
     var article = currentArticle();
-    return model.routeKey || article && article.key || "";
+    return model.routeKey || article?.key || "";
   }
 
   function mergeRecord(existing, item) {
@@ -483,9 +497,9 @@
   function assembleSource(entries) {
     var result = [];
     var seen = Object.create(null);
-    entries.forEach(function (entry) {
-      var value = entry && entry.value;
-      var item = copyRecord(value, entry && entry.fallbackKey || value && (value.key || value.url), entry && entry.source);
+    entries.forEach((entry) => {
+      var value = entry?.value;
+      var item = copyRecord(value, entry?.fallbackKey || (value && (value.key || value.url)), entry?.source);
       if (!item) return;
       if (seen[item.key]) {
         mergeRecord(seen[item.key], item);
@@ -500,7 +514,7 @@
   function pageSourceItems() {
     var entries = [];
     if (model.pageArticle) entries.push({ value: model.pageArticle, source: "page" });
-    model.pageItems.forEach(function (item) {
+    model.pageItems.forEach((item) => {
       entries.push({ value: item, source: "card" });
     });
     return assembleSource(entries);
@@ -508,13 +522,13 @@
 
   function localSourceItems() {
     var entries = [];
-    ["visited", "saved", "ignored"].forEach(function (field) {
+    ["visited", "saved", "ignored"].forEach((field) => {
       var records = model.snapshot[field] || {};
-      Object.keys(records).forEach(function (key) {
+      Object.keys(records).forEach((key) => {
         entries.push({ value: records[key], fallbackKey: key, source: field });
       });
     });
-    Object.keys(model.snapshot.progress || {}).forEach(function (key) {
+    Object.keys(model.snapshot.progress || {}).forEach((key) => {
       entries.push({ value: null, fallbackKey: key, source: "progress" });
     });
     return assembleSource(entries);
@@ -524,10 +538,14 @@
     if (model.destroyed || !model.panelOpen || !model.discoveryDirty) return;
     var generation = model.generation;
     var items = [];
-    try { items = site.extractArticles(doc) || []; } catch (_) { items = []; }
+    try {
+      items = site.extractArticles(doc) || [];
+    } catch (_) {
+      items = [];
+    }
     if (model.destroyed || generation !== model.generation) return;
     model.pageItems = [];
-    items.forEach(function (item) {
+    items.forEach((item) => {
       var copy = copyRecord(item, item && (item.key || item.url), "card");
       if (copy) model.pageItems.push(copy);
     });
@@ -537,7 +555,7 @@
   function discoveryItems() {
     var result = model.scope === "local" ? localSourceItems() : pageSourceItems();
     if (!model.sort) return result;
-    result.sort(function (left, right) {
+    result.sort((left, right) => {
       var leftValue;
       var rightValue;
       if (model.sort === "comments") {
@@ -560,7 +578,7 @@
     toast.textContent = message;
     toast.hidden = false;
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
-    model.toastTimer = global.setTimeout(function () {
+    model.toastTimer = global.setTimeout(() => {
       model.toastTimer = null;
       if (!model.destroyed) toast.hidden = true;
     }, 3200);
@@ -572,14 +590,14 @@
     } else if (!shown) {
       discoverStatus.textContent = "Keine passenden Artikel.";
     } else {
-      discoverStatus.textContent = shown + " von " + total + " Artikel" + (total === 1 ? "" : "n");
+      discoverStatus.textContent = `${shown} von ${total} Artikel${total === 1 ? "" : "n"}`;
     }
   }
 
   function restorePanelScroll(scrollTop) {
     var routeEntry = model.routeEntry;
     panel.scrollTop = scrollTop;
-    var restore = function () {
+    var restore = () => {
       if (!model.destroyed && model.panelOpen && model.routeEntry === routeEntry) panel.scrollTop = scrollTop;
     };
     if (typeof global.requestAnimationFrame === "function") global.requestAnimationFrame(restore);
@@ -589,8 +607,8 @@
   function captureDiscoveryFocus() {
     var active = shadow.activeElement;
     if (!active || !list.contains(active)) return null;
-    var action = active.getAttribute && active.getAttribute("data-action");
-    var key = active.getAttribute && active.getAttribute("data-key");
+    var action = active.getAttribute?.("data-action");
+    var key = active.getAttribute?.("data-key");
     if (!action || !key) return null;
     var row = active;
     while (row && row.parentNode !== list) row = row.parentNode;
@@ -641,7 +659,7 @@
       progress.setAttribute("aria-valuemax", "100");
       progress.setAttribute("aria-valuenow", String(percent(value)));
       var fill = make("span");
-      fill.style.width = percent(value) + "%";
+      fill.style.width = `${percent(value)}%`;
       progress.appendChild(fill);
       titleCell.appendChild(progress);
     }
@@ -650,8 +668,8 @@
     row.appendChild(make("td", "dsux-count-cell", item.commentCount === null ? "—" : String(item.commentCount)));
     var status = make("td", "dsux-status-cell");
     if (isRead(key)) {
-      status.textContent = value >= 0.99 ? "✓" : percent(value) + "%";
-      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : "Lesefortschritt " + percent(value) + "%");
+      status.textContent = value >= 0.99 ? "✓" : `${percent(value)}%`;
+      status.setAttribute("aria-label", value >= 0.99 ? "Gelesen" : `Lesefortschritt ${percent(value)}%`);
     }
     row.appendChild(status);
 
@@ -663,10 +681,10 @@
     save.setAttribute("title", isSaved(key) ? "Lesezeichen entfernen" : "Speichern");
     save.setAttribute("data-action", "save");
     save.setAttribute("data-key", key);
-    save.addEventListener("click", function (event) {
+    save.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      var result = storageResult(function () { return storage.toggleSaved(key, item.title || ""); });
+      var result = storageResult(() => storage.toggleSaved(key, item.title || ""));
       if (!applyMutationResult(result)) return;
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
@@ -678,11 +696,11 @@
     ignore.setAttribute("title", isIgnored(key) ? "Wiederherstellen" : "Ignorieren");
     ignore.setAttribute("data-action", "ignore");
     ignore.setAttribute("data-key", key);
-    ignore.addEventListener("click", function (event) {
+    ignore.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      var result = storageResult(function () { return storage.toggleIgnored(key, item.title || ""); });
+      var result = storageResult(() => storage.toggleIgnored(key, item.title || ""));
       if (!applyMutationResult(result)) return;
       restorePanelScroll(scrollTop);
       showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
@@ -703,32 +721,51 @@
     var commentDirection = model.sort === "comments" ? (model.sortAscending ? "ascending" : "descending") : "none";
     dateSort.setAttribute("data-direction", dateDirection);
     commentSort.setAttribute("data-direction", commentDirection);
-    dateSort.setAttribute("aria-label", "Datum sortieren, aktuell " + (dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"));
-    commentSort.setAttribute("aria-label", "Kommentare sortieren, aktuell " + (commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"));
+    dateSort.setAttribute(
+      "aria-label",
+      `Datum sortieren, aktuell ${dateDirection === "none" ? "Standardsortierung" : dateDirection === "ascending" ? "aufsteigend" : "absteigend"}`
+    );
+    commentSort.setAttribute(
+      "aria-label",
+      `Kommentare sortieren, aktuell ${commentDirection === "none" ? "Standardsortierung" : commentDirection === "ascending" ? "aufsteigend" : "absteigend"}`
+    );
     dateHeader.setAttribute("aria-sort", dateDirection);
     ensureDiscovery();
 
     while (list.firstChild) list.removeChild(list.firstChild);
     var query = text(model.query).toLocaleLowerCase();
     var all = discoveryItems();
-    var result = all.filter(function (item) {
+    var result = all.filter((item) => {
       var ignored = isIgnored(item.key);
       if (model.filter === "ignored" ? !ignored : ignored) return false;
       if (model.filter === "read" && !isRead(item.key)) return false;
       if (model.filter === "unread" && isRead(item.key)) return false;
       if (model.filter === "saved" && !isSaved(item.key)) return false;
-      if (query && [item.title, item.subtitle, item.section, item.publishedAt, item.key].join(" ").toLocaleLowerCase().indexOf(query) === -1) return false;
+      if (
+        query &&
+        [item.title, item.subtitle, item.section, item.publishedAt, item.key]
+          .join(" ")
+          .toLocaleLowerCase()
+          .indexOf(query) === -1
+      )
+        return false;
       return true;
     });
     renderStatus(all.length, result.length);
     if (!result.length) {
       var emptyRow = make("tr", "dsux-empty");
-      var emptyCell = make("td", "", model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel.");
+      var emptyCell = make(
+        "td",
+        "",
+        model.filter === "ignored" ? "Keine ignorierten Artikel." : "Keine passenden Artikel."
+      );
       emptyCell.colSpan = 5;
       emptyRow.appendChild(emptyCell);
       list.appendChild(emptyRow);
     } else {
-      result.forEach(function (item) { list.appendChild(renderRow(item)); });
+      result.forEach((item) => {
+        list.appendChild(renderRow(item));
+      });
     }
     restoreDiscoveryFocus(focusState);
   }
@@ -752,7 +789,7 @@
       "import-failed": "Die Daten konnten nicht importiert werden.",
       "clear-visited-failed": "Der Besuchsverlauf konnte nicht gelöscht werden.",
       "mutation-failed": "Die Änderung konnte nicht gespeichert werden.",
-      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen."
+      "storage-operation-failed": "Der lokale Speichervorgang ist fehlgeschlagen.",
     };
     return messages[error] || "Der lokale Speichervorgang ist fehlgeschlagen.";
   }
@@ -765,14 +802,19 @@
     importPreview.hidden = !pending;
     if (pending) {
       var summary = pending.summary || {};
-      importVisited.textContent = String(finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited)));
+      importVisited.textContent = String(
+        finite(summary.visited) === null ? 0 : Math.max(0, Math.floor(summary.visited))
+      );
       importSaved.textContent = String(finite(summary.saved) === null ? 0 : Math.max(0, Math.floor(summary.saved)));
-      importIgnored.textContent = String(finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored)));
-      importProgress.textContent = String(finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress)));
+      importIgnored.textContent = String(
+        finite(summary.ignored) === null ? 0 : Math.max(0, Math.floor(summary.ignored))
+      );
+      importProgress.textContent = String(
+        finite(summary.progress) === null ? 0 : Math.max(0, Math.floor(summary.progress))
+      );
     }
     clearConfirmation.hidden = !model.clearPending;
   }
-
 
   function updateTabs() {
     var available = !!currentArticle();
@@ -802,9 +844,8 @@
       commentStatus.textContent = "Kommentare derzeit nicht verfügbar.";
       return;
     }
-    commentStatus.textContent = model.commentCount === 1
-      ? "1 Kommentar verfügbar."
-      : model.commentCount + " Kommentare verfügbar.";
+    commentStatus.textContent =
+      model.commentCount === 1 ? "1 Kommentar verfügbar." : `${model.commentCount} Kommentare verfügbar.`;
   }
 
   function stopComments() {
@@ -817,7 +858,14 @@
   }
 
   function onCommentsChange(payload, identity) {
-    if (model.destroyed || !model.commentsActive || model.commentsIdentity !== identity || model.routeIdentity !== identity || !currentArticle()) return;
+    if (
+      model.destroyed ||
+      !model.commentsActive ||
+      model.commentsIdentity !== identity ||
+      model.routeIdentity !== identity ||
+      !currentArticle()
+    )
+      return;
     var state = payload && typeof payload === "object" ? payload : {};
     model.commentAvailable = state.available === true;
     model.commentCount = finite(state.count) === null ? 0 : Math.max(0, Math.floor(state.count));
@@ -838,22 +886,23 @@
     model.commentAvailable = false;
     model.commentCount = 0;
     comments.sort(model.commentSort);
-    comments.init(function (payload) {
+    comments.init((payload) => {
       onCommentsChange(payload, identity);
     });
   }
 
-
   function outlineEntries() {
     model.outline = [];
     var article = doc.querySelector("article.story-article");
-    var body = article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
+    var body =
+      article && (article.querySelector(".article-body, .article-content, [data-testid='article-body']") || article);
     if (!body) return model.outline;
     var headings = body.querySelectorAll("h2,h3,h4");
     for (var index = 0; index < headings.length; index += 1) {
       var heading = headings[index];
       var label = text(heading.textContent);
-      if (label) model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
+      if (label)
+        model.outline.push({ node: heading, label: label, level: Number(String(heading.tagName).slice(1)) || 2 });
     }
     return model.outline;
   }
@@ -871,7 +920,7 @@
     var entries = outlineEntries();
     outline.hidden = !entries.length;
     var stack = [{ level: 1, item: null, list: outlineList }];
-    entries.forEach(function (entry) {
+    entries.forEach((entry) => {
       var level = Math.max(2, Math.min(4, Number(entry.level) || 2));
       while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
       var parent = stack[stack.length - 1];
@@ -881,7 +930,7 @@
       }
       var item = make("li");
       var jump = button(entry.label);
-      jump.addEventListener("click", function () {
+      jump.addEventListener("click", () => {
         if (entry.node && typeof entry.node.scrollIntoView === "function") {
           entry.node.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
         }
@@ -907,10 +956,10 @@
     articleTitle.textContent = article.title || "Artikel";
     var key = currentKey() || article.key;
     var value = progressFor(key);
-    articleStatus.textContent = percent(value) + "% gelesen";
+    articleStatus.textContent = `${percent(value)}% gelesen`;
     articleProgress.hidden = false;
     articleProgress.setAttribute("aria-valuenow", String(percent(value)));
-    articleFill.style.width = percent(value) + "%";
+    articleFill.style.width = `${percent(value)}%`;
     articleActions.hidden = false;
     var target = model.resumeKey === key ? model.resumeValue : 0;
     resumeButton.disabled = !(target > 0.01 && target < 0.99);
@@ -938,7 +987,7 @@
   function nodeConnected(node) {
     if (!node) return false;
     if (typeof node.isConnected === "boolean") return node.isConnected;
-    return !!(doc.documentElement && doc.documentElement.contains(node)) || shadow.contains(node);
+    return !!doc.documentElement?.contains(node) || shadow.contains(node);
   }
 
   function canRestoreFocus(node) {
@@ -946,16 +995,27 @@
     var current = node;
     while (current) {
       if (current.hidden || current.inert || current.disabled) return false;
-      if (current.hasAttribute && (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.hasAttribute("disabled"))) return false;
-      if (current.getAttribute && String(current.getAttribute("aria-hidden") || "").toLowerCase() === "true") return false;
+      if (
+        current.hasAttribute &&
+        (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.hasAttribute("disabled"))
+      )
+        return false;
+      if (current.getAttribute && String(current.getAttribute("aria-hidden") || "").toLowerCase() === "true")
+        return false;
       if (current.nodeType === 1 && typeof global.getComputedStyle === "function") {
         var currentStyle = global.getComputedStyle(current);
-        if (currentStyle && (currentStyle.display === "none" || currentStyle.visibility === "hidden" || currentStyle.visibility === "collapse")) return false;
+        if (
+          currentStyle &&
+          (currentStyle.display === "none" ||
+            currentStyle.visibility === "hidden" ||
+            currentStyle.visibility === "collapse")
+        )
+          return false;
       }
       var parent = current.parentElement;
       if (!parent && typeof current.getRootNode === "function") {
         var root = current.getRootNode();
-        parent = root && root.host || null;
+        parent = root?.host || null;
       }
       current = parent;
     }
@@ -964,21 +1024,15 @@
     if (tag === "BUTTON" || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return true;
     if (tag === "A" && node.hasAttribute && node.hasAttribute("href")) return true;
     if (node.isContentEditable) return true;
-    return !!(node.hasAttribute && node.hasAttribute("tabindex"));
-  }
-
-  function triggerForEvent(event) {
-    var active = shadow.activeElement || doc.activeElement;
-    if (canRestoreFocus(active)) return active;
-    var target = event && event.target;
-    return canRestoreFocus(target) ? target : launcher;
+    return !!node.hasAttribute?.("tabindex");
   }
 
   function clearReadingFocusTarget() {
     var target = model.readingFocusTarget;
     var onBlur = model.readingFocusBlur;
     if (target && onBlur) target.removeEventListener("blur", onBlur);
-    if (target && model.readingFocusAdded && target.getAttribute("tabindex") === "-1") target.removeAttribute("tabindex");
+    if (target && model.readingFocusAdded && target.getAttribute("tabindex") === "-1")
+      target.removeAttribute("tabindex");
     model.readingFocusTarget = null;
     model.readingFocusAdded = false;
     model.readingFocusBlur = null;
@@ -990,7 +1044,7 @@
     var added = !node.hasAttribute("tabindex");
     if (added) {
       node.setAttribute("tabindex", "-1");
-      var onBlur = function () {
+      var onBlur = () => {
         if (model.readingFocusTarget === node) clearReadingFocusTarget();
       };
       model.readingFocusTarget = node;
@@ -1005,7 +1059,7 @@
   function setOpen(open, trigger) {
     var next = !!open;
     var changed = next !== model.panelOpen;
-    if (next && changed) model.openTrigger = canRestoreFocus(trigger) ? trigger : triggerForEvent(null);
+    if (next && changed) model.openTrigger = canRestoreFocus(trigger) ? trigger : launcher;
     model.panelOpen = next;
     panel.hidden = !model.panelOpen;
     launcher.setAttribute("aria-expanded", model.panelOpen ? "true" : "false");
@@ -1068,7 +1122,7 @@
     model.progressPending = null;
     if (!pending || model.destroyed) return;
     if (pending.value === progressFor(pending.key)) return;
-    applyMutationResult(storageResult(function () { return storage.setProgress(pending.key, pending.value); }));
+    applyMutationResult(storageResult(() => storage.setProgress(pending.key, pending.value)));
   }
 
   function onScroll() {
@@ -1079,7 +1133,6 @@
     clearProgressTimer();
     model.progressTimer = global.setTimeout(flushProgress, 250);
   }
-
 
   function resumeReading() {
     var key = currentKey();
@@ -1113,7 +1166,7 @@
   }
 
   function routeIdentity() {
-    var href = global.location && global.location.href || doc.URL || "";
+    var href = global.location?.href || doc.URL || "";
     return articleKey(href) || canonicalUrl(href) || href;
   }
 
@@ -1122,7 +1175,7 @@
     var changed = identity !== model.routeIdentity;
     if (!changed && !force) return false;
     model.routeIdentity = identity;
-    model.routeKey = articleKey(global.location && global.location.href || doc.URL || "");
+    model.routeKey = articleKey(global.location?.href || doc.URL || "");
     model.generation += 1;
     clearProgressTimer();
     if (changed) {
@@ -1141,7 +1194,7 @@
   function scheduleScan() {
     if (model.destroyed) return;
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
-    model.scanTimer = global.setTimeout(function () {
+    model.scanTimer = global.setTimeout(() => {
       model.scanTimer = null;
       scan();
     }, 120);
@@ -1151,7 +1204,7 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return false;
-    var result = storageResult(function () { return storage.markVisited(key, article.title || ""); });
+    var result = storageResult(() => storage.markVisited(key, article.title || ""));
     if (!applyMutationResult(result)) return false;
     model.markedEntry = model.routeEntry;
     return true;
@@ -1163,9 +1216,13 @@
     invalidateRoute(routeIdentity(), false);
     var generation = model.generation;
     var page = null;
-    try { page = site.extractPageArticle(doc); } catch (_) { page = null; }
+    try {
+      page = site.extractPageArticle(doc);
+    } catch (_) {
+      page = null;
+    }
     if (model.destroyed || generation > model.generation) return;
-    var pageRecord = copyRecord(page, page && page.key, "page");
+    var pageRecord = copyRecord(page, page?.key, "page");
     model.pageArticle = pageRecord && model.routeKey && pageRecord.key === model.routeKey ? pageRecord : null;
     model.discoveryDirty = true;
     ensureDiscovery();
@@ -1220,7 +1277,6 @@
     flushProgress();
   }
 
-
   function onStorageChange(next) {
     if (model.destroyed) return;
     if (!next || typeof next !== "object") return;
@@ -1231,11 +1287,17 @@
     if (model.panelOpen) render();
   }
 
-  function onLauncherClick(event) { setOpen(!model.panelOpen, event.currentTarget); }
-  function onCloseClick() { setOpen(false); }
-  function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
+  function onLauncherClick(event) {
+    setOpen(!model.panelOpen, event.currentTarget);
+  }
+  function onCloseClick() {
+    setOpen(false);
+  }
+  function onTabClick(event) {
+    setTab(event.currentTarget.getAttribute("data-tab"));
+  }
   function visibleTabs() {
-    return [discoverTab, articleTab, dataTab].filter(function (tab) { return !tab.hidden; });
+    return [discoverTab, articleTab, dataTab].filter((tab) => !tab.hidden);
   }
   function onTabsKeydown(event) {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -1253,9 +1315,18 @@
     setTab(nextTab.getAttribute("data-tab"));
     focusWithoutScroll(nextTab);
   }
-  function onSearchInput() { model.query = search.value || ""; renderDiscovery(); }
-  function onScopeChange() { model.scope = scope.value === "local" ? "local" : "page"; renderDiscovery(); }
-  function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
+  function onSearchInput() {
+    model.query = search.value || "";
+    renderDiscovery();
+  }
+  function onScopeChange() {
+    model.scope = scope.value === "local" ? "local" : "page";
+    renderDiscovery();
+  }
+  function onFilterChange() {
+    model.filter = filter.value || "all";
+    renderDiscovery();
+  }
   function cycleSort(field) {
     var nextSort = model.sort;
     var nextAscending = model.sortAscending;
@@ -1268,20 +1339,26 @@
       nextSort = "";
       nextAscending = false;
     }
-    var result = storageResult(function () {
-      return storage.setPreferences({
+    var result = storageResult(() =>
+      storage.setPreferences({
         discoverySort: nextSort,
-        discoverySortAscending: nextAscending
-      });
-    });
+        discoverySortAscending: nextAscending,
+      })
+    );
     if (!applyMutationResult(result)) {
       applySortPreference(model.snapshot);
       if (model.panelOpen) renderDiscovery();
     }
   }
-  function onDateSort() { cycleSort("date"); }
-  function onCommentSort() { cycleSort("comments"); }
-  function onResumeClick() { resumeReading(); }
+  function onDateSort() {
+    cycleSort("date");
+  }
+  function onCommentSort() {
+    cycleSort("comments");
+  }
+  function onResumeClick() {
+    resumeReading();
+  }
   function onCommentOrderChange() {
     var previousMode = model.commentSort;
     var mode = normalizeCommentMode(commentSortSelect.value);
@@ -1294,15 +1371,14 @@
     }
     model.commentSort = mode;
     commentSortSelect.value = mode;
-    var result = storageResult(function () { return storage.setPreferences({ commentSort: mode }); });
+    var result = storageResult(() => storage.setPreferences({ commentSort: mode }));
     if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
-      model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
+      model.commentSort = normalizeCommentMode(model.snapshot?.prefs?.commentSort);
       comments.sort(model.commentSort);
       commentSortSelect.value = model.commentSort;
       if (model.panelOpen && model.activeTab === "article") renderComments();
     }
   }
-
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
@@ -1315,7 +1391,8 @@
     try {
       var json = storage.exportJson();
       var blob = new global.Blob([json], { type: "application/json" });
-      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+      if (model.exportUrl && typeof global.URL.revokeObjectURL === "function")
+        global.URL.revokeObjectURL(model.exportUrl);
       url = global.URL.createObjectURL(blob);
       model.exportUrl = url;
       download = make("a");
@@ -1325,7 +1402,7 @@
       download.click();
       shadow.removeChild(download);
     } catch (_) {
-      if (download && download.parentNode) download.parentNode.removeChild(download);
+      if (download?.parentNode) download.parentNode.removeChild(download);
       if (url && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
       setStorageError("export-failed");
@@ -1335,7 +1412,7 @@
     model.lastError = "";
     renderData();
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
-    model.exportTimer = global.setTimeout(function () {
+    model.exportTimer = global.setTimeout(() => {
       model.exportTimer = null;
       if (typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(url);
       if (model.exportUrl === url) model.exportUrl = null;
@@ -1359,7 +1436,7 @@
     discardImportRead();
     model.pendingImport = null;
     model.clearPending = false;
-    var file = importInput.files && importInput.files[0];
+    var file = importInput.files?.[0];
     if (!file) {
       renderData();
       return;
@@ -1378,7 +1455,7 @@
     var generation = model.importGeneration;
     var reader = new global.FileReader();
     model.importReader = reader;
-    reader.onload = function () {
+    reader.onload = () => {
       if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
       model.importReader = null;
       reader.onload = null;
@@ -1389,9 +1466,9 @@
       } catch (_) {
         prepared = { ok: false, error: "prepare-import-failed" };
       }
-      if (!prepared || prepared.ok !== true) {
+      if (prepared?.ok !== true) {
         model.pendingImport = null;
-        setStorageError(prepared && prepared.error ? prepared.error : "invalid-import");
+        setStorageError(prepared?.error ? prepared.error : "invalid-import");
         showToast("Import abgelehnt");
         importInput.value = "";
         return;
@@ -1402,7 +1479,7 @@
       renderData();
       focusWithoutScroll(importCancelButton);
     };
-    reader.onerror = function () {
+    reader.onerror = () => {
       if (model.destroyed || model.importGeneration !== generation || model.importReader !== reader) return;
       model.importReader = null;
       reader.onload = null;
@@ -1425,7 +1502,7 @@
   function onImportConfirm() {
     if (!model.pendingImport) return;
     var prepared = model.pendingImport;
-    var result = storageResult(function () { return storage.importPrepared(prepared.state); }, "import-failed");
+    var result = storageResult(() => storage.importPrepared(prepared.state), "import-failed");
     if (!applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) return;
     model.pendingImport = null;
     importInput.value = "";
@@ -1452,7 +1529,7 @@
 
   function onClearConfirm() {
     if (!model.clearPending) return;
-    var result = storageResult(function () { return storage.clearVisited(); }, "clear-visited-failed");
+    var result = storageResult(() => storage.clearVisited(), "clear-visited-failed");
     if (!applyMutationResult(result, "Besuchsverlauf gelöscht")) return;
     model.clearPending = false;
     renderData();
@@ -1466,24 +1543,9 @@
   }
 
   function onKeydown(event) {
-    if (event.key === "Escape" && model.panelOpen) {
-      event.preventDefault();
-      setOpen(false);
-      return;
-    }
-    if (!event.altKey || !event.shiftKey) return;
-    var key = String(event.key || "").toLowerCase();
-    if (key === "o") {
-      var openTrigger = triggerForEvent(event);
-      event.preventDefault();
-      setOpen(!model.panelOpen, openTrigger);
-    } else if (key === "r") {
-      var resumeTrigger = triggerForEvent(event);
-      event.preventDefault();
-      setOpen(true, resumeTrigger);
-      setTab("article");
-      resumeReading();
-    }
+    if (event.key !== "Escape" || !model.panelOpen) return;
+    event.preventDefault();
+    setOpen(false);
   }
 
   function teardown() {
@@ -1495,7 +1557,8 @@
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
     if (model.exportTimer !== null) global.clearTimeout(model.exportTimer);
-    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function") global.URL.revokeObjectURL(model.exportUrl);
+    if (model.exportUrl && global.URL && typeof global.URL.revokeObjectURL === "function")
+      global.URL.revokeObjectURL(model.exportUrl);
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
@@ -1526,7 +1589,7 @@
     global.removeEventListener("hashchange", onRouteEvent);
     global.removeEventListener("pagehide", onPagehide);
     doc.removeEventListener("visibilitychange", onVisibilityChange);
-    doc.removeEventListener("keydown", onKeydown);
+    doc.removeEventListener("keydown", onKeydown, true);
     if (host.parentNode) host.parentNode.removeChild(host);
     global.__DSUXEnhancerController = false;
     global.DSUXEnhancerTeardown = null;
@@ -1555,10 +1618,12 @@
   global.addEventListener("scroll", onScroll, { passive: true });
   global.addEventListener("popstate", onRouteEvent);
   global.addEventListener("hashchange", onRouteEvent);
-  doc.addEventListener("keydown", onKeydown);
+  doc.addEventListener("keydown", onKeydown, true);
 
   if (typeof global.MutationObserver === "function") {
-    model.observer = new global.MutationObserver(function () { scheduleScan(); });
+    model.observer = new global.MutationObserver(() => {
+      scheduleScan();
+    });
     model.observer.observe(doc.documentElement, { childList: true, subtree: true });
   }
   global.addEventListener("pagehide", onPagehide);
@@ -1567,4 +1632,4 @@
   global.DSUXEnhancerTeardown = teardown;
   scan();
   startRoutePolling();
-}(typeof window !== "undefined" ? window : null));
+})(typeof window !== "undefined" ? window : null);

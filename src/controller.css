@@ -22,7 +22,7 @@
 }
 
 :host [hidden] {
-  display: none !important;
+  display: none;
 }
 
 .dsux-launcher {
@@ -389,21 +389,14 @@
   color: var(--dsux-ink);
 }
 
-.dsux-shortcuts {
-  margin: 1rem 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--dsux-border);
-  color: var(--dsux-muted);
-  font-size: 0.82rem;
-}
 .dsux-data-view .dsux-help {
   padding-top: 0;
   border-top: 0;
 }
 
 .dsux-data-view .dsux-help p,
-.dsux-import-preview p,
-.dsux-clear-confirmation p {
+.dsux-data-view .dsux-import-preview p,
+.dsux-data-view .dsux-clear-confirmation p {
   margin: 0.4rem 0 0;
 }
 
@@ -455,7 +448,6 @@
   border-color: var(--dsux-danger);
   background: var(--dsux-danger-surface);
 }
-
 
 .dsux-actions {
   display: flex;
@@ -604,7 +596,6 @@
   font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
 }
-
 
 .dsux-outline {
   margin-top: 1rem;
@@ -759,7 +750,6 @@
   .dsux-comment-status {
     margin-left: 0;
   }
-
 }
 
 @media (max-width: 24rem) {
