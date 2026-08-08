@@ -30,6 +30,31 @@ const FIXTURE_HTML = `<!doctype html>
     </main>
   </body>
 </html>`;
+const LIVE_TEASER_HTML = `<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <link rel="canonical" href="https://www.derstandard.at/">
+  </head>
+  <body>
+    <main>
+      <article>
+        <div>
+          <a href="/story/789/live-shape" aria-labelledby="bare-title"></a>
+          <h3 class="teaser-title" id="bare-title">Live headline</h3>
+        </div>
+      </article>
+      <article class="fig" data-section="Inland">
+        <div class="teaser-inner">
+          <a href="/story/789/live-shape?ref=homepage" aria-labelledby="rich-title"></a>
+          <h3 class="teaser-title" id="rich-title">Live headline</h3>
+          <span class="teaser-postingcount">411 Postings</span>
+          <dst-rl-timestamp date="2026-08-08"></dst-rl-timestamp>
+        </div>
+      </article>
+    </main>
+  </body>
+</html>`;
 const ARTICLE_URL = "https://www.derstandard.at/story/789/leseprobe";
 const ARTICLE_KEY = "https://derstandard.at/story/789/leseprobe";
 const ARTICLE_HTML = `<!doctype html>
@@ -266,6 +291,18 @@ test("generated distribution renders one shadow host and default discovery", asy
   await expect(enhancer.locator(".dsux-table tbody tr")).toHaveCount(2);
   await expect(enhancer.locator(".dsux-table tbody")).toContainText("Erste Meldung");
   await expect(enhancer.locator(".dsux-table tbody")).toContainText("Zweite Meldung");
+});
+
+test("generated discovery retains counts from richer aria-labelled duplicate teasers", async ({ page }) => {
+  await fixture(page, { html: LIVE_TEASER_HTML });
+  await installEnhancer(page, true);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const action = enhancer.locator('[data-action="save"][data-key="https://derstandard.at/story/789/live-shape"]');
+  await expect(action).toHaveCount(1);
+  const row = action.locator("xpath=ancestor::tr");
+  await expect(row.locator("td").nth(2)).toHaveText("411");
 });
 
 test("discovery scope separates current teasers from persisted local records", async ({ page }) => {

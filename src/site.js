@@ -192,13 +192,16 @@
 
   function nearestCard(anchor) {
     if (!anchor) return null;
-    if (typeof anchor.closest === "function") {
-      var card = anchor.closest('[aria-labelledby], [class*="teaser"], li');
-      if (card) return card;
-      card = anchor.closest("article");
+    var parent = anchor.parentElement;
+    if (parent && typeof parent.closest === "function") {
+      var card = parent.closest('[aria-labelledby], [class*="teaser"], li');
       if (card) return card;
     }
-    return anchor.parentElement || anchor;
+    if (typeof anchor.closest === "function") {
+      var article = anchor.closest("article");
+      if (article) return article;
+    }
+    return parent || anchor;
   }
 
   function findLabelledTitle(node, root) {
@@ -244,26 +247,27 @@
         root.URL;
       var resolved = toUrl(href, base);
       var key = articleKey(resolved?.href);
-      if (!key || seen[key]) return;
+      if (!key) return;
       var card = nearestCard(anchor);
       var title = cardTitle(anchor, card, root);
       var dateNode = first(card, "dst-rl-timestamp[date]");
+      var publishedAt = dateNode ? String(dateNode.getAttribute("date") || "").trim() : "";
       var countNode = first(card, ".js-forum-postingcount, .article-postingcount, .teaser-postingcount");
+      var commentCount = parseCommentCount(countNode);
       var section = String(
         (card && (card.getAttribute("data-section") || card.getAttribute("data-ressort"))) || ""
       ).trim();
-      seen[key] = true;
-      articles.push(
-        record(
-          key,
-          title,
-          "",
-          section,
-          dateNode ? String(dateNode.getAttribute("date") || "").trim() : "",
-          parseCommentCount(countNode),
-          "card"
-        )
-      );
+      var existing = seen[key];
+      if (existing) {
+        if (!existing.title && title) existing.title = title;
+        if (!existing.section && section) existing.section = section;
+        if (!existing.publishedAt && publishedAt) existing.publishedAt = publishedAt;
+        if (existing.commentCount === null && commentCount !== null) existing.commentCount = commentCount;
+        return;
+      }
+      var article = record(key, title, "", section, publishedAt, commentCount, "card");
+      seen[key] = article;
+      articles.push(article);
     });
     return articles;
   }

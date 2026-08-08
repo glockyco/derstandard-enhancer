@@ -58,6 +58,7 @@ class FakeElement {
             .split(/\s+/)
             .indexOf("story-article") !== -1
         );
+      if (value === "article") return this.localName === "article";
       if (value === "li") return this.localName === "li";
       if (value === "a[href]") return this.localName === "a" && !!this.getAttribute("href");
       if (value === "h3.teaser-title") return this.localName === "h3" && this.attributes.class === "teaser-title";
@@ -218,5 +219,35 @@ test("article extraction deduplicates canonical links and keeps card metadata", 
     commentCount: 1234,
     publishedAt: "2025-01-02",
     source: "card",
+  });
+});
+
+test("aria-labelled duplicate teasers retain richer comment metadata", () => {
+  const href = "/story/789/live-shape";
+  const bare = new FakeElement("article");
+  bare.append(
+    new FakeElement("div").append(
+      new FakeElement("a", { href, "aria-labelledby": "bare-title" }),
+      new FakeElement("h3", { class: "teaser-title", id: "bare-title" }, "Live headline")
+    )
+  );
+
+  const rich = new FakeElement("article", { class: "fig" });
+  rich.append(
+    new FakeElement("div", { class: "teaser-inner" }).append(
+      new FakeElement("a", { href: `${href}?ref=homepage`, "aria-labelledby": "rich-title" }),
+      new FakeElement("h3", { class: "teaser-title", id: "rich-title" }, "Live headline"),
+      new FakeElement("span", { class: "teaser-postingcount" }, "411 Postings"),
+      new FakeElement("dst-rl-timestamp", { date: "2026-08-08" })
+    )
+  );
+
+  const articles = makeSite().extractArticles(new FakeDocument([bare, rich]));
+  expect(articles).toHaveLength(1);
+  expect(articles[0]).toMatchObject({
+    key: "https://derstandard.at/story/789/live-shape",
+    title: "Live headline",
+    publishedAt: "2026-08-08",
+    commentCount: 411,
   });
 });
