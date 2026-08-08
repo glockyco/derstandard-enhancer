@@ -1,7 +1,7 @@
 const header = `// ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://www.derstandard.at/
-// @version      1.6.0
+// @version      1.7.0
 // @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
