@@ -3,7 +3,7 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 const GENERATED_PATH = path.join(ROOT, "derstandard-enhancer.user.js");
-const SOURCE_PATHS = ["src/storage.js", "src/site.js", "src/controller.js"].map((file) => path.join(ROOT, file));
+const SOURCE_PATHS = ["src/site.js", "src/storage.js", "src/controller.js"].map((file) => path.join(ROOT, file));
 
 const FIXTURE_HTML = `<!doctype html>
 <html lang="de">
@@ -26,9 +26,41 @@ const FIXTURE_HTML = `<!doctype html>
     </main>
   </body>
 </html>`;
+const ARTICLE_URL = "https://www.derstandard.at/story/789/leseprobe";
+const ARTICLE_KEY = "https://derstandard.at/story/789/leseprobe";
+const ARTICLE_HTML = `<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <link rel="canonical" href="${ARTICLE_URL}">
+    <style>
+      html, body { margin: 0; padding: 0; }
+      .article-body { height: 2400px; }
+    </style>
+  </head>
+  <body>
+    <article class="story-article">
+      <h1 class="article-title">Eine Leseprobe</h1>
+      <div class="article-body">
+        <h2>Einordnung</h2>
+        <p>Dieser Artikel dient als deterministische Browser-Fixture für den Lesefortschritt.</p>
+      </div>
+    </article>
+  </body>
+</html>`;
 
-async function fixture(page) {
-  await page.setContent(FIXTURE_HTML);
+const HOME_URL = "https://www.derstandard.at/";
+
+
+async function fixture(page, { html = FIXTURE_HTML, url = HOME_URL } = {}) {
+  await page.route(url, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: html,
+    });
+  });
+  await page.goto(url);
 }
 
 async function installEnhancer(page, useGenerated = false) {
@@ -106,4 +138,125 @@ test("controller leaves fixture markup and attributes unchanged outside its host
   expect(after.body).toBe(before.body);
   expect(after.htmlAttributes).toEqual(before.htmlAttributes);
   expect(after.htmlChildren).toEqual(before.htmlChildren);
+});
+
+test("browser rejects imports over 1 MiB before constructing FileReader", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const input = enhancer.locator('input[type="file"]');
+  const durableBefore = await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"));
+  await page.evaluate(() => {
+    window.__dsuxFileReaderConstructed = false;
+    window.FileReader = function () {
+      window.__dsuxFileReaderConstructed = true;
+      throw new Error("FileReader must not be constructed for oversized imports");
+    };
+  });
+
+  await input.setInputFiles({
+    name: "oversized.json",
+    mimeType: "application/json",
+    buffer: Buffer.alloc(1024 * 1024 + 1, 65),
+  });
+  await page.waitForTimeout(50);
+  expect(await page.evaluate(() => window.__dsuxFileReaderConstructed)).toBe(false);
+  await expect(input).toHaveValue("");
+  expect(await page.evaluate(() => window.localStorage.getItem("derstandard-enhancer-state"))).toBe(durableBefore);
+});
+
+test("browser imports a valid v2 backup into durable storage and discovery", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const input = enhancer.locator('input[type="file"]');
+  const importedKey = "https://derstandard.at/story/987/importierte-sicherung";
+  const backup = {
+    version: 2,
+    visited: {
+      [importedKey]: {
+        url: importedKey,
+        title: "Importierte Sicherung",
+        visitedAt: 1700000000000,
+      },
+    },
+    saved: {},
+    ignored: {},
+    progress: {},
+    prefs: {
+      commentSort: "native",
+      discoverySort: "",
+      discoverySortAscending: false,
+    },
+  };
+  const backupBuffer = Buffer.from(JSON.stringify(backup));
+  expect(backupBuffer.byteLength).toBeLessThanOrEqual(1024 * 1024);
+
+  await input.setInputFiles({
+    name: "backup.json",
+    mimeType: "application/json",
+    buffer: backupBuffer,
+  });
+
+  await expect.poll(async () => page.evaluate((key) => {
+    const raw = window.localStorage.getItem("derstandard-enhancer-state");
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    return state.visited && state.visited[key] || null;
+  }, importedKey)).toEqual(backup.visited[importedKey]);
+
+  const importedRow = enhancer.locator(".dsux-table tbody tr").filter({ hasText: "Importierte Sicherung" });
+  await expect(importedRow).toHaveCount(1);
+});
+
+test("article initialization persists visited state and scrolling persists separate progress", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await installEnhancer(page);
+
+  await expect.poll(async () => page.evaluate((key) => {
+    const raw = window.localStorage.getItem("derstandard-enhancer-state");
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    const record = state.visited && state.visited[key];
+    return record ? {
+      url: record.url,
+      title: record.title,
+      visitedAt: typeof record.visitedAt,
+    } : null;
+  }, ARTICLE_KEY)).toEqual({
+    url: ARTICLE_KEY,
+    title: "Eine Leseprobe",
+    visitedAt: "number",
+  });
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await expect(enhancer.locator('[data-tab="article"]')).toBeVisible();
+  await expect(enhancer.locator(".dsux-article-title")).toHaveText("Eine Leseprobe");
+  await page.waitForTimeout(200);
+
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await expect.poll(async () => page.evaluate((key) => {
+    const raw = window.localStorage.getItem("derstandard-enhancer-state");
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    return state.progress && state.progress[key] || null;
+  }, ARTICLE_KEY)).not.toBeNull();
+
+  const durable = await page.evaluate((key) => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state"));
+    return {
+      visited: state.visited[key],
+      progress: state.progress[key],
+    };
+  }, ARTICLE_KEY);
+  expect(Object.keys(durable.visited).sort()).toEqual(["title", "url", "visitedAt"]);
+  expect(Object.keys(durable.progress).sort()).toEqual(["updatedAt", "value"]);
+  expect(durable.progress.value).toBeGreaterThan(0);
+  expect(durable.progress.value).toBeLessThanOrEqual(1);
+  expect(typeof durable.progress.updatedAt).toBe("number");
 });

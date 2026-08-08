@@ -14,380 +14,6 @@
 
 (function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
 
-(function (root) {
-  "use strict";
-
-  var STORAGE_KEY = "derstandard-enhancer-state";
-  var LEGACY_KEYS = ["dsux-state-v1", "derstandard-userscript-state"];
-  var MAX_ENTRIES = 500;
-  var MAX_URL_LENGTH = 2048;
-  var MAX_TITLE_LENGTH = 500;
-  var MAX_PREF_LENGTH = 40;
-  var COMMENT_MODES = { native: true, positive: true, negative: true, total: true };
-  var DISCOVERY_SORTS = { date: true, comments: true };
-
-  function emptyMap() {
-    return Object.create(null);
-  }
-
-  function emptyState() {
-    return {
-      version: 1,
-      visited: emptyMap(),
-      saved: emptyMap(),
-      ignored: emptyMap(),
-      progress: emptyMap(),
-      prefs: {
-        fontScale: 1,
-        lineWidth: "medium",
-        commentSort: "native",
-        discoverySort: "",
-        discoverySortAscending: false
-      }
-    };
-  }
-
-  function isRecord(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value);
-  }
-
-  function text(value, limit) {
-    if (typeof value !== "string") return "";
-    return value.trim().slice(0, limit);
-  }
-
-  function keyFor(value) {
-    if (isRecord(value)) value = value.key || value.url;
-    if (typeof value !== "string") return "";
-    return value.trim().slice(0, MAX_URL_LENGTH);
-  }
-
-  function finiteNumber(value) {
-    return typeof value === "number" && isFinite(value) ? value : null;
-  }
-
-  function progressValue(value) {
-    var number = finiteNumber(value);
-    if (number === null) return null;
-    return Math.max(0, Math.min(1, number));
-  }
-
-  function timestamp(value) {
-    var number = finiteNumber(value);
-    return number === null || number < 0 ? null : number;
-  }
-
-  function now() {
-    var value = Date.now();
-    return typeof value === "number" && isFinite(value) && value >= 0 ? value : 0;
-  }
-
-  function storage() {
-    try {
-      if (root && root.localStorage) return root.localStorage;
-    } catch (error) {
-      // localStorage may be disabled or inaccessible.
-    }
-    return null;
-  }
-
-  function mapEntries(value) {
-    if (Array.isArray(value)) {
-      return value.map(function (entry) {
-        return [isRecord(entry) ? entry.key || entry.url : "", entry];
-      });
-    }
-    if (!isRecord(value)) return [];
-    return Object.keys(value).map(function (key) { return [key, value[key]]; });
-  }
-
-  function sortAndBound(map, timeField) {
-    var keys = Object.keys(map);
-    keys.sort(function (left, right) {
-      var leftTime = map[left][timeField];
-      var rightTime = map[right][timeField];
-      if (rightTime !== leftTime) return rightTime - leftTime;
-      return left < right ? -1 : left > right ? 1 : 0;
-    });
-    var bounded = emptyMap();
-    keys.slice(0, MAX_ENTRIES).forEach(function (key) { bounded[key] = map[key]; });
-    return bounded;
-  }
-
-  function sanitizeState(input) {
-    var source = isRecord(input) ? input : emptyState();
-    if (isRecord(source.state) && !source.visited && !source.saved) source = source.state;
-    var output = emptyState();
-    var rawProgress = source.progress || source.readingProgress;
-    mapEntries(rawProgress).forEach(function (pair) {
-      var key = keyFor(pair[0]);
-      var value = progressValue(pair[1]);
-      if (key && value !== null) output.progress[key] = value;
-    });
-
-    var visited = emptyMap();
-    mapEntries(source.visited || source.history).forEach(function (pair) {
-      var item = pair[1];
-      var key = keyFor(pair[0]);
-      if (!key && isRecord(item)) key = keyFor(item.url);
-      if (!key) return;
-      var itemUrl = isRecord(item) ? text(item.url, MAX_URL_LENGTH) : "";
-      var itemTitle = isRecord(item) ? text(item.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
-      var visitedAt = isRecord(item) ? timestamp(item.visitedAt) : null;
-      var itemProgress = isRecord(item) ? progressValue(item.progress) : null;
-      var savedProgress = output.progress[key];
-      if (itemProgress === null) itemProgress = savedProgress === undefined ? 0 : savedProgress;
-      if (savedProgress === undefined) output.progress[key] = itemProgress;
-      visited[key] = {
-        url: itemUrl || key,
-        title: itemTitle,
-        visitedAt: visitedAt === null ? 0 : visitedAt,
-        progress: itemProgress
-      };
-    });
-
-    var saved = emptyMap();
-    mapEntries(source.saved || source.bookmarks).forEach(function (pair) {
-      var item = pair[1];
-      var key = keyFor(pair[0]);
-      if (!key && isRecord(item)) key = keyFor(item.url);
-      if (!key) return;
-      saved[key] = {
-        url: (isRecord(item) ? text(item.url, MAX_URL_LENGTH) : "") || key,
-        title: isRecord(item) ? text(item.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH),
-        savedAt: isRecord(item) && timestamp(item.savedAt) !== null ? timestamp(item.savedAt) : 0
-      };
-    });
-    var ignored = emptyMap();
-    mapEntries(source.ignored).forEach(function (pair) {
-      var item = pair[1];
-      var key = keyFor(pair[0]);
-      if (!key && isRecord(item)) key = keyFor(item.url);
-      if (!key) return;
-      ignored[key] = {
-        url: (isRecord(item) ? text(item.url, MAX_URL_LENGTH) : "") || key,
-        title: isRecord(item) ? text(item.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH),
-        ignoredAt: isRecord(item) && timestamp(item.ignoredAt) !== null ? timestamp(item.ignoredAt) : 0
-      };
-    });
-
-    output.ignored = sortAndBound(ignored, "ignoredAt");
-
-    output.visited = sortAndBound(visited, "visitedAt");
-    output.saved = sortAndBound(saved, "savedAt");
-    var progressKeys = Object.keys(output.progress).sort();
-    var boundedProgress = emptyMap();
-    progressKeys.slice(0, MAX_ENTRIES).forEach(function (key) { boundedProgress[key] = output.progress[key]; });
-    output.progress = boundedProgress;
-
-    var prefs = source.prefs || source.preferences;
-    if (isRecord(prefs)) {
-      var scale = finiteNumber(prefs.fontScale);
-      if (scale !== null && scale > 0) output.prefs.fontScale = Math.max(0.5, Math.min(2, scale));
-      var lineWidth = text(prefs.lineWidth, MAX_PREF_LENGTH);
-      var commentSort = text(prefs.commentSort, MAX_PREF_LENGTH);
-      if (lineWidth) output.prefs.lineWidth = lineWidth;
-      if (commentSort && COMMENT_MODES[commentSort]) output.prefs.commentSort = commentSort;
-      var discoverySort = text(prefs.discoverySort, MAX_PREF_LENGTH);
-      if (discoverySort && DISCOVERY_SORTS[discoverySort]) {
-        output.prefs.discoverySort = discoverySort;
-        output.prefs.discoverySortAscending = prefs.discoverySortAscending === true;
-      }
-    }
-    return output;
-  }
-
-  function cloneState(value) { return sanitizeState(value); }
-
-  function readStored() {
-    var store = storage();
-    if (!store) return emptyState();
-    var raw = null;
-    try {
-      raw = store.getItem(STORAGE_KEY);
-      if (raw === null) {
-        for (var index = 0; index < LEGACY_KEYS.length; index += 1) {
-          raw = store.getItem(LEGACY_KEYS[index]);
-          if (raw !== null) break;
-        }
-      }
-    } catch (error) { return emptyState(); }
-    if (typeof raw !== "string" || !raw) return emptyState();
-    try { return sanitizeState(JSON.parse(raw)); } catch (error) { return emptyState(); }
-  }
-
-  function stableStringify(value) {
-    if (value === null || typeof value !== "object") return JSON.stringify(value);
-    if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
-    return "{" + Object.keys(value).sort().map(function (key) {
-      return JSON.stringify(key) + ":" + stableStringify(value[key]);
-    }).join(",") + "}";
-  }
-
-  function persist(value) {
-    var store = storage();
-    if (!store) return false;
-    try { store.setItem(STORAGE_KEY, stableStringify(value)); return true; } catch (error) { return false; }
-  }
-
-  var state = emptyState();
-  var loaded = false;
-  var listeners = [];
-
-  function ensureLoaded() {
-    if (!loaded) { state = readStored(); loaded = true; }
-  }
-
-  function notify() {
-    var snapshot = cloneState(state);
-    listeners.slice().forEach(function (listener) {
-      try { listener(snapshot); } catch (error) { /* consumer errors are isolated */ }
-    });
-  }
-
-  function commit(nextState) {
-    state = sanitizeState(nextState);
-    loaded = true;
-    persist(state);
-    notify();
-    return cloneState(state);
-  }
-
-  function load() {
-    state = readStored();
-    loaded = true;
-    return cloneState(state);
-  }
-
-  function save(nextState) { return commit(nextState); }
-
-  function setPreferences(patch) {
-    ensureLoaded();
-    if (!isRecord(patch)) return cloneState(state);
-    var next = cloneState(state);
-    Object.keys(patch).forEach(function (key) { next.prefs[key] = patch[key]; });
-    return commit(next);
-  }
-
-  function markVisited(url, title) {
-    ensureLoaded();
-    var key = keyFor(url);
-    if (!key) return cloneState(state);
-    var next = cloneState(state);
-    var current = next.visited[key];
-    var progress = next.progress[key];
-    if (progress === undefined && current) progress = progressValue(current.progress);
-    if (progress === null || progress === undefined) progress = 0;
-    next.progress[key] = progress;
-    next.visited[key] = {
-      url: text(url, MAX_URL_LENGTH) || key,
-      title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : current ? current.title : "",
-      visitedAt: now(),
-      progress: progress
-    };
-    return commit(next);
-  }
-
-  function setProgress(url, value) {
-    ensureLoaded();
-    var key = keyFor(url);
-    var progress = progressValue(value);
-    if (!key || progress === null) return cloneState(state);
-    var next = cloneState(state);
-    next.progress[key] = progress;
-    if (next.visited[key]) next.visited[key].progress = progress;
-    return commit(next);
-  }
-
-  function toggleSaved(url, title) {
-    ensureLoaded();
-    var key = keyFor(url);
-    if (!key) return false;
-    var next = cloneState(state);
-    var isSaved = Boolean(next.saved[key]);
-    if (isSaved) delete next.saved[key];
-    else next.saved[key] = { url: text(url, MAX_URL_LENGTH) || key, title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "", savedAt: now() };
-    commit(next);
-    return !isSaved;
-  }
-  function toggleIgnored(url, title) {
-    ensureLoaded();
-    var key = keyFor(url);
-    if (!key) return false;
-    var next = cloneState(state);
-    var isIgnored = Boolean(next.ignored[key]);
-    if (isIgnored) {
-      delete next.ignored[key];
-    } else {
-      var current = next.ignored[key];
-      var suppliedTitle = typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "";
-      next.ignored[key] = {
-        url: text(url, MAX_URL_LENGTH) || key,
-        title: suppliedTitle || (current ? current.title : ""),
-        ignoredAt: now()
-      };
-    }
-    commit(next);
-    return !isIgnored;
-  }
-
-
-  function removeVisited(url) {
-    ensureLoaded();
-    var key = keyFor(url);
-    if (!key) return cloneState(state);
-    var next = cloneState(state);
-    delete next.visited[key];
-    return commit(next);
-  }
-
-  function clearVisited() {
-    ensureLoaded();
-    var next = cloneState(state);
-    next.visited = emptyMap();
-    return commit(next);
-  }
-
-  function exportJson() {
-    ensureLoaded();
-    return stableStringify(cloneState(state));
-  }
-
-  function importJson(json) {
-    var parsed;
-    if (typeof json === "string") {
-      try { parsed = JSON.parse(json); } catch (error) { return false; }
-    } else parsed = json;
-    if (!isRecord(parsed)) return false;
-    return commit(sanitizeState(parsed));
-  }
-
-  function subscribe(callback) {
-    if (typeof callback !== "function") return function () {};
-    listeners.push(callback);
-    return function unsubscribe() {
-      var index = listeners.indexOf(callback);
-      if (index !== -1) listeners.splice(index, 1);
-    };
-  }
-
-  root.DSUXStorage = {
-    load: load,
-    save: save,
-    setPreferences: setPreferences,
-    markVisited: markVisited,
-    setProgress: setProgress,
-    toggleSaved: toggleSaved,
-    toggleIgnored: toggleIgnored,
-    removeVisited: removeVisited,
-    clearVisited: clearVisited,
-    exportJson: exportJson,
-    importJson: importJson,
-    subscribe: subscribe
-  };
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this);
-
-
 (function () {
   "use strict";
 
@@ -695,6 +321,667 @@
 }());
 
 
+(function (root) {
+  "use strict";
+
+  var STORAGE_KEY = "derstandard-enhancer-state";
+  var LEGACY_KEYS = ["dsux-state-v1", "derstandard-userscript-state"];
+  var MAX_ENTRIES = 500;
+  var MAX_URL_LENGTH = 2048;
+  var MAX_TITLE_LENGTH = 500;
+  var MAX_PREF_LENGTH = 40;
+  var COMMENT_MODES = { native: true, positive: true, negative: true, total: true };
+  var DISCOVERY_SORTS = { date: true, comments: true };
+  var lastClock = 0;
+
+  function emptyMap() {
+    return Object.create(null);
+  }
+
+  function emptyState() {
+    return {
+      version: 2,
+      visited: emptyMap(),
+      saved: emptyMap(),
+      ignored: emptyMap(),
+      progress: emptyMap(),
+      prefs: {
+        commentSort: "native",
+        discoverySort: "",
+        discoverySortAscending: false
+      }
+    };
+  }
+
+  function isRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function hasOwn(value, key) {
+    return isRecord(value) && Object.prototype.hasOwnProperty.call(value, key);
+  }
+
+  function rawText(value) {
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function text(value, limit) {
+    return rawText(value).slice(0, limit);
+  }
+
+  function finiteNumber(value) {
+    return typeof value === "number" && isFinite(value) ? value : null;
+  }
+
+  function progressValue(value) {
+    var number = finiteNumber(value);
+    if (number === null) return null;
+    return Math.max(0, Math.min(1, number));
+  }
+
+  function timestamp(value) {
+    var number = finiteNumber(value);
+    return number === null || number < 0 ? null : number;
+  }
+
+  function noteTime(value) {
+    if (value !== null && value > lastClock) lastClock = value;
+  }
+
+  function now() {
+    var value = finiteNumber(Date.now());
+    if (value === null || value < 0) value = 0;
+    if (value <= lastClock) value = lastClock + 1;
+    lastClock = value;
+    return value;
+  }
+
+  function storage() {
+    try {
+      if (root && root.localStorage) return root.localStorage;
+    } catch (error) {
+      // localStorage may be disabled or inaccessible.
+    }
+    return null;
+  }
+
+  function urlConstructor() {
+    try {
+      if (root && typeof root.URL === "function") return root.URL;
+    } catch (error) {
+      // URL may be unavailable on a test host.
+    }
+    try {
+      if (typeof URL === "function") return URL;
+    } catch (error) {
+      // URL may be unavailable in an old browser.
+    }
+    return null;
+  }
+
+  function isArticleHost(hostname) {
+    var host = String(hostname || "").toLowerCase().replace(/\.$/, "");
+    return host === "derstandard.at" || host.slice(-(".derstandard.at".length)) === ".derstandard.at";
+  }
+
+  function isArticlePath(pathname) {
+    var path = String(pathname || "");
+    return /^\/story\/[^/?#]+(?:\/[^?#]*)?$/i.test(path) || /^\/jetzt\/livebericht\/[^/?#]+(?:\/[^/?#]*)?$/i.test(path);
+  }
+
+  function normalizeCanonical(value, requireArticlePath) {
+    var raw = rawText(value);
+    if (!raw) return "";
+    var Constructor = urlConstructor();
+    if (Constructor) {
+      try {
+        var parsed = new Constructor(raw);
+        if ((parsed.protocol !== "http:" && parsed.protocol !== "https:") || !isArticleHost(parsed.hostname) || (requireArticlePath && !isArticlePath(parsed.pathname))) return "";
+        parsed.protocol = "https:";
+        parsed.hostname = "derstandard.at";
+        parsed.username = "";
+        parsed.password = "";
+        parsed.port = "";
+        parsed.search = "";
+        parsed.hash = "";
+        var canonical = parsed.href;
+        return canonical.length <= MAX_URL_LENGTH ? canonical : "";
+      } catch (error) {
+        return "";
+      }
+    }
+    var noQuery = raw.split("#")[0].split("?")[0];
+    if (!/^https?:\/\/([^/?#]+)(\/[^?#]*)?$/i.test(noQuery)) return "";
+    if (noQuery.slice(0, 7).toLowerCase() === "http://") noQuery = "https://" + noQuery.slice(7);
+    var hostMatch = noQuery.match(/^https:\/\/([^/?#]+)(\/.*)?$/i);
+    if (!hostMatch || !isArticleHost(hostMatch[1]) || (requireArticlePath && !isArticlePath(hostMatch[2] || "/"))) return "";
+    noQuery = "https://derstandard.at" + (hostMatch[2] || "/");
+    return noQuery.length <= MAX_URL_LENGTH ? noQuery : "";
+  }
+
+  function keyFor(value) {
+    var candidate = isRecord(value) ? value.key || value.url : value;
+    if (typeof candidate !== "string" || !rawText(candidate)) return "";
+    var canonical = "";
+    var site = null;
+    var hasArticleKey = false;
+    try {
+      site = root && root.DSUXSite;
+      hasArticleKey = !!(site && typeof site.articleKey === "function");
+      if (hasArticleKey) canonical = site.articleKey(rawText(candidate));
+    } catch (error) {
+      canonical = "";
+    }
+    if (hasArticleKey) {
+      if (typeof canonical !== "string" || !rawText(canonical)) return "";
+      return normalizeCanonical(canonical, false);
+    }
+    return normalizeCanonical(candidate, true);
+  }
+
+
+  function mapEntries(value) {
+    if (Array.isArray(value)) {
+      return value.map(function (entry) {
+        if (Array.isArray(entry) && entry.length > 1) return [entry[0], entry[1]];
+        return [isRecord(entry) ? entry.key || entry.url : "", entry];
+      });
+    }
+    if (!isRecord(value)) return [];
+    return Object.keys(value).map(function (key) { return [key, value[key]]; });
+  }
+
+  function sortAndBound(map, timeField) {
+    var keys = Object.keys(map);
+    keys.sort(function (left, right) {
+      var leftTime = map[left][timeField];
+      var rightTime = map[right][timeField];
+      if (rightTime !== leftTime) return rightTime - leftTime;
+      return left < right ? -1 : left > right ? 1 : 0;
+    });
+    var bounded = emptyMap();
+    keys.slice(0, MAX_ENTRIES).forEach(function (key) { bounded[key] = map[key]; });
+    return bounded;
+  }
+
+  function putRecord(map, ties, key, value, timeField, tie) {
+    var existing = map[key];
+    if (!existing || value[timeField] > existing[timeField] || (value[timeField] === existing[timeField] && tie < ties[key])) {
+      map[key] = value;
+      ties[key] = tie;
+      noteTime(value[timeField]);
+    }
+  }
+
+  function progressCandidate(item, fallbackTime) {
+    var value = null;
+    var updatedAt = null;
+    if (typeof item === "number") {
+      value = progressValue(item);
+    } else if (isRecord(item)) {
+      if (hasOwn(item, "value")) value = progressValue(item.value);
+      else if (hasOwn(item, "progress")) value = progressValue(item.progress);
+      updatedAt = timestamp(item.updatedAt);
+      if (updatedAt === null) updatedAt = timestamp(item.progressUpdatedAt);
+      if (updatedAt === null) updatedAt = timestamp(item.visitedAt);
+    }
+    if (value === null) return null;
+    if (updatedAt === null) updatedAt = fallbackTime === null || fallbackTime === undefined ? 0 : fallbackTime;
+    return { value: value, updatedAt: updatedAt };
+  }
+
+  function putProgress(map, ties, key, value, tie) {
+    var existing = map[key];
+    if (!existing || value.updatedAt > existing.updatedAt || (value.updatedAt === existing.updatedAt && tie < ties[key])) {
+      map[key] = value;
+      ties[key] = tie;
+      noteTime(value.updatedAt);
+    }
+  }
+
+  function sourceState(input) {
+    if (!isRecord(input)) return null;
+    var known = hasOwn(input, "version") || hasOwn(input, "visited") || hasOwn(input, "saved") || hasOwn(input, "ignored") || hasOwn(input, "progress") || hasOwn(input, "readingProgress") || hasOwn(input, "history") || hasOwn(input, "bookmarks") || hasOwn(input, "prefs") || hasOwn(input, "preferences");
+    if (!known && isRecord(input.state)) return input.state;
+    return input;
+  }
+
+  function sanitizeState(input) {
+    var source = sourceState(input) || emptyState();
+    var output = emptyState();
+    var visited = emptyMap();
+    var visitedTies = emptyMap();
+    var visitedTimes = emptyMap();
+    var saved = emptyMap();
+    var savedTies = emptyMap();
+    var ignored = emptyMap();
+    var ignoredTies = emptyMap();
+    var progress = emptyMap();
+    var progressTies = emptyMap();
+
+    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach(function (pair) {
+      var item = pair[1];
+      var object = isRecord(item) ? item : null;
+      var key = keyFor(pair[0]);
+      if (!key && object) key = keyFor(object.key || object.url);
+      if (!key) return;
+      var visitedAt = object ? timestamp(object.visitedAt) : null;
+      if (visitedAt === null) visitedAt = 0;
+      var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
+      var record = { url: key, title: title, visitedAt: visitedAt };
+      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      putRecord(visited, visitedTies, key, record, "visitedAt", tie);
+      if (visitedTimes[key] === undefined || visitedAt > visitedTimes[key]) visitedTimes[key] = visitedAt;
+    });
+
+    mapEntries(hasOwn(source, "saved") ? source.saved : source.bookmarks).forEach(function (pair) {
+      var item = pair[1];
+      var object = isRecord(item) ? item : null;
+      var key = keyFor(pair[0]);
+      if (!key && object) key = keyFor(object.key || object.url);
+      if (!key) return;
+      var savedAt = object ? timestamp(object.savedAt) : null;
+      if (savedAt === null) savedAt = 0;
+      var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
+      var record = { url: key, title: title, savedAt: savedAt };
+      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      putRecord(saved, savedTies, key, record, "savedAt", tie);
+    });
+
+    mapEntries(source.ignored).forEach(function (pair) {
+      var item = pair[1];
+      var object = isRecord(item) ? item : null;
+      var key = keyFor(pair[0]);
+      if (!key && object) key = keyFor(object.key || object.url);
+      if (!key) return;
+      var ignoredAt = object ? timestamp(object.ignoredAt) : null;
+      if (ignoredAt === null) ignoredAt = 0;
+      var title = object ? text(object.title, MAX_TITLE_LENGTH) : text(item, MAX_TITLE_LENGTH);
+      var record = { url: key, title: title, ignoredAt: ignoredAt };
+      var tie = rawText(pair[0]) + "\u0000" + title + "\u0000" + key;
+      putRecord(ignored, ignoredTies, key, record, "ignoredAt", tie);
+    });
+
+    function collectProgress(raw, kind) {
+      mapEntries(raw).forEach(function (pair) {
+        var key = keyFor(pair[0]);
+        var object = isRecord(pair[1]) ? pair[1] : null;
+        if (!key && object) key = keyFor(object.key || object.url);
+        if (!key) return;
+        var fallbackTime = visitedTimes[key] === undefined ? 0 : visitedTimes[key];
+        var candidate = progressCandidate(pair[1], fallbackTime);
+        if (!candidate) return;
+        var tie = rawText(pair[0]) + "\u0000" + kind + "\u0000" + String(candidate.value);
+        putProgress(progress, progressTies, key, candidate, tie);
+      });
+    }
+
+    collectProgress(hasOwn(source, "progress") ? source.progress : null, "progress");
+    collectProgress(source.readingProgress, "readingProgress");
+
+    mapEntries(hasOwn(source, "visited") ? source.visited : source.history).forEach(function (pair) {
+      var object = isRecord(pair[1]) ? pair[1] : null;
+      if (!object) return;
+      var key = keyFor(pair[0]);
+      if (!key) key = keyFor(object.key || object.url);
+      if (!key) return;
+      var nestedTime = timestamp(object.visitedAt);
+      var candidate = progressCandidate(object.progress, nestedTime === null ? 0 : nestedTime);
+      if (!candidate) return;
+      var tie = rawText(pair[0]) + "\u0000visited\u0000" + String(candidate.value);
+      putProgress(progress, progressTies, key, candidate, tie);
+    });
+
+    output.visited = sortAndBound(visited, "visitedAt");
+    output.saved = sortAndBound(saved, "savedAt");
+    output.ignored = sortAndBound(ignored, "ignoredAt");
+    output.progress = sortAndBound(progress, "updatedAt");
+
+    var prefs = isRecord(source.prefs) ? source.prefs : isRecord(source.preferences) ? source.preferences : null;
+    if (prefs) {
+      var commentSort = text(prefs.commentSort, MAX_PREF_LENGTH);
+      if (COMMENT_MODES[commentSort]) output.prefs.commentSort = commentSort;
+      var discoverySort = text(prefs.discoverySort, MAX_PREF_LENGTH);
+      if (discoverySort === "" || DISCOVERY_SORTS[discoverySort]) output.prefs.discoverySort = discoverySort;
+      if (typeof prefs.discoverySortAscending === "boolean") output.prefs.discoverySortAscending = prefs.discoverySortAscending;
+    }
+    return output;
+  }
+
+  function touchStateTimes(value) {
+    var maps = [value && value.visited, value && value.saved, value && value.ignored];
+    var fields = ["visitedAt", "savedAt", "ignoredAt"];
+    maps.forEach(function (map, index) {
+      if (!isRecord(map)) return;
+      Object.keys(map).forEach(function (key) { noteTime(timestamp(map[key] && map[key][fields[index]])); });
+    });
+    if (value && isRecord(value.progress)) Object.keys(value.progress).forEach(function (key) { noteTime(timestamp(value.progress[key] && value.progress[key].updatedAt)); });
+  }
+
+  function cloneState(value) {
+    return sanitizeState(value);
+  }
+
+  function stableStringify(value) {
+    if (value === null || typeof value !== "object") return JSON.stringify(value);
+    if (Array.isArray(value)) return "[" + value.map(stableStringify).join(",") + "]";
+    return "{" + Object.keys(value).sort().map(function (key) {
+      return JSON.stringify(key) + ":" + stableStringify(value[key]);
+    }).join(",") + "}";
+  }
+
+  function statesEqual(left, right) {
+    return stableStringify(left) === stableStringify(right);
+  }
+
+  function futureVersion(input) {
+    var source = sourceState(input);
+    if (!source || !hasOwn(source, "version")) return false;
+    return typeof source.version !== "number" || !isFinite(source.version) || source.version > 2 || source.version < 1;
+  }
+
+  function writeState(store, value) {
+    if (!store) return false;
+    var serialized = stableStringify(value);
+    try {
+      store.setItem(STORAGE_KEY, serialized);
+      return store.getItem(STORAGE_KEY) === serialized;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function readDurable() {
+    var store = storage();
+    if (!store) return { ok: false, state: null, error: "storage-unavailable" };
+    var currentRaw = null;
+    var sourceRaw = null;
+    var sourceKey = STORAGE_KEY;
+    try {
+      currentRaw = store.getItem(STORAGE_KEY);
+      sourceRaw = currentRaw;
+      if (sourceRaw === null) {
+        for (var index = 0; index < LEGACY_KEYS.length; index += 1) {
+          sourceRaw = store.getItem(LEGACY_KEYS[index]);
+          if (sourceRaw !== null) {
+            sourceKey = LEGACY_KEYS[index];
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      return { ok: false, state: null, error: "storage-read-failed" };
+    }
+    if (sourceRaw === null) return { ok: true, state: emptyState() };
+
+    var parsed = null;
+    try { parsed = JSON.parse(sourceRaw); } catch (error) { parsed = null; }
+    if (futureVersion(parsed)) return { ok: false, state: null, error: "unsupported-version" };
+    var normalized = sanitizeState(parsed);
+    var serialized = stableStringify(normalized);
+    var needsMigration = sourceKey !== STORAGE_KEY || sourceRaw !== serialized;
+    if (needsMigration) {
+      if (!writeState(store, normalized)) return { ok: false, state: null, error: "storage-write-failed" };
+      LEGACY_KEYS.forEach(function (legacyKey) {
+        try {
+          if (typeof store.removeItem === "function") store.removeItem(legacyKey);
+        } catch (error) {
+          // A successful current-key write is the durable migration boundary.
+        }
+      });
+    }
+    touchStateTimes(normalized);
+    return { ok: true, state: normalized };
+  }
+
+  var state = emptyState();
+  var lastDurableState = cloneState(state);
+  var loaded = false;
+  var listeners = [];
+  var storageListenerAttached = false;
+
+  function notify() {
+    listeners.slice().forEach(function (listener) {
+      var snapshot = cloneState(state);
+      try { listener(snapshot); } catch (error) { /* subscriber errors are isolated */ }
+    });
+  }
+
+  function load() {
+    var result = readDurable();
+    if (result.ok) {
+      state = cloneState(result.state);
+      lastDurableState = cloneState(state);
+      loaded = true;
+    } else if (!loaded) {
+      state = cloneState(lastDurableState);
+      loaded = true;
+    }
+    return cloneState(state);
+  }
+
+  function ensureLoaded() {
+    if (!loaded) load();
+  }
+
+  function result(ok, changed, error) {
+    return {
+      ok: ok,
+      changed: changed,
+      state: cloneState(state),
+      error: error || null
+    };
+  }
+
+  function beginMutation() {
+    var previous = state;
+    var durable = readDurable();
+    if (!durable.ok) return { ok: false, error: durable.error, externalChanged: false };
+    state = cloneState(durable.state);
+    lastDurableState = cloneState(state);
+    loaded = true;
+    return { ok: true, externalChanged: !statesEqual(previous, state) };
+  }
+
+  function failMutation(context, error) {
+    if (context && context.externalChanged) notify();
+    return result(false, false, error);
+  }
+
+  function runMutation(validate, apply) {
+    var context = beginMutation();
+    if (!context.ok) return result(false, false, context.error);
+    if (validate && !validate()) return failMutation(context, "invalid-input");
+    var next = cloneState(state);
+    apply(next);
+    next = sanitizeState(next);
+    var changed = !statesEqual(next, state);
+    if (!changed) {
+      if (context.externalChanged) notify();
+      return result(true, false, null);
+    }
+    if (!writeState(storage(), next)) return failMutation(context, "storage-write-failed");
+    state = cloneState(next);
+    lastDurableState = cloneState(state);
+    touchStateTimes(state);
+    notify();
+    return result(true, true, null);
+  }
+
+  function setPreferences(patch) {
+    var keys = ["commentSort", "discoverySort", "discoverySortAscending"];
+    return runMutation(function () {
+      if (!isRecord(patch)) return false;
+      var found = false;
+      for (var index = 0; index < keys.length; index += 1) if (hasOwn(patch, keys[index])) found = true;
+      return found;
+    }, function (next) {
+      var commentSort = text(patch.commentSort, MAX_PREF_LENGTH);
+      var discoverySort = text(patch.discoverySort, MAX_PREF_LENGTH);
+      if (hasOwn(patch, "commentSort") && COMMENT_MODES[commentSort]) next.prefs.commentSort = commentSort;
+      if (hasOwn(patch, "discoverySort") && (discoverySort === "" || DISCOVERY_SORTS[discoverySort])) next.prefs.discoverySort = discoverySort;
+      if (hasOwn(patch, "discoverySortAscending") && typeof patch.discoverySortAscending === "boolean") next.prefs.discoverySortAscending = patch.discoverySortAscending;
+    });
+  }
+
+  function markVisited(url, title) {
+    var key = keyFor(url);
+    return runMutation(function () { return !!key; }, function (next) {
+      var current = next.visited[key];
+      next.visited[key] = {
+        url: key,
+        title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : current ? current.title : "",
+        visitedAt: now()
+      };
+    });
+  }
+
+  function setProgress(url, value) {
+    var key = keyFor(url);
+    var progress = progressValue(value);
+    return runMutation(function () { return !!key && progress !== null; }, function (next) {
+      next.progress[key] = { value: progress, updatedAt: now() };
+    });
+  }
+
+  function toggleSaved(url, title) {
+    var key = keyFor(url);
+    return runMutation(function () { return !!key; }, function (next) {
+      if (next.saved[key]) delete next.saved[key];
+      else next.saved[key] = { url: key, title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "", savedAt: now() };
+    });
+  }
+
+  function toggleIgnored(url, title) {
+    var key = keyFor(url);
+    return runMutation(function () { return !!key; }, function (next) {
+      if (next.ignored[key]) delete next.ignored[key];
+      else next.ignored[key] = { url: key, title: typeof title === "string" ? text(title, MAX_TITLE_LENGTH) : "", ignoredAt: now() };
+    });
+  }
+
+  function clearVisited() {
+    return runMutation(null, function (next) { next.visited = emptyMap(); });
+  }
+
+  function importSummary(value) {
+    return {
+      visited: Object.keys(value.visited).length,
+      saved: Object.keys(value.saved).length,
+      ignored: Object.keys(value.ignored).length,
+      progress: Object.keys(value.progress).length
+    };
+  }
+
+  function hasMeaningfulData(value) {
+    return Object.keys(value.visited).length > 0 || Object.keys(value.saved).length > 0 || Object.keys(value.ignored).length > 0 || Object.keys(value.progress).length > 0 || value.prefs.commentSort !== "native" || value.prefs.discoverySort !== "" || value.prefs.discoverySortAscending !== false;
+  }
+
+  function prepareImport(json) {
+    var parsed = json;
+    if (typeof json === "string") {
+      try { parsed = JSON.parse(json); } catch (error) { return { ok: false, error: "invalid-json", state: null, summary: null }; }
+    }
+    if (!isRecord(parsed)) return { ok: false, error: "invalid-import", state: null, summary: null };
+    var source = sourceState(parsed);
+    if (!source || futureVersion(source)) return { ok: false, error: "unsupported-version", state: null, summary: null };
+    var recognized = hasOwn(source, "version") || hasOwn(source, "visited") || hasOwn(source, "saved") || hasOwn(source, "ignored") || hasOwn(source, "progress") || hasOwn(source, "readingProgress") || hasOwn(source, "history") || hasOwn(source, "bookmarks") || hasOwn(source, "prefs") || hasOwn(source, "preferences");
+    if (!recognized) return { ok: false, error: "unrelated-import", state: null, summary: null };
+    var normalized = sanitizeState(source);
+    if (!hasMeaningfulData(normalized)) return { ok: false, error: "empty-import", state: null, summary: null };
+    return { ok: true, error: null, state: cloneState(normalized), summary: importSummary(normalized) };
+  }
+
+  function validPrepared(value) {
+    return isRecord(value) && value.version === 2 && isRecord(value.visited) && isRecord(value.saved) && isRecord(value.ignored) && isRecord(value.progress) && isRecord(value.prefs) && hasMeaningfulData(sanitizeState(value));
+  }
+
+  function importPrepared(prepared) {
+    var context = beginMutation();
+    if (!context.ok) return result(false, false, context.error);
+    if (!validPrepared(prepared)) return failMutation(context, "invalid-prepared-import");
+    var next = sanitizeState(prepared);
+    if (statesEqual(next, state)) {
+      if (context.externalChanged) notify();
+      return result(true, false, null);
+    }
+    if (!writeState(storage(), next)) return failMutation(context, "storage-write-failed");
+    state = cloneState(next);
+    lastDurableState = cloneState(state);
+    touchStateTimes(state);
+    notify();
+    return result(true, true, null);
+  }
+
+  function exportJson() {
+    ensureLoaded();
+    return stableStringify(cloneState(state));
+  }
+
+  function subscribe(callback) {
+    if (typeof callback !== "function") return function () {};
+    listeners.push(callback);
+    return function unsubscribe() {
+      var index = listeners.indexOf(callback);
+      if (index !== -1) listeners.splice(index, 1);
+    };
+  }
+
+  function onStorageEvent(event) {
+    if (!event || event.key !== STORAGE_KEY) return;
+    var next;
+    if (event.newValue === null) next = emptyState();
+    else {
+      if (typeof event.newValue !== "string") return;
+      var parsed;
+      try { parsed = JSON.parse(event.newValue); } catch (error) { return; }
+      if (futureVersion(parsed)) return;
+      next = sanitizeState(parsed);
+    }
+    if (statesEqual(next, state)) return;
+    state = cloneState(next);
+    lastDurableState = cloneState(state);
+    loaded = true;
+    touchStateTimes(state);
+    notify();
+  }
+
+  function disconnect() {
+    if (!storageListenerAttached) return;
+    try {
+      if (root && typeof root.removeEventListener === "function") root.removeEventListener("storage", onStorageEvent);
+    } catch (error) {
+      // Listener removal is best effort on partial test hosts.
+    }
+    storageListenerAttached = false;
+  }
+
+  if (root && typeof root.addEventListener === "function") {
+    try {
+      root.addEventListener("storage", onStorageEvent);
+      storageListenerAttached = true;
+    } catch (error) {
+      storageListenerAttached = false;
+    }
+  }
+
+  root.DSUXStorage = {
+    load: load,
+    setPreferences: setPreferences,
+    markVisited: markVisited,
+    setProgress: setProgress,
+    toggleSaved: toggleSaved,
+    toggleIgnored: toggleIgnored,
+    clearVisited: clearVisited,
+    prepareImport: prepareImport,
+    importPrepared: importPrepared,
+    exportJson: exportJson,
+    subscribe: subscribe,
+    disconnect: disconnect
+  };
+})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this);
+
+
 (function (global) {
   "use strict";
 
@@ -735,6 +1022,7 @@
     routePollTimer: null,
     observer: null,
     unsubscribe: null,
+    lastError: "",
     destroyed: false
   };
 
@@ -809,63 +1097,6 @@
     };
   }
 
-  function canonicalSnapshot(input) {
-    var source = input && typeof input === "object" ? input : {};
-    var output = {
-      version: 1,
-      visited: Object.create(null),
-      saved: Object.create(null),
-      ignored: Object.create(null),
-      progress: Object.create(null),
-      prefs: {}
-    };
-
-    function records(field, target, sourceName) {
-      var map = source[field];
-      if (!map || typeof map !== "object") return;
-      Object.keys(map).forEach(function (rawKey) {
-        var item = map[rawKey];
-        var key = articleKey(item && item.url || rawKey);
-        if (!key || own(target, key)) return;
-        if (field === "visited") {
-          target[key] = {
-            url: key,
-            title: text(item && item.title),
-            visitedAt: finite(item && item.visitedAt) === null ? 0 : Math.max(0, item.visitedAt),
-            progress: clamp(item && item.progress, 0, 1)
-          };
-        } else {
-          target[key] = {
-            url: key,
-            title: text(item && item.title),
-            savedAt: field === "saved" && finite(item && item.savedAt) !== null ? Math.max(0, item.savedAt) : undefined,
-            ignoredAt: field === "ignored" && finite(item && item.ignoredAt) !== null ? Math.max(0, item.ignoredAt) : undefined
-          };
-        }
-        if (sourceName) target[key].source = sourceName;
-      });
-    }
-
-    var rawProgress = source.progress;
-    if (rawProgress && typeof rawProgress === "object") {
-      Object.keys(rawProgress).forEach(function (rawKey) {
-        var key = articleKey(rawKey);
-        var value = finite(rawProgress[rawKey]);
-        if (key && value !== null) output.progress[key] = clamp(value, 0, 1);
-      });
-    }
-    records("visited", output.visited, "visited");
-    records("saved", output.saved, "saved");
-    records("ignored", output.ignored, "ignored");
-    Object.keys(output.visited).forEach(function (key) {
-      if (!own(output.progress, key)) output.progress[key] = clamp(output.visited[key].progress, 0, 1);
-    });
-    if (source.prefs && typeof source.prefs === "object") {
-      Object.keys(source.prefs).forEach(function (key) { output.prefs[key] = source.prefs[key]; });
-    }
-    return output;
-  }
-
   function applySortPreference(snapshot) {
     var prefs = snapshot && snapshot.prefs || {};
     var sort = prefs.discoverySort;
@@ -873,16 +1104,26 @@
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
   }
 
-  model.snapshot = canonicalSnapshot(storage.load());
+  model.snapshot = storage.load();
   applySortPreference(model.snapshot);
 
-  function refreshSnapshot() {
-    model.snapshot = canonicalSnapshot(storage.load());
-    return model.snapshot;
+  function applyMutationResult(result, successMessage, failureMessage) {
+    if (!result || result.ok !== true) {
+      model.lastError = result && result.error ? String(result.error) : "mutation_failed";
+      showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
+      return false;
+    }
+    if (result.state && typeof result.state === "object") {
+      model.snapshot = result.state;
+      applySortPreference(model.snapshot);
+    }
+    if (successMessage) showToast(successMessage);
+    return true;
   }
 
   function progressFor(key) {
-    var value = model.snapshot.progress && model.snapshot.progress[key];
+    var record = model.snapshot.progress && model.snapshot.progress[key];
+    var value = record && typeof record === "object" ? record.value : null;
     return clamp(value, 0, 1);
   }
 
@@ -897,6 +1138,7 @@
   function isIgnored(key) {
     return own(model.snapshot.ignored, key);
   }
+
 
   function make(tag, className, label) {
     var node = doc.createElement(tag);
@@ -1197,8 +1439,8 @@
     save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      storage.toggleSaved(key, item.title || "");
-      refreshSnapshot();
+      var result = storage.toggleSaved(key, item.title || "");
+      if (!applyMutationResult(result)) return;
       renderDiscovery();
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
@@ -1212,8 +1454,8 @@
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      storage.toggleIgnored(key, item.title || "");
-      refreshSnapshot();
+      var result = storage.toggleIgnored(key, item.title || "");
+      if (!applyMutationResult(result)) return;
       renderDiscovery();
       restorePanelScroll(scrollTop);
       showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
@@ -1425,7 +1667,7 @@
       if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
       var value = progressNow();
       if (value === progressFor(capturedKey)) return;
-      storage.setProgress(capturedKey, value);
+      applyMutationResult(storage.setProgress(capturedKey, value));
     }, 250);
   }
 
@@ -1495,9 +1737,8 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
-    model.markedEntry = model.routeEntry;
-    storage.markVisited(key, article.title || "");
-    refreshSnapshot();
+    var result = storage.markVisited(key, article.title || "");
+    if (applyMutationResult(result)) model.markedEntry = model.routeEntry;
   }
 
   function scan() {
@@ -1553,7 +1794,8 @@
 
   function onStorageChange(next) {
     if (model.destroyed) return;
-    model.snapshot = canonicalSnapshot(next);
+    if (!next || typeof next !== "object") return;
+    model.snapshot = next;
     applySortPreference(model.snapshot);
     if (model.panelOpen) render();
   }
@@ -1573,10 +1815,12 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    storage.setPreferences({
+    var result = storage.setPreferences({
       discoverySort: model.sort,
       discoverySortAscending: model.sortAscending
     });
+    if (!applyMutationResult(result)) applySortPreference(model.snapshot);
+    if (model.panelOpen) renderDiscovery();
   }
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
@@ -1608,27 +1852,37 @@
 
   function onImportChange() {
     var file = importInput.files && importInput.files[0];
-    if (!file || typeof global.FileReader !== "function") return;
+    if (!file) return;
+    if (file.size > 1048576) {
+      model.lastError = "file_too_large";
+      showToast("Import abgelehnt: Datei zu groß");
+      importInput.value = "";
+      return;
+    }
+    if (typeof global.FileReader !== "function") return;
     var reader = new global.FileReader();
     reader.onload = function () {
       if (model.destroyed) return;
-      if (storage.importJson(reader.result)) {
-        refreshSnapshot();
-        render();
-        showToast("Daten importiert");
-      } else {
+      var prepared;
+      try {
+        prepared = storage.prepareImport(reader.result);
+      } catch (_) {
+        prepared = { ok: false, error: "invalid_import" };
+      }
+      if (!prepared || prepared.ok !== true) {
+        model.lastError = prepared && prepared.error ? String(prepared.error) : "invalid_import";
         showToast("Import abgelehnt: ungültige JSON-Daten");
+      } else {
+        var result = storage.importPrepared(prepared.state);
+        if (applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) render();
       }
       importInput.value = "";
     };
     reader.readAsText(file);
   }
-
   function onClearClick() {
-    storage.clearVisited();
-    refreshSnapshot();
-    render();
-    showToast("Besuchsverlauf gelöscht");
+    var result = storage.clearVisited();
+    if (applyMutationResult(result, "Besuchsverlauf gelöscht")) render();
   }
 
   function onKeydown(event) {
@@ -1662,6 +1916,7 @@
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
+    if (typeof storage.disconnect === "function") storage.disconnect();
     launcher.removeEventListener("click", onLauncherClick);
     closeButton.removeEventListener("click", onCloseClick);
     discoverTab.removeEventListener("click", onTabClick);

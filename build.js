@@ -13,8 +13,8 @@ const header = `// ==UserScript==
 `;
 
 const modules = [
-  "src/storage.js",
   "src/site.js",
+  "src/storage.js",
   "src/controller.js",
 ];
 

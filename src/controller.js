@@ -38,6 +38,7 @@
     routePollTimer: null,
     observer: null,
     unsubscribe: null,
+    lastError: "",
     destroyed: false
   };
 
@@ -112,63 +113,6 @@
     };
   }
 
-  function canonicalSnapshot(input) {
-    var source = input && typeof input === "object" ? input : {};
-    var output = {
-      version: 1,
-      visited: Object.create(null),
-      saved: Object.create(null),
-      ignored: Object.create(null),
-      progress: Object.create(null),
-      prefs: {}
-    };
-
-    function records(field, target, sourceName) {
-      var map = source[field];
-      if (!map || typeof map !== "object") return;
-      Object.keys(map).forEach(function (rawKey) {
-        var item = map[rawKey];
-        var key = articleKey(item && item.url || rawKey);
-        if (!key || own(target, key)) return;
-        if (field === "visited") {
-          target[key] = {
-            url: key,
-            title: text(item && item.title),
-            visitedAt: finite(item && item.visitedAt) === null ? 0 : Math.max(0, item.visitedAt),
-            progress: clamp(item && item.progress, 0, 1)
-          };
-        } else {
-          target[key] = {
-            url: key,
-            title: text(item && item.title),
-            savedAt: field === "saved" && finite(item && item.savedAt) !== null ? Math.max(0, item.savedAt) : undefined,
-            ignoredAt: field === "ignored" && finite(item && item.ignoredAt) !== null ? Math.max(0, item.ignoredAt) : undefined
-          };
-        }
-        if (sourceName) target[key].source = sourceName;
-      });
-    }
-
-    var rawProgress = source.progress;
-    if (rawProgress && typeof rawProgress === "object") {
-      Object.keys(rawProgress).forEach(function (rawKey) {
-        var key = articleKey(rawKey);
-        var value = finite(rawProgress[rawKey]);
-        if (key && value !== null) output.progress[key] = clamp(value, 0, 1);
-      });
-    }
-    records("visited", output.visited, "visited");
-    records("saved", output.saved, "saved");
-    records("ignored", output.ignored, "ignored");
-    Object.keys(output.visited).forEach(function (key) {
-      if (!own(output.progress, key)) output.progress[key] = clamp(output.visited[key].progress, 0, 1);
-    });
-    if (source.prefs && typeof source.prefs === "object") {
-      Object.keys(source.prefs).forEach(function (key) { output.prefs[key] = source.prefs[key]; });
-    }
-    return output;
-  }
-
   function applySortPreference(snapshot) {
     var prefs = snapshot && snapshot.prefs || {};
     var sort = prefs.discoverySort;
@@ -176,16 +120,26 @@
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
   }
 
-  model.snapshot = canonicalSnapshot(storage.load());
+  model.snapshot = storage.load();
   applySortPreference(model.snapshot);
 
-  function refreshSnapshot() {
-    model.snapshot = canonicalSnapshot(storage.load());
-    return model.snapshot;
+  function applyMutationResult(result, successMessage, failureMessage) {
+    if (!result || result.ok !== true) {
+      model.lastError = result && result.error ? String(result.error) : "mutation_failed";
+      showToast(failureMessage || "Änderung konnte nicht gespeichert werden.");
+      return false;
+    }
+    if (result.state && typeof result.state === "object") {
+      model.snapshot = result.state;
+      applySortPreference(model.snapshot);
+    }
+    if (successMessage) showToast(successMessage);
+    return true;
   }
 
   function progressFor(key) {
-    var value = model.snapshot.progress && model.snapshot.progress[key];
+    var record = model.snapshot.progress && model.snapshot.progress[key];
+    var value = record && typeof record === "object" ? record.value : null;
     return clamp(value, 0, 1);
   }
 
@@ -200,6 +154,7 @@
   function isIgnored(key) {
     return own(model.snapshot.ignored, key);
   }
+
 
   function make(tag, className, label) {
     var node = doc.createElement(tag);
@@ -500,8 +455,8 @@
     save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      storage.toggleSaved(key, item.title || "");
-      refreshSnapshot();
+      var result = storage.toggleSaved(key, item.title || "");
+      if (!applyMutationResult(result)) return;
       renderDiscovery();
       showToast(isSaved(key) ? "Gespeichert" : "Lesezeichen entfernt");
     });
@@ -515,8 +470,8 @@
       event.preventDefault();
       event.stopPropagation();
       var scrollTop = panel.scrollTop;
-      storage.toggleIgnored(key, item.title || "");
-      refreshSnapshot();
+      var result = storage.toggleIgnored(key, item.title || "");
+      if (!applyMutationResult(result)) return;
       renderDiscovery();
       restorePanelScroll(scrollTop);
       showToast(isIgnored(key) ? "Artikel ignoriert" : "Artikel wiederhergestellt");
@@ -728,7 +683,7 @@
       if (model.destroyed || model.generation !== capturedGeneration || currentKey() !== capturedKey || routeIdentity() !== capturedIdentity) return;
       var value = progressNow();
       if (value === progressFor(capturedKey)) return;
-      storage.setProgress(capturedKey, value);
+      applyMutationResult(storage.setProgress(capturedKey, value));
     }, 250);
   }
 
@@ -798,9 +753,8 @@
     var key = model.routeKey;
     var article = currentArticle();
     if (!key || !article || article.key !== key || model.markedEntry === model.routeEntry) return;
-    model.markedEntry = model.routeEntry;
-    storage.markVisited(key, article.title || "");
-    refreshSnapshot();
+    var result = storage.markVisited(key, article.title || "");
+    if (applyMutationResult(result)) model.markedEntry = model.routeEntry;
   }
 
   function scan() {
@@ -856,7 +810,8 @@
 
   function onStorageChange(next) {
     if (model.destroyed) return;
-    model.snapshot = canonicalSnapshot(next);
+    if (!next || typeof next !== "object") return;
+    model.snapshot = next;
     applySortPreference(model.snapshot);
     if (model.panelOpen) render();
   }
@@ -876,10 +831,12 @@
       model.sort = "";
       model.sortAscending = false;
     }
-    storage.setPreferences({
+    var result = storage.setPreferences({
       discoverySort: model.sort,
       discoverySortAscending: model.sortAscending
     });
+    if (!applyMutationResult(result)) applySortPreference(model.snapshot);
+    if (model.panelOpen) renderDiscovery();
   }
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
@@ -911,27 +868,37 @@
 
   function onImportChange() {
     var file = importInput.files && importInput.files[0];
-    if (!file || typeof global.FileReader !== "function") return;
+    if (!file) return;
+    if (file.size > 1048576) {
+      model.lastError = "file_too_large";
+      showToast("Import abgelehnt: Datei zu groß");
+      importInput.value = "";
+      return;
+    }
+    if (typeof global.FileReader !== "function") return;
     var reader = new global.FileReader();
     reader.onload = function () {
       if (model.destroyed) return;
-      if (storage.importJson(reader.result)) {
-        refreshSnapshot();
-        render();
-        showToast("Daten importiert");
-      } else {
+      var prepared;
+      try {
+        prepared = storage.prepareImport(reader.result);
+      } catch (_) {
+        prepared = { ok: false, error: "invalid_import" };
+      }
+      if (!prepared || prepared.ok !== true) {
+        model.lastError = prepared && prepared.error ? String(prepared.error) : "invalid_import";
         showToast("Import abgelehnt: ungültige JSON-Daten");
+      } else {
+        var result = storage.importPrepared(prepared.state);
+        if (applyMutationResult(result, "Daten importiert", "Import konnte nicht gespeichert werden.")) render();
       }
       importInput.value = "";
     };
     reader.readAsText(file);
   }
-
   function onClearClick() {
-    storage.clearVisited();
-    refreshSnapshot();
-    render();
-    showToast("Besuchsverlauf gelöscht");
+    var result = storage.clearVisited();
+    if (applyMutationResult(result, "Besuchsverlauf gelöscht")) render();
   }
 
   function onKeydown(event) {
@@ -965,6 +932,7 @@
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
+    if (typeof storage.disconnect === "function") storage.disconnect();
     launcher.removeEventListener("click", onLauncherClick);
     closeButton.removeEventListener("click", onCloseClick);
     discoverTab.removeEventListener("click", onTabClick);
