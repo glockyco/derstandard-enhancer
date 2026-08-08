@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DerStandard Enhancer
 // @namespace    https://www.derstandard.at/
-// @version      1.8.0
+// @version      1.9.0
 // @description  Entdeckung, Lesefortschritt und Kommentare für derStandard
 // @match        https://www.derstandard.at/*
 // @match        https://derstandard.at/*
@@ -1633,7 +1633,8 @@
       return;
     }
     var article = doc.querySelector("article.story-article");
-    var headings = article ? article.querySelectorAll("h2,h3") : [];
+    var body = article && article.querySelector(".article-body, .article-content, [data-testid='article-body']");
+    var headings = body ? body.querySelectorAll("h2,h3") : [];
     outline.hidden = !headings.length;
     var lastSection = null;
     for (var i = 0; i < headings.length; i += 1) {
