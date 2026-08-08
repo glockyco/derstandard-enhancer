@@ -667,15 +667,14 @@
     if (!anchor || !anchor.parentNode) return;
     commentHost = doc.createElement("div");
     commentHost.className = "dsux-comment-control";
-    commentHost.style.cssText = "margin:.75rem 0;padding:.65rem;border:1px solid #bbb;background:#fff;color:#111;font:14px system-ui,sans-serif";
+    commentHost.style.cssText = "display:flex;align-items:center;gap:.5rem;margin:.75rem 0;padding:.55rem .65rem;border:1px solid #bbb;background:#fff;color:#111;font:14px system-ui,sans-serif";
     commentHost.id = "dsux-comment-control";
     var label = doc.createElement("label");
     label.htmlFor = "dsux-comment-sort";
-    label.textContent = "Kommentarsortierung";
+    label.textContent = "Sortieren";
     var select = doc.createElement("select");
     commentSelect = select;
     select.id = "dsux-comment-sort";
-    select.setAttribute("aria-describedby", "dsux-comment-note");
     [["native", "Standard"], ["positive", "Positive Bewertungen"], ["negative", "Negative Bewertungen"], ["total", "Gesamtbewertungen"]].forEach(function (entry) {
       var option = doc.createElement("option");
       option.value = entry[0];
@@ -683,12 +682,8 @@
       select.appendChild(option);
     });
     select.value = state.prefs && state.prefs.commentSort || "native";
-    var note = doc.createElement("small");
-    note.id = "dsux-comment-note";
-    note.textContent = "Sortiert nur geladene Top-Level-Kommentare.";
     commentHost.appendChild(label);
     commentHost.appendChild(select);
-    commentHost.appendChild(note);
     anchor.parentNode.insertBefore(commentHost, anchor);
     select.addEventListener("change", onCommentSortChange);
     if (comments && comments.sort) comments.sort(select.value);
