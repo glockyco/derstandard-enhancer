@@ -27,7 +27,11 @@
       return "";
     }
 
+    parsed.protocol = "https:";
     parsed.hostname = SITE_HOST;
+    parsed.username = "";
+    parsed.password = "";
+    parsed.port = "";
     parsed.hash = "";
     var params = [];
     parsed.searchParams.forEach(function (paramValue, paramName) {
@@ -58,8 +62,12 @@
 
   function articleKey(value) {
     var canonical = canonicalFromUrl(value);
-    return canonical && isArticleUrl(canonical) ? canonical : "";
+    var parsed = canonical ? toUrl(canonical) : null;
+    if (!parsed || !articlePath(parsed.pathname)) return "";
+    parsed.search = "";
+    return parsed.href;
   }
+
 
   function textOf(node) {
     if (!node) return "";
@@ -150,12 +158,25 @@
     return record(key, title, subtitle, section, publishedAt, parseCommentCount(countNode), "page");
   }
 
+  function isStoryArticle(node) {
+    return localName(node) === "article" && /(^|\s)story-article(?:\s|$)/i.test(String(node.getAttribute && node.getAttribute("class") || ""));
+  }
+
+  function isInsideStoryArticle(node) {
+    var current = node && node.parentElement;
+    while (current) {
+      if (isStoryArticle(current)) return true;
+      current = current.parentElement;
+    }
+    return false;
+  }
+
   function nearestCard(anchor) {
     if (!anchor) return null;
     if (typeof anchor.closest === "function") {
-      var card = anchor.closest("article");
+      var card = anchor.closest('[aria-labelledby], [class*="teaser"], li');
       if (card) return card;
-      card = anchor.closest('[aria-labelledby], [class*="teaser"], li');
+      card = anchor.closest("article");
       if (card) return card;
     }
     return anchor.parentElement || anchor;
@@ -195,6 +216,7 @@
     var articles = [];
     var seen = Object.create(null);
     anchors.forEach(function (anchor) {
+      if (isInsideStoryArticle(anchor)) return;
       var href = anchor.href || anchor.getAttribute("href");
       var base = (anchor.ownerDocument && (anchor.ownerDocument.baseURI || anchor.ownerDocument.URL)) || root.baseURI || root.URL;
       var resolved = toUrl(href, base);

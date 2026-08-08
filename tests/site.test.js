@@ -39,7 +39,7 @@ class FakeElement {
   matches(selector) {
     return selector.split(",").some((part) => {
       const value = part.trim();
-      if (value === "article") return this.localName === "article";
+      if (value === "article.story-article") return this.localName === "article" && String(this.attributes.class || "").split(/\s+/).indexOf("story-article") !== -1;
       if (value === "li") return this.localName === "li";
       if (value === "a[href]") return this.localName === "a" && !!this.getAttribute("href");
       if (value === "h3.teaser-title") return this.localName === "h3" && this.attributes.class === "teaser-title";
@@ -108,19 +108,61 @@ function makeCard(href, title, comments, date) {
   return card;
 }
 
-test("canonical URLs normalize host, tracking parameters, and fragments", () => {
+test("article identity normalizes protocol, credentials, ports, and article query data", () => {
   const site = makeSite();
-  expect(site.canonicalUrl("https://www.derstandard.at/story/123/title?utm_source=newsletter&foo=bar#comments")).toBe("https://derstandard.at/story/123/title?foo=bar");
-  expect(site.articleKey("https://derstandard.at/story/123/title?ref=frontpage")).toBe("https://derstandard.at/story/123/title");
-  expect(site.isArticleUrl("https://derstandard.at/seite/home")).toBe(false);
+  expect(site.canonicalUrl("http://derstandard.at/story/123/title")).toBe("https://derstandard.at/story/123/title");
+  expect(site.canonicalUrl("https://reader:secret@derstandard.at/story/123/title")).toBe("https://derstandard.at/story/123/title");
+  expect(site.canonicalUrl("https://derstandard.at:8443/story/123/title")).toBe("https://derstandard.at/story/123/title");
+  const input = "http://reader:secret@www.derstandard.at:8443/story/123/title?utm_source=newsletter&foo=bar#comments";
+  expect(site.canonicalUrl(input)).toBe("https://derstandard.at/story/123/title?foo=bar");
+  expect(site.articleKey(input)).toBe("https://derstandard.at/story/123/title");
+  expect(site.articleKey("https://derstandard.at/story/123/title?arbitrary=value#section")).toBe("https://derstandard.at/story/123/title");
+  expect(site.isArticleUrl("https://derstandard.at/story/123/title?arbitrary=value#section")).toBe(true);
 });
 
 test("canonical URLs reject off-site and unsupported values", () => {
   const site = makeSite();
   expect(site.canonicalUrl("https://example.com/story/123/title")).toBe("");
+  expect(site.canonicalUrl("ftp://derstandard.at/story/123/title")).toBe("");
   expect(site.canonicalUrl("javascript:alert(1)")).toBe("");
   expect(site.articleKey("not a URL")).toBe("");
 });
+
+test("article extraction excludes links inside the story article", () => {
+  const storyArticle = new FakeElement("article", { class: "story-article" });
+  storyArticle.append(new FakeElement("a", { href: "/story/999/body-link" }));
+  const document = new FakeDocument([storyArticle]);
+
+  expect(makeSite().extractArticles(document)).toEqual([]);
+});
+
+test("article extraction prefers nested teaser metadata over an outer article", () => {
+  const outer = new FakeElement("article", { "data-section": "Outer", class: "article-shell" });
+  const teaser = new FakeElement("div", { class: "teaser-list", "data-section": "Innen" });
+  teaser.append(
+    new FakeElement("a", { href: "/story/321/nested-title" }),
+    new FakeElement("h3", { class: "teaser-title" }, "Nested headline"),
+    new FakeElement("span", { class: "teaser-postingcount" }, "12 Kommentare"),
+    new FakeElement("dst-rl-timestamp", { date: "2025-02-03" }),
+  );
+  outer.append(
+    new FakeElement("h3", { class: "teaser-title" }, "Outer headline"),
+    new FakeElement("span", { class: "teaser-postingcount" }, "999 Kommentare"),
+    new FakeElement("dst-rl-timestamp", { date: "2024-01-01" }),
+    teaser,
+  );
+
+  const articles = makeSite().extractArticles(new FakeDocument([outer]));
+  expect(articles).toHaveLength(1);
+  expect(articles[0]).toMatchObject({
+    key: "https://derstandard.at/story/321/nested-title",
+    title: "Nested headline",
+    publishedAt: "2025-02-03",
+    commentCount: 12,
+    section: "Innen",
+  });
+});
+
 
 test("comment counts accept localized integer formatting", () => {
   const site = makeSite();
