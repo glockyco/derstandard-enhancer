@@ -25,6 +25,7 @@
     resumeEntry: -1,
     query: "",
     filter: "all",
+    scope: "page",
     sort: "",
     sortAscending: false,
     outline: [],
@@ -48,6 +49,10 @@
     clearPending: false,
     importReader: null,
     importGeneration: 0,
+    openTrigger: null,
+    readingFocusTarget: null,
+    readingFocusAdded: false,
+    readingFocusBlur: null,
     destroyed: false
   };
 
@@ -207,6 +212,7 @@
   fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
   fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
   fallbackStyle += ".dsux-data-view .dsux-help{border-top:0}.dsux-import-preview,.dsux-clear-confirmation,.dsux-storage-error{margin-top:.75rem;padding:.75rem;border:1px solid #8b8f94}.dsux-storage-error{color:#8b1e14}.dsux-import-summary{display:grid;grid-template-columns:auto auto;justify-content:start;gap:.25rem 1rem}.dsux-import-summary dt{font-weight:700}.dsux-import-summary dd{margin:0}";
+  fallbackStyle += ".dsux-launcher{width:7rem;height:auto;min-height:3.25rem;padding:.65rem .9rem;border-radius:.45rem;font-size:.95rem;font-weight:700}.dsux-toast{right:8.75rem;max-width:min(31rem,calc(100vw - 9.75rem));pointer-events:none}.dsux-controls{grid-template-columns:minmax(0,1fr) minmax(9rem,auto) minmax(9rem,auto)}.dsux-control-field{display:grid;gap:.2rem}.dsux-control-label,.dsux-shortcuts{font-size:.82rem}.dsux-shortcuts{padding-top:.7rem;border-top:1px solid #ccc}@media(max-width:38rem){.dsux-launcher{right:.75rem;width:7rem}.dsux-toast{right:8.35rem;max-width:calc(100vw - 9.1rem)}.dsux-controls{grid-template-columns:minmax(0,1fr)}}";
 
   var host = doc.createElement("div");
   var shadow;
@@ -223,13 +229,15 @@
   style.textContent = configuredStyle.trim() ? configuredStyle : fallbackStyle;
   shadow.appendChild(style);
 
-  var launcher = button("✦", "dsux-launcher");
-  launcher.setAttribute("aria-label", "DerStandard Enhancer öffnen");
-  launcher.setAttribute("title", "DerStandard Enhancer öffnen");
+  var launcher = button("Entdecken", "dsux-launcher");
+  launcher.setAttribute("aria-label", "Entdecken – DerStandard Enhancer öffnen");
+  launcher.setAttribute("title", "Entdecken – DerStandard Enhancer öffnen");
   launcher.setAttribute("aria-expanded", "false");
+  launcher.setAttribute("aria-controls", "dsux-panel");
   shadow.appendChild(launcher);
 
   var panel = make("section", "dsux-panel");
+  panel.id = "dsux-panel";
   panel.hidden = true;
   panel.setAttribute("role", "dialog");
   panel.setAttribute("aria-label", "DerStandard Enhancer");
@@ -283,10 +291,25 @@
   panel.appendChild(dataView);
 
   var controls = make("div", "dsux-controls");
+  var searchLabel = make("label", "dsux-control-field");
+  searchLabel.appendChild(make("span", "dsux-control-label", "Suche"));
   var search = make("input");
   search.type = "search";
   search.placeholder = "Titel oder Bereich suchen";
   search.setAttribute("aria-label", "Titel oder Bereich suchen");
+  searchLabel.appendChild(search);
+  var scopeLabel = make("label", "dsux-control-field");
+  scopeLabel.appendChild(make("span", "dsux-control-label", "Quelle"));
+  var scope = make("select", "dsux-scope");
+  scope.setAttribute("aria-label", "Artikelquelle");
+  [["page", "Aktuelle Seite"], ["local", "Meine Artikel"]].forEach(function (entry) {
+    var option = make("option", "", entry[1]);
+    option.value = entry[0];
+    scope.appendChild(option);
+  });
+  scopeLabel.appendChild(scope);
+  var filterLabel = make("label", "dsux-control-field");
+  filterLabel.appendChild(make("span", "dsux-control-label", "Status"));
   var filter = make("select");
   filter.setAttribute("aria-label", "Artikel filtern");
   [["all", "Alle"], ["unread", "Ungelesen"], ["read", "Gelesen"], ["saved", "Gespeichert"], ["ignored", "Ignoriert"]].forEach(function (entry) {
@@ -294,8 +317,10 @@
     option.value = entry[0];
     filter.appendChild(option);
   });
-  controls.appendChild(search);
-  controls.appendChild(filter);
+  filterLabel.appendChild(filter);
+  controls.appendChild(searchLabel);
+  controls.appendChild(scopeLabel);
+  controls.appendChild(filterLabel);
   discoverView.appendChild(controls);
 
   var discoverStatus = make("p", "dsux-status");
@@ -323,7 +348,6 @@
   dateHeader.appendChild(dateSort);
   commentHeader.appendChild(commentSort);
   var list = make("tbody");
-  list.setAttribute("aria-live", "polite");
   dateSort.setAttribute("data-sort", "date");
   commentSort.setAttribute("data-sort", "comments");
   table.appendChild(list);
@@ -430,6 +454,9 @@
   outline.appendChild(outlineList);
   articleView.appendChild(outline);
 
+  var shortcutHelp = make("p", "dsux-shortcuts", "Tastatur: Alt+Shift+O öffnet oder schließt den Enhancer · Alt+Shift+R setzt das Lesen auf Artikelseiten fort · Esc schließt den Enhancer");
+  panel.appendChild(shortcutHelp);
+
   var toast = make("div", "dsux-toast");
   toast.hidden = true;
   toast.setAttribute("role", "status");
@@ -447,40 +474,57 @@
     return model.routeKey || article && article.key || "";
   }
 
-  function combinedItems() {
+  function mergeRecord(existing, item) {
+    if (!existing.title && item.title) existing.title = item.title;
+    if (!existing.subtitle && item.subtitle) existing.subtitle = item.subtitle;
+    if (!existing.section && item.section) existing.section = item.section;
+    if (!existing.publishedAt && item.publishedAt) existing.publishedAt = item.publishedAt;
+    if (existing.commentCount === null && item.commentCount !== null) existing.commentCount = item.commentCount;
+  }
+
+  function assembleSource(entries) {
     var result = [];
     var seen = Object.create(null);
-
-    function append(value, source, fallbackKey) {
-      var item = copyRecord(value, fallbackKey || value && (value.key || value.url), source);
+    entries.forEach(function (entry) {
+      var value = entry && entry.value;
+      var item = copyRecord(value, entry && entry.fallbackKey || value && (value.key || value.url), entry && entry.source);
       if (!item) return;
-      var existing = seen[item.key];
-      if (existing) {
-        if (!existing.title && item.title) existing.title = item.title;
-        if (!existing.subtitle && item.subtitle) existing.subtitle = item.subtitle;
-        if (!existing.section && item.section) existing.section = item.section;
-        if (!existing.publishedAt && item.publishedAt) existing.publishedAt = item.publishedAt;
-        if (existing.commentCount === null && item.commentCount !== null) existing.commentCount = item.commentCount;
+      if (seen[item.key]) {
+        mergeRecord(seen[item.key], item);
         return;
       }
       seen[item.key] = item;
       result.push(item);
-    }
+    });
+    return result;
+  }
 
-    append(model.pageArticle, "page");
-    model.pageItems.forEach(function (item) { append(item, "card"); });
+  function pageSourceItems() {
+    var entries = [];
+    if (model.pageArticle) entries.push({ value: model.pageArticle, source: "page" });
+    model.pageItems.forEach(function (item) {
+      entries.push({ value: item, source: "card" });
+    });
+    return assembleSource(entries);
+  }
+
+  function localSourceItems() {
+    var entries = [];
     ["visited", "saved", "ignored"].forEach(function (field) {
       var records = model.snapshot[field] || {};
       Object.keys(records).forEach(function (key) {
-        append(records[key], field, key);
+        entries.push({ value: records[key], fallbackKey: key, source: field });
       });
     });
     Object.keys(model.snapshot.progress || {}).forEach(function (key) {
-      append(null, "progress", key);
+      entries.push({ value: null, fallbackKey: key, source: "progress" });
     });
+    return assembleSource(entries);
+  }
 
+  function discoveryItems() {
+    var result = model.scope === "local" ? localSourceItems() : pageSourceItems();
     if (!model.sort) return result;
-
     result.sort(function (left, right) {
       var leftValue;
       var rightValue;
@@ -530,6 +574,43 @@
     else global.setTimeout(restore, 0);
   }
 
+  function captureDiscoveryFocus() {
+    var active = shadow.activeElement;
+    if (!active || !list.contains(active)) return null;
+    var action = active.getAttribute && active.getAttribute("data-action");
+    var key = active.getAttribute && active.getAttribute("data-key");
+    if (!action || !key) return null;
+    var row = active;
+    while (row && row.parentNode !== list) row = row.parentNode;
+    var rowIndex = 0;
+    if (row && row.parentNode === list) {
+      for (var index = 0; index < list.children.length; index += 1) {
+        if (list.children[index] === row) {
+          rowIndex = index;
+          break;
+        }
+      }
+    }
+    return { action: action, key: key, rowIndex: rowIndex, scrollTop: panel.scrollTop };
+  }
+
+  function restoreDiscoveryFocus(state) {
+    if (!state || !model.panelOpen) return;
+    var nodes = list.querySelectorAll("[data-action][data-key]");
+    var sameAction = [];
+    var exact = null;
+    for (var index = 0; index < nodes.length; index += 1) {
+      var node = nodes[index];
+      if (node.getAttribute("data-action") !== state.action) continue;
+      sameAction.push(node);
+      if (node.getAttribute("data-key") === state.key) exact = node;
+    }
+    var target = exact;
+    if (!target && sameAction.length) target = sameAction[Math.min(state.rowIndex, sameAction.length - 1)];
+    focusWithoutScroll(target || search);
+    restorePanelScroll(state.scrollTop);
+  }
+
   function renderRow(item) {
     var key = item.key;
     var row = make("tr", "dsux-row");
@@ -568,6 +649,8 @@
     save.setAttribute("aria-pressed", isSaved(key) ? "true" : "false");
     save.setAttribute("aria-label", (isSaved(key) ? "Lesezeichen entfernen: " : "Speichern: ") + (item.title || key));
     save.setAttribute("title", isSaved(key) ? "Lesezeichen entfernen" : "Speichern");
+    save.setAttribute("data-action", "save");
+    save.setAttribute("data-key", key);
     save.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -582,6 +665,8 @@
     ignore.setAttribute("aria-pressed", isIgnored(key) ? "true" : "false");
     ignore.setAttribute("aria-label", (isIgnored(key) ? "Wiederherstellen: " : "Ignorieren: ") + (item.title || key));
     ignore.setAttribute("title", isIgnored(key) ? "Wiederherstellen" : "Ignorieren");
+    ignore.setAttribute("data-action", "ignore");
+    ignore.setAttribute("data-key", key);
     ignore.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -600,7 +685,9 @@
 
   function renderDiscovery() {
     if (model.destroyed) return;
+    var focusState = captureDiscoveryFocus();
     search.value = model.query;
+    scope.value = model.scope;
     filter.value = model.filter;
     var dateDirection = model.sort === "date" ? (model.sortAscending ? "ascending" : "descending") : "none";
     var commentDirection = model.sort === "comments" ? (model.sortAscending ? "ascending" : "descending") : "none";
@@ -613,7 +700,7 @@
 
     while (list.firstChild) list.removeChild(list.firstChild);
     var query = text(model.query).toLocaleLowerCase();
-    var all = combinedItems();
+    var all = discoveryItems();
     var result = all.filter(function (item) {
       var ignored = isIgnored(item.key);
       if (model.filter === "ignored" ? !ignored : ignored) return false;
@@ -633,6 +720,7 @@
     } else {
       result.forEach(function (item) { list.appendChild(renderRow(item)); });
     }
+    restoreDiscoveryFocus(focusState);
   }
   function storageErrorMessage(error) {
     var messages = {
@@ -678,6 +766,8 @@
 
   function updateTabs() {
     var available = !!currentArticle();
+    var focused = shadow.activeElement;
+    var articleFocusWillHide = !available && !!focused && (focused === articleTab || articleView.contains(focused));
     articleTab.hidden = !available;
     discoverTab.hidden = false;
     dataTab.hidden = false;
@@ -691,6 +781,7 @@
     discoverView.hidden = model.activeTab !== "discover";
     articleView.hidden = model.activeTab !== "article";
     dataView.hidden = model.activeTab !== "data";
+    if (articleFocusWillHide && model.panelOpen) focusWithoutScroll(discoverTab);
   }
   function renderComments() {
     var article = currentArticle();
@@ -784,6 +875,7 @@
         if (entry.node && typeof entry.node.scrollIntoView === "function") {
           entry.node.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
         }
+        focusReadingTarget(entry.node);
       });
       item.appendChild(jump);
       parent.list.appendChild(item);
@@ -833,9 +925,77 @@
     }
   }
 
-  function setOpen(open) {
+  function nodeConnected(node) {
+    if (!node) return false;
+    if (typeof node.isConnected === "boolean") return node.isConnected;
+    return !!(doc.documentElement && doc.documentElement.contains(node)) || shadow.contains(node);
+  }
+
+  function canRestoreFocus(node) {
+    if (!nodeConnected(node) || typeof node.focus !== "function") return false;
+    var current = node;
+    while (current) {
+      if (current.hidden || current.inert || current.disabled) return false;
+      if (current.hasAttribute && (current.hasAttribute("hidden") || current.hasAttribute("inert") || current.hasAttribute("disabled"))) return false;
+      if (current.getAttribute && String(current.getAttribute("aria-hidden") || "").toLowerCase() === "true") return false;
+      if (current.nodeType === 1 && typeof global.getComputedStyle === "function") {
+        var currentStyle = global.getComputedStyle(current);
+        if (currentStyle && (currentStyle.display === "none" || currentStyle.visibility === "hidden" || currentStyle.visibility === "collapse")) return false;
+      }
+      var parent = current.parentElement;
+      if (!parent && typeof current.getRootNode === "function") {
+        var root = current.getRootNode();
+        parent = root && root.host || null;
+      }
+      current = parent;
+    }
+    var tag = String(node.tagName || "").toUpperCase();
+    if (tag === "INPUT" && String(node.type || "").toLowerCase() === "hidden") return false;
+    if (tag === "BUTTON" || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return true;
+    if (tag === "A" && node.hasAttribute && node.hasAttribute("href")) return true;
+    if (node.isContentEditable) return true;
+    return !!(node.hasAttribute && node.hasAttribute("tabindex"));
+  }
+
+  function triggerForEvent(event) {
+    var active = shadow.activeElement || doc.activeElement;
+    if (canRestoreFocus(active)) return active;
+    var target = event && event.target;
+    return canRestoreFocus(target) ? target : launcher;
+  }
+
+  function clearReadingFocusTarget() {
+    var target = model.readingFocusTarget;
+    var onBlur = model.readingFocusBlur;
+    if (target && onBlur) target.removeEventListener("blur", onBlur);
+    if (target && model.readingFocusAdded && target.getAttribute("tabindex") === "-1") target.removeAttribute("tabindex");
+    model.readingFocusTarget = null;
+    model.readingFocusAdded = false;
+    model.readingFocusBlur = null;
+  }
+
+  function focusReadingTarget(node) {
+    if (!node || typeof node.focus !== "function") return;
+    clearReadingFocusTarget();
+    var added = !node.hasAttribute("tabindex");
+    if (added) {
+      node.setAttribute("tabindex", "-1");
+      var onBlur = function () {
+        if (model.readingFocusTarget === node) clearReadingFocusTarget();
+      };
+      model.readingFocusTarget = node;
+      model.readingFocusAdded = true;
+      model.readingFocusBlur = onBlur;
+      node.addEventListener("blur", onBlur);
+    }
+    focusWithoutScroll(node);
+    if (added && doc.activeElement !== node) clearReadingFocusTarget();
+  }
+
+  function setOpen(open, trigger) {
     var next = !!open;
     var changed = next !== model.panelOpen;
+    if (next && changed) model.openTrigger = canRestoreFocus(trigger) ? trigger : triggerForEvent(null);
     model.panelOpen = next;
     panel.hidden = !model.panelOpen;
     launcher.setAttribute("aria-expanded", model.panelOpen ? "true" : "false");
@@ -843,7 +1003,9 @@
       render();
       if (changed) focusWithoutScroll(closeButton);
     } else if (changed) {
-      focusWithoutScroll(launcher);
+      var restore = canRestoreFocus(model.openTrigger) ? model.openTrigger : launcher;
+      model.openTrigger = null;
+      focusWithoutScroll(restore);
     }
   }
 
@@ -869,7 +1031,7 @@
       var forumTop = forum.getBoundingClientRect().top + scrollTop;
       if (forumTop > start) end = forumTop;
     }
-    return { start: start, end: end };
+    return { start: start, end: end, target: body };
   }
 
   function progressNow() {
@@ -929,6 +1091,7 @@
       showToast("Fortsetzen nicht verfügbar");
       return;
     }
+    focusReadingTarget(bounds.target);
     model.resumeKey = "";
     model.resumeValue = 0;
     model.resumeEntry = model.routeEntry;
@@ -1038,10 +1201,30 @@
     if (model.panelOpen) render();
   }
 
-  function onLauncherClick() { setOpen(!model.panelOpen); }
+  function onLauncherClick(event) { setOpen(!model.panelOpen, event.currentTarget); }
   function onCloseClick() { setOpen(false); }
   function onTabClick(event) { setTab(event.currentTarget.getAttribute("data-tab")); }
+  function visibleTabs() {
+    return [discoverTab, articleTab, dataTab].filter(function (tab) { return !tab.hidden; });
+  }
+  function onTabsKeydown(event) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    var availableTabs = visibleTabs();
+    var currentIndex = availableTabs.indexOf(event.target);
+    if (currentIndex === -1) return;
+    var nextIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + availableTabs.length) % availableTabs.length;
+    else if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % availableTabs.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = availableTabs.length - 1;
+    else return;
+    event.preventDefault();
+    var nextTab = availableTabs[nextIndex];
+    setTab(nextTab.getAttribute("data-tab"));
+    focusWithoutScroll(nextTab);
+  }
   function onSearchInput() { model.query = search.value || ""; renderDiscovery(); }
+  function onScopeChange() { model.scope = scope.value === "local" ? "local" : "page"; renderDiscovery(); }
   function onFilterChange() { model.filter = filter.value || "all"; renderDiscovery(); }
   function cycleSort(field) {
     if (model.sort !== field) {
@@ -1257,11 +1440,13 @@
     if (!event.altKey || !event.shiftKey) return;
     var key = String(event.key || "").toLowerCase();
     if (key === "o") {
+      var openTrigger = triggerForEvent(event);
       event.preventDefault();
-      setOpen(!model.panelOpen);
+      setOpen(!model.panelOpen, openTrigger);
     } else if (key === "r") {
+      var resumeTrigger = triggerForEvent(event);
       event.preventDefault();
-      setOpen(true);
+      setOpen(true, resumeTrigger);
       setTab("article");
       resumeReading();
     }
@@ -1272,6 +1457,7 @@
     model.destroyed = true;
     model.generation += 1;
     discardImportRead();
+    clearReadingFocusTarget();
     if (model.scanTimer !== null) global.clearTimeout(model.scanTimer);
     if (model.progressTimer !== null) global.clearTimeout(model.progressTimer);
     if (model.toastTimer !== null) global.clearTimeout(model.toastTimer);
@@ -1287,7 +1473,9 @@
     discoverTab.removeEventListener("click", onTabClick);
     articleTab.removeEventListener("click", onTabClick);
     dataTab.removeEventListener("click", onTabClick);
+    tabs.removeEventListener("keydown", onTabsKeydown);
     search.removeEventListener("input", onSearchInput);
+    scope.removeEventListener("change", onScopeChange);
     filter.removeEventListener("change", onFilterChange);
     dateSort.removeEventListener("click", onDateSort);
     commentSort.removeEventListener("click", onCommentSort);
@@ -1314,7 +1502,9 @@
   discoverTab.addEventListener("click", onTabClick);
   articleTab.addEventListener("click", onTabClick);
   dataTab.addEventListener("click", onTabClick);
+  tabs.addEventListener("keydown", onTabsKeydown);
   search.addEventListener("input", onSearchInput);
+  scope.addEventListener("change", onScopeChange);
   filter.addEventListener("change", onFilterChange);
   dateSort.addEventListener("click", onDateSort);
   commentSort.addEventListener("click", onCommentSort);

@@ -79,7 +79,39 @@ const COMMENT_ARTICLE_HTML = `<!doctype html>
 </html>`;
 
 const HOME_URL = "https://www.derstandard.at/";
-
+const SHORTCUT_FIXTURE_HTML = FIXTURE_HTML.replace(
+  "</body>",
+  '  <button id="page-trigger" type="button">Seitensteuerung</button>\n</body>',
+);
+const CURRENT_KEYS = [
+  "https://derstandard.at/story/123/erste-meldung",
+  "https://derstandard.at/story/456/zweite-meldung",
+];
+const LOCAL_VISITED_KEY = "https://derstandard.at/story/901/lokal-besucht";
+const LOCAL_SAVED_KEY = "https://derstandard.at/story/902/lokal-gespeichert";
+const LOCAL_IGNORED_KEY = "https://derstandard.at/story/903/lokal-ignoriert";
+const LOCAL_PROGRESS_KEY = "https://derstandard.at/story/904/lokal-fortschritt";
+const LOCAL_KEYS = [LOCAL_VISITED_KEY, LOCAL_SAVED_KEY, LOCAL_IGNORED_KEY, LOCAL_PROGRESS_KEY];
+const LOCAL_SCOPE_STATE = {
+  version: 2,
+  visited: {
+    [LOCAL_VISITED_KEY]: { url: LOCAL_VISITED_KEY, title: "Lokal besucht", visitedAt: 1700000000000 },
+  },
+  saved: {
+    [LOCAL_SAVED_KEY]: { url: LOCAL_SAVED_KEY, title: "Lokal gespeichert", savedAt: 1700000000001 },
+  },
+  ignored: {
+    [LOCAL_IGNORED_KEY]: { url: LOCAL_IGNORED_KEY, title: "Lokal ignoriert", ignoredAt: 1700000000002 },
+  },
+  progress: {
+    [LOCAL_PROGRESS_KEY]: { value: 0.35, updatedAt: 1700000000003 },
+  },
+  prefs: {
+    commentSort: "native",
+    discoverySort: "",
+    discoverySortAscending: false,
+  },
+};
 
 async function fixture(page, { html = FIXTURE_HTML, url = HOME_URL } = {}) {
   await page.route(url, async (route) => {
@@ -103,6 +135,12 @@ async function installEnhancer(page, useGenerated = false) {
 
 function host(page) {
   return page.locator("html > div").first();
+}
+
+async function discoveryRowKeys(enhancer) {
+  return enhancer.locator(".dsux-table tbody [data-action='save'][data-key]").evaluateAll((actions) => (
+    actions.map((action) => action.getAttribute("data-key")).sort()
+  ));
 }
 test("generated comments module sorts an article forum inside the enhancer panel and restores native order", async ({ page }) => {
   await fixture(page, { html: COMMENT_ARTICLE_HTML, url: ARTICLE_URL });
@@ -189,6 +227,327 @@ test("generated distribution renders one shadow host and default discovery", asy
   await expect(enhancer.locator(".dsux-table tbody tr")).toHaveCount(2);
   await expect(enhancer.locator(".dsux-table tbody")).toContainText("Erste Meldung");
   await expect(enhancer.locator(".dsux-table tbody")).toContainText("Zweite Meldung");
+});
+
+test("discovery scope separates current teasers from persisted local records", async ({ page }) => {
+  await fixture(page);
+  await page.evaluate((state) => {
+    window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify(state));
+  }, LOCAL_SCOPE_STATE);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const scope = enhancer.locator(".dsux-scope");
+  await expect(scope).toHaveValue("page");
+  await expect.poll(() => discoveryRowKeys(enhancer)).toEqual(CURRENT_KEYS.slice().sort());
+  const pageRows = await discoveryRowKeys(enhancer);
+  expect(pageRows.some((key) => LOCAL_KEYS.includes(key))).toBe(false);
+
+  await scope.selectOption("local");
+  await expect.poll(() => discoveryRowKeys(enhancer)).toEqual(
+    LOCAL_KEYS.filter((key) => key !== LOCAL_IGNORED_KEY).sort(),
+  );
+  const localRows = await discoveryRowKeys(enhancer);
+  expect(localRows.some((key) => CURRENT_KEYS.includes(key))).toBe(false);
+
+  const filter = enhancer.locator('select[aria-label="Artikel filtern"]');
+  await filter.selectOption("ignored");
+  await expect.poll(() => discoveryRowKeys(enhancer)).toEqual([LOCAL_IGNORED_KEY]);
+  const ignoredRows = await discoveryRowKeys(enhancer);
+  expect(ignoredRows.some((key) => CURRENT_KEYS.includes(key))).toBe(false);
+});
+
+test("launcher visibly communicates Entdecken", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const launcher = host(page).locator(".dsux-launcher");
+  await expect(launcher).toBeVisible();
+  await expect(launcher).toContainText("Entdecken");
+  await expect(launcher).toHaveAccessibleName(/Entdecken/);
+});
+
+test("visible tablist uses roving focus, labelled tabpanels, and keyboard navigation", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const tablist = enhancer.getByRole("tablist");
+  await expect(tablist).toHaveCount(1);
+  const tabs = enhancer.locator('[role="tab"]');
+  await expect(tabs).toHaveCount(3);
+
+  const assertTabState = async () => {
+    const state = await tabs.evaluateAll((nodes) => nodes.map((tab) => {
+      const controls = tab.getAttribute("aria-controls");
+      const root = tab.getRootNode();
+      const panel = controls && root.getElementById(controls);
+      const panelStyle = panel && getComputedStyle(panel);
+      return {
+        id: tab.id,
+        controls,
+        selected: tab.getAttribute("aria-selected"),
+        tabIndex: tab.tabIndex,
+        hidden: tab.hidden,
+        panelRole: panel?.getAttribute("role") || "",
+        panelLabelledBy: panel?.getAttribute("aria-labelledby") || "",
+        panelVisible: !!panel
+          && !panel.hidden
+          && panelStyle.display !== "none"
+          && panelStyle.visibility !== "hidden",
+      };
+    }));
+    expect(state.every((tab) => (
+      tab.id
+      && tab.controls
+      && (tab.selected === "true" || tab.selected === "false")
+      && (tab.tabIndex === 0 || tab.tabIndex === -1)
+      && tab.panelRole === "tabpanel"
+      && tab.panelLabelledBy === tab.id
+    ))).toBe(true);
+    const visibleTabs = state.filter((tab) => !tab.hidden);
+    expect(visibleTabs.filter((tab) => tab.selected === "true")).toHaveLength(1);
+    expect(visibleTabs.filter((tab) => tab.tabIndex === 0)).toHaveLength(1);
+    const selectedTab = visibleTabs.find((tab) => tab.selected === "true");
+    expect(selectedTab).toBeTruthy();
+    expect(state.filter((tab) => tab.panelVisible)).toHaveLength(1);
+    expect(selectedTab.panelVisible).toBe(true);
+  };
+
+  await assertTabState();
+  const discoverTab = enhancer.locator('[data-tab="discover"]');
+  const dataTab = enhancer.locator('[data-tab="data"]');
+  await discoverTab.focus();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(dataTab).toBeFocused();
+  await assertTabState();
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(discoverTab).toBeFocused();
+  await assertTabState();
+
+  await page.keyboard.press("End");
+  await expect(dataTab).toBeFocused();
+  await assertTabState();
+
+  await page.keyboard.press("Home");
+  await expect(discoverTab).toBeFocused();
+  await assertTabState();
+});
+
+test("Escape, close, and Alt+Shift+O restore the exact opener, with hidden fallback to launcher", async ({ page }) => {
+  await fixture(page, { html: SHORTCUT_FIXTURE_HTML });
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  const trigger = page.locator("#page-trigger");
+  await trigger.evaluate((node) => {
+    const wrapper = document.createElement("div");
+    wrapper.id = "trigger-wrapper";
+    node.parentNode.insertBefore(wrapper, node);
+    wrapper.appendChild(node);
+  });
+  const launcher = enhancer.locator(".dsux-launcher");
+  const panel = enhancer.locator(".dsux-panel");
+  const close = enhancer.locator(".dsux-close");
+
+  await trigger.focus();
+  await page.keyboard.press("Alt+Shift+O");
+  await expect(panel).toBeVisible();
+  await close.click();
+  await expect(panel).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.focus();
+  await page.keyboard.press("Alt+Shift+O");
+  await expect(panel).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.focus();
+  await page.keyboard.press("Alt+Shift+O");
+  await expect(panel).toBeVisible();
+  await page.keyboard.press("Alt+Shift+O");
+  await expect(panel).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await trigger.focus();
+  await page.keyboard.press("Alt+Shift+O");
+  await expect(panel).toBeVisible();
+  await trigger.evaluate((node) => { node.parentElement.hidden = true; });
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await expect(launcher).toBeFocused();
+});
+test("save and ignore rerenders preserve logical row-action focus", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const firstRow = enhancer.locator(".dsux-table tbody tr").first();
+  const firstSave = firstRow.locator('[data-action="save"]');
+  const firstIgnore = firstRow.locator('[data-action="ignore"]');
+  const firstKey = await firstSave.getAttribute("data-key");
+  expect(firstKey).toBeTruthy();
+  await firstSave.focus();
+  await firstSave.click();
+  await expect.poll(async () => page.evaluate(() => {
+    const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
+    return {
+      action: active?.getAttribute("data-action") || "",
+      key: active?.getAttribute("data-key") || "",
+    };
+  })).toEqual({ action: "save", key: firstKey });
+
+  const secondRow = enhancer.locator(".dsux-table tbody tr").nth(1);
+  const secondIgnore = secondRow.locator('[data-action="ignore"]');
+  const secondKey = await secondIgnore.getAttribute("data-key");
+  expect(secondKey).toBeTruthy();
+  await secondIgnore.focus();
+  await secondIgnore.click();
+  await expect(enhancer.locator(`[data-action="ignore"][data-key="${secondKey}"]`)).toHaveCount(0);
+  await expect.poll(async () => page.evaluate(() => {
+    const active = document.querySelector("html > div")?.shadowRoot?.activeElement;
+    return {
+      action: active?.getAttribute("data-action") || "",
+      key: active?.getAttribute("data-key") || "",
+    };
+  })).toEqual({ action: "ignore", key: firstKey });
+  await expect(firstIgnore).toBeFocused();
+});
+
+test("discover has one live status region and tbody is not live", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const discover = enhancer.locator("#dsux-view-discover");
+  const liveRegions = await discover.evaluate((node) => Array.from(
+    node.querySelectorAll('[role="status"], [aria-live]'),
+  ).map((region) => ({
+    role: region.getAttribute("role"),
+    live: region.getAttribute("aria-live"),
+  })));
+  expect(liveRegions).toEqual([{ role: "status", live: "polite" }]);
+  const tbody = discover.locator("tbody");
+  await expect(tbody).not.toHaveAttribute("role", "status");
+  await expect(tbody).not.toHaveAttribute("aria-live");
+  await expect(tbody.locator('[role="status"], [aria-live]')).toHaveCount(0);
+});
+
+test("shortcut help visibly names each action and qualifies article resume", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const shortcuts = enhancer.locator(".dsux-shortcuts");
+  await expect(shortcuts).toBeVisible();
+  const copy = await shortcuts.innerText();
+  expect(copy).toMatch(/Alt\+Shift\+O[\s\S]*(öffnet|öffnen)[\s\S]*(schließt|schließen)/i);
+  expect(copy).toMatch(/Alt\+Shift\+R[\s\S]*(Artikel|artikel)[\s\S]*(fort|weiter)/i);
+  expect(copy).toMatch(/Esc[\s\S]*(schließt|schließen)/i);
+});
+
+test("discovery controls expose the visible labels Suche, Quelle, and Status", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  const fields = enhancer.locator("#dsux-view-discover .dsux-control-field");
+  await expect(fields).toHaveCount(3);
+  expect(await fields.evaluateAll((nodes) => nodes.map((field) => ({
+    tag: field.tagName,
+    label: field.querySelector(".dsux-control-label")?.textContent.trim() || "",
+    controls: field.querySelectorAll("input, select").length,
+  })))).toEqual([
+    { tag: "LABEL", label: "Suche", controls: 1 },
+    { tag: "LABEL", label: "Quelle", controls: 1 },
+    { tag: "LABEL", label: "Status", controls: 1 },
+  ]);
+  for (const label of ["Suche", "Quelle", "Status"]) {
+    await expect(enhancer.locator(".dsux-control-label", { hasText: label }).filter({ hasText: label })).toHaveCount(1);
+  }
+});
+
+test("visible toast does not overlap the widened launcher", async ({ page }) => {
+  await fixture(page);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await enhancer.locator(".dsux-table tbody tr").first().locator('[data-action="save"]').click();
+  const toast = enhancer.locator(".dsux-toast");
+  const launcher = enhancer.locator(".dsux-launcher");
+  await expect(toast).toBeVisible();
+  const toastBox = await toast.boundingBox();
+  const launcherBox = await launcher.boundingBox();
+  expect(toastBox).toBeTruthy();
+  expect(launcherBox).toBeTruthy();
+  const separated = toastBox.x + toastBox.width <= launcherBox.x
+    || launcherBox.x + launcherBox.width <= toastBox.x
+    || toastBox.y + toastBox.height <= launcherBox.y
+    || launcherBox.y + launcherBox.height <= toastBox.y;
+  expect(separated).toBe(true);
+});
+
+
+test("outline and resume jumps focus the page reading target with temporary tabindex", async ({ page }) => {
+  await fixture(page, { html: ARTICLE_HTML, url: ARTICLE_URL });
+  await page.evaluate((key) => {
+    window.localStorage.setItem("derstandard-enhancer-state", JSON.stringify({
+      version: 2,
+      visited: {},
+      saved: {},
+      ignored: {},
+      progress: { [key]: { value: 0.35, updatedAt: 1700000000000 } },
+      prefs: { commentSort: "native", discoverySort: "", discoverySortAscending: false },
+    }));
+  }, ARTICLE_KEY);
+  await installEnhancer(page);
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await enhancer.locator('[data-tab="article"]').click();
+  const outlineHeading = page.locator(".article-body h2").first();
+  await enhancer.getByRole("button", { name: "Einordnung" }).click();
+  await expect.poll(() => page.evaluate(() => {
+    const hostNode = document.querySelector("html > div");
+    const article = document.querySelector("article.story-article");
+    const active = document.activeElement;
+    return !!active && !!article?.contains(active) && active !== hostNode;
+  })).toBe(true);
+  await expect(outlineHeading).toBeFocused();
+  await expect(outlineHeading).toHaveAttribute("tabindex", "-1");
+  await enhancer.locator(".dsux-launcher").click();
+  await expect.poll(() => page.evaluate(() => (
+    document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
+  ))).toBe(0);
+
+  await enhancer.locator(".dsux-launcher").click();
+  await enhancer.locator('[data-tab="article"]').click();
+  const resume = enhancer.getByRole("button", { name: "Fortsetzen" });
+  await expect(resume).toBeEnabled();
+  await resume.click();
+  await expect.poll(() => page.evaluate(() => {
+    const hostNode = document.querySelector("html > div");
+    const article = document.querySelector("article.story-article");
+    const active = document.activeElement;
+    return !!active && !!article?.contains(active) && active !== hostNode;
+  })).toBe(true);
+  await expect(page.locator(".article-body")).toBeFocused();
+  await expect(page.locator(".article-body")).toHaveAttribute("tabindex", "-1");
+  await enhancer.locator(".dsux-launcher").click();
+  await expect.poll(() => page.evaluate(() => (
+    document.querySelector("article.story-article")?.querySelectorAll("[tabindex='-1']").length || 0
+  ))).toBe(0);
 });
 
 test("source modules open, close, and restore focus through Escape", async ({ page }) => {
