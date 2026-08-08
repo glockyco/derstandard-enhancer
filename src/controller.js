@@ -213,10 +213,11 @@
   style.textContent = global.DSUXStyles;
   root.appendChild(style);
 
-  var launcher = button("Entdecken", "dsux-launcher");
+  var launcher = button("", "dsux-launcher");
+  launcher.innerHTML = "<span class='dsux-launcher-icon' aria-hidden='true'>✦</span><span class='dsux-launcher-label'>Entdecken</span>";
   launcher.setAttribute("aria-label", "DerStandard Enhancer: Entdecken öffnen");
   launcher.setAttribute("aria-expanded", "false");
-  root.appendChild(launcher);
+  launcher.setAttribute("title", "Entdecken öffnen");
   var panel = doc.createElement("section");
   panel.className = "dsux-panel";
   panel.hidden = true;
