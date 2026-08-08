@@ -7,7 +7,8 @@
   var doc = global.document;
   var storage = global.DSUXStorage;
   var site = global.DSUXSite;
-  if (!storage || !site) return;
+  var comments = global.DSUXComments;
+  if (!storage || !site || !comments) return;
 
   global.__DSUXEnhancerController = true;
 
@@ -38,6 +39,10 @@
     routePollTimer: null,
     observer: null,
     unsubscribe: null,
+    commentsActive: false,
+    commentsIdentity: "",
+    commentAvailable: false,
+    commentCount: 0,
     lastError: "",
     destroyed: false
   };
@@ -113,11 +118,16 @@
     };
   }
 
+  function normalizeCommentMode(value) {
+    return value === "positive" || value === "negative" || value === "total" ? value : "native";
+  }
+
   function applySortPreference(snapshot) {
     var prefs = snapshot && snapshot.prefs || {};
     var sort = prefs.discoverySort;
     model.sort = sort === "date" || sort === "comments" ? sort : "";
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
+    model.commentSort = normalizeCommentMode(prefs.commentSort);
   }
 
   model.snapshot = storage.load();
@@ -172,6 +182,7 @@
   var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
   fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
   fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
+  fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
 
   var host = doc.createElement("div");
   var shadow;
@@ -308,6 +319,22 @@
   articleActions.appendChild(resumeButton);
   readingControls.appendChild(articleActions);
   articleView.appendChild(readingControls);
+  var commentControls = make("div", "dsux-comment-controls");
+  var commentLabel = make("label");
+  commentLabel.appendChild(make("span", "", "Kommentare sortieren"));
+  var commentSortSelect = make("select", "dsux-comment-sort");
+  [["native", "Originalreihenfolge"], ["positive", "Meiste positive Bewertungen"], ["negative", "Meiste negative Bewertungen"], ["total", "Meiste Bewertungen insgesamt"]].forEach(function (entry) {
+    var option = make("option", "", entry[1]);
+    option.value = entry[0];
+    commentSortSelect.appendChild(option);
+  });
+  commentLabel.appendChild(commentSortSelect);
+  commentControls.appendChild(commentLabel);
+  var commentStatus = make("p", "dsux-comment-status");
+  commentStatus.setAttribute("role", "status");
+  commentStatus.setAttribute("aria-live", "polite");
+  commentControls.appendChild(commentStatus);
+  articleView.appendChild(commentControls);
   var outline = make("section", "dsux-outline");
   outline.appendChild(make("strong", "", "Übersicht"));
   var outlineList = make("ol");
@@ -529,6 +556,56 @@
     discoverView.hidden = model.activeTab !== "discover";
     articleView.hidden = model.activeTab !== "article";
   }
+  function renderComments() {
+    var article = currentArticle();
+    commentControls.hidden = !article;
+    if (!article) return;
+    commentSortSelect.value = model.commentSort;
+    if (!model.commentAvailable) {
+      commentStatus.textContent = "Kommentare derzeit nicht verfügbar.";
+      return;
+    }
+    commentStatus.textContent = model.commentCount === 1
+      ? "1 Kommentar verfügbar."
+      : model.commentCount + " Kommentare verfügbar.";
+  }
+
+  function stopComments() {
+    if (!model.commentsActive) return;
+    model.commentsActive = false;
+    model.commentsIdentity = "";
+    model.commentAvailable = false;
+    model.commentCount = 0;
+    comments.disconnect();
+  }
+
+  function onCommentsChange(payload, identity) {
+    if (model.destroyed || !model.commentsActive || model.commentsIdentity !== identity || model.routeIdentity !== identity || !currentArticle()) return;
+    var state = payload && typeof payload === "object" ? payload : {};
+    model.commentAvailable = state.available === true;
+    model.commentCount = finite(state.count) === null ? 0 : Math.max(0, Math.floor(state.count));
+    if (model.panelOpen && model.activeTab === "article") renderComments();
+  }
+
+  function syncCommentsLifecycle() {
+    var article = currentArticle();
+    if (!article) {
+      stopComments();
+      return;
+    }
+    var identity = model.routeIdentity;
+    if (model.commentsActive && model.commentsIdentity === identity) return;
+    stopComments();
+    model.commentsActive = true;
+    model.commentsIdentity = identity;
+    model.commentAvailable = false;
+    model.commentCount = 0;
+    comments.sort(model.commentSort);
+    comments.init(function (payload) {
+      onCommentsChange(payload, identity);
+    });
+  }
+
 
   function outlineEntries() {
     model.outline = [];
@@ -586,6 +663,7 @@
       articleProgress.hidden = true;
       articleActions.hidden = true;
       outline.hidden = true;
+      commentControls.hidden = true;
       return;
     }
     articleTitle.textContent = article.title || "Artikel";
@@ -599,6 +677,7 @@
     var target = model.resumeKey === key ? model.resumeValue : 0;
     resumeButton.disabled = !(target > 0.01 && target < 0.99);
     resumeButton.setAttribute("aria-label", resumeButton.disabled ? "Kein gespeicherter Fortsetzpunkt" : "Fortsetzen");
+    renderComments();
     renderOutline();
   }
 
@@ -730,6 +809,7 @@
     model.generation += 1;
     clearProgressTimer();
     if (changed) {
+      stopComments();
       model.routeEntry += 1;
       model.pageArticle = null;
       model.pageItems = [];
@@ -787,6 +867,7 @@
       model.resumeValue = progressFor(key);
       model.resumeEntry = model.routeEntry;
     }
+    syncCommentsLifecycle();
     markCurrentVisited();
     updateTabs();
     if (model.panelOpen) render();
@@ -811,8 +892,10 @@
   function onStorageChange(next) {
     if (model.destroyed) return;
     if (!next || typeof next !== "object") return;
+    var previousCommentSort = model.commentSort;
     model.snapshot = next;
     applySortPreference(model.snapshot);
+    if (model.commentsActive && model.commentSort !== previousCommentSort) comments.sort(model.commentSort);
     if (model.panelOpen) render();
   }
 
@@ -841,6 +924,27 @@
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
   function onResumeClick() { resumeReading(); }
+  function onCommentOrderChange() {
+    var previousMode = model.commentSort;
+    var mode = normalizeCommentMode(commentSortSelect.value);
+    try {
+      mode = normalizeCommentMode(comments.sort(mode));
+    } catch (_) {
+      commentSortSelect.value = previousMode;
+      showToast("Kommentarsortierung nicht verfügbar");
+      return;
+    }
+    model.commentSort = mode;
+    commentSortSelect.value = mode;
+    var result = storage.setPreferences({ commentSort: mode });
+    if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
+      model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
+      comments.sort(model.commentSort);
+      commentSortSelect.value = model.commentSort;
+    }
+    renderComments();
+  }
+
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
@@ -932,6 +1036,7 @@
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
+    stopComments();
     if (typeof storage.disconnect === "function") storage.disconnect();
     launcher.removeEventListener("click", onLauncherClick);
     closeButton.removeEventListener("click", onCloseClick);
@@ -942,6 +1047,7 @@
     dateSort.removeEventListener("click", onDateSort);
     commentSort.removeEventListener("click", onCommentSort);
     resumeButton.removeEventListener("click", onResumeClick);
+    commentSortSelect.removeEventListener("change", onCommentOrderChange);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
     clearButton.removeEventListener("click", onClearClick);
@@ -963,6 +1069,7 @@
   dateSort.addEventListener("click", onDateSort);
   commentSort.addEventListener("click", onCommentSort);
   resumeButton.addEventListener("click", onResumeClick);
+  commentSortSelect.addEventListener("change", onCommentOrderChange);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
   clearButton.addEventListener("click", onClearClick);

@@ -10,6 +10,7 @@
   var documentObserver = null;
   var shadowObservers = [];
   var retryTimer = null;
+  var retryAttempts = 0;
   var currentRecord = null;
   var lastNotification = null;
   var active = false;
@@ -249,15 +250,20 @@
     }
   }
 
-  function compareNodes(a, b) {
+  function compareNodes(a, b, sortMode) {
     var ar = ratings(a.node);
     var br = ratings(b.node);
-    var av = mode === 'positive' ? ar.positive : mode === 'negative' ? ar.negative : ar.total;
-    var bv = mode === 'positive' ? br.positive : mode === 'negative' ? br.negative : br.total;
+    var av = sortMode === 'positive' ? ar.positive : sortMode === 'negative' ? ar.negative : ar.total;
+    var bv = sortMode === 'positive' ? br.positive : sortMode === 'negative' ? br.negative : br.total;
     if (av !== bv) {
       return bv - av;
     }
-    return a.nativeIndex - b.nativeIndex;
+    var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+    var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+    if (ai !== bi) {
+      return ai - bi;
+    }
+    return a.position - b.position;
   }
 
   function reorderGroup(parent, nodes, desired) {
@@ -310,16 +316,18 @@
     }
   }
 
-  function applyOrder(record, nodes) {
+  function applyOrder(record, nodes, requestedMode) {
     if (!record || !nodes.length) {
       return;
     }
 
+    var orderMode = requestedMode || mode;
     var entries = [];
     for (var i = 0; i < nodes.length; i += 1) {
       entries.push({
         node: nodes[i],
-        nativeIndex: indexOfNode(record.nativeOrder, nodes[i])
+        nativeIndex: indexOfNode(record.nativeOrder, nodes[i]),
+        position: i
       });
     }
 
@@ -349,29 +357,40 @@
       for (var c = 0; c < groupEntries.length; c += 1) {
         current.push(groupEntries[c].node);
       }
-      var desired;
-      if (mode === 'native') {
-        desired = groupEntries.slice().sort(function (a, b) {
-          return a.nativeIndex - b.nativeIndex;
-        }).map(function (entry) {
-          return entry.node;
-        });
-      } else {
-        desired = groupEntries.slice().sort(function (a, b) {
-          return compareNodes(a, b);
-        }).map(function (entry) {
-          return entry.node;
-        });
-      }
+      var desired = groupEntries.slice().sort(function (a, b) {
+        if (orderMode === 'native') {
+          var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+          var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+          return ai - bi || a.position - b.position;
+        }
+        return compareNodes(a, b, orderMode);
+      }).map(function (entry) {
+        return entry.node;
+      });
       // The selector returns document order, which is the native/current order.
       reorderGroup(groups[h].parent, current, desired);
     }
   }
 
-  function scheduleRetry() {
-    if (!active || currentRecord || retryTimer !== null || typeof global.setTimeout !== 'function') {
+  function restoreNativeOrder(record) {
+    if (!record || !record.main) {
       return;
     }
+    applyOrder(record, collectNodes(record.main), 'native');
+  }
+
+
+  function scheduleRetry() {
+    if (
+      !active ||
+      currentRecord ||
+      retryTimer !== null ||
+      retryAttempts >= 40 ||
+      typeof global.setTimeout !== 'function'
+    ) {
+      return;
+    }
+    retryAttempts += 1;
     retryTimer = global.setTimeout(function () {
       retryTimer = null;
       refresh();
@@ -409,9 +428,9 @@
   function init(onChange) {
     disconnect();
     active = true;
+    retryAttempts = 0;
     changeHandler = typeof onChange === 'function' ? onChange : null;
     lastNotification = null;
-
     var doc = global.document;
     if (doc && typeof global.MutationObserver === 'function') {
       try {
@@ -443,13 +462,20 @@
   }
 
   function disconnect() {
+    if (currentRecord) {
+      try {
+        restoreNativeOrder(currentRecord);
+      } catch (_) {
+        // A detached or partially torn-down forum must not block cleanup.
+      }
+    }
     if (documentObserver && typeof documentObserver.disconnect === 'function') {
       documentObserver.disconnect();
     }
     documentObserver = null;
-    for (var i = 0; i < shadowObservers.length; i += 1) {
-      if (shadowObservers[i].observer && typeof shadowObservers[i].observer.disconnect === 'function') {
-        shadowObservers[i].observer.disconnect();
+    for (var j = 0; j < shadowObservers.length; j += 1) {
+      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === 'function') {
+        shadowObservers[j].observer.disconnect();
       }
     }
     shadowObservers = [];
@@ -457,6 +483,7 @@
       global.clearTimeout(retryTimer);
     }
     retryTimer = null;
+    retryAttempts = 0;
     currentRecord = null;
     active = false;
     changeHandler = null;

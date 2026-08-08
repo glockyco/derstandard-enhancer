@@ -12,7 +12,7 @@
 // ==/UserScript==
 
 
-(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
+(function (global) { global.DSUXStyles = ":host {\n  all: initial;\n  --dsux-ink: #202124;\n  --dsux-muted: #5f6368;\n  --dsux-border: #c7c9cc;\n  --dsux-border-strong: #8b8f94;\n  --dsux-surface: #ffffff;\n  --dsux-surface-muted: #f3f4f5;\n  --dsux-accent: #075aa6;\n  --dsux-accent-strong: #064276;\n  --dsux-accent-contrast: #ffffff;\n  --dsux-success: #176b32;\n  --dsux-focus: #0b63ce;\n  --dsux-shadow: 0 0.75rem 2.25rem rgb(0 0 0 / 28%);\n  color: var(--dsux-ink);\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.4;\n}\n\n:host [hidden] {\n  display: none !important;\n}\n\n.dsux-launcher {\n  position: fixed;\n  right: 1rem;\n  bottom: 1rem;\n  z-index: 2147483000;\n  display: grid;\n  width: 3.5rem;\n  height: 3.5rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 2px solid var(--dsux-accent-strong);\n  border-radius: 50%;\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  box-shadow: 0 0.2rem 0.9rem rgb(0 0 0 / 34%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.65rem;\n  font-weight: 700;\n  line-height: 1;\n}\n\n.dsux-launcher:hover {\n  background: var(--dsux-accent-strong);\n}\n\n.dsux-panel {\n  position: fixed;\n  right: 1rem;\n  bottom: calc(1rem + 3.5rem + 0.75rem);\n  z-index: 2147482999;\n  display: flex;\n  width: min(68rem, calc(100vw - 2rem));\n  max-height: min(52rem, calc(100vh - 6rem));\n  box-sizing: border-box;\n  flex-direction: column;\n  overflow: auto;\n  padding: 1.25rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.45rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  box-shadow: var(--dsux-shadow);\n  font: inherit;\n}\n\n.dsux-panel-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 1rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-panel-header h2 {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.25rem;\n  line-height: 1.2;\n}\n\n.dsux-close {\n  display: inline-grid;\n  width: 2.25rem;\n  height: 2.25rem;\n  box-sizing: border-box;\n  place-items: center;\n  flex: 0 0 auto;\n  padding: 0;\n  border: 1px solid transparent;\n  border-radius: 0.25rem;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.55rem;\n  line-height: 1;\n}\n\n.dsux-close:hover {\n  border-color: var(--dsux-border);\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs {\n  display: flex;\n  gap: 0.4rem;\n  margin: 0.85rem 0 1rem;\n  border-bottom: 1px solid var(--dsux-border);\n}\n\n.dsux-tabs button {\n  min-height: 2.4rem;\n  padding: 0.45rem 0.75rem;\n  border: 1px solid transparent;\n  border-bottom: 3px solid transparent;\n  border-radius: 0.25rem 0.25rem 0 0;\n  background: transparent;\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-tabs button:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-tabs button[aria-selected=\"true\"] {\n  border-bottom-color: var(--dsux-accent);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-view {\n  min-width: 0;\n}\n\n.dsux-controls {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);\n  gap: 0.6rem;\n  margin-bottom: 0.75rem;\n}\n\n.dsux-controls input,\n.dsux-controls select {\n  width: 100%;\n  min-height: 2.4rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.6rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-controls input::placeholder {\n  color: var(--dsux-muted);\n  opacity: 1;\n}\n\n.dsux-table {\n  width: 100%;\n  margin: 0.5rem 0 1rem;\n  border-collapse: collapse;\n  table-layout: fixed;\n}\n\n.dsux-table th {\n  padding: 0.4rem 0.5rem;\n  border-bottom: 2px solid var(--dsux-border-strong);\n  color: var(--dsux-muted);\n  font-size: 0.72rem;\n  font-weight: 700;\n  letter-spacing: 0.035em;\n  text-align: left;\n  text-transform: uppercase;\n}\n\n.dsux-table th:nth-child(2) {\n  width: 6.5rem;\n}\n\n.dsux-table th:nth-child(3) {\n  width: 5.25rem;\n  text-align: right;\n}\n\n.dsux-table th:nth-child(4) {\n  width: 4.5rem;\n  text-align: center;\n}\n\n.dsux-table th:nth-child(5) {\n  width: 7rem;\n  text-align: center;\n}\n\n.dsux-table td {\n  padding: 0.6rem 0.5rem;\n  border-bottom: 1px solid var(--dsux-border);\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  vertical-align: top;\n}\n\n.dsux-table td:first-child {\n  padding-left: 0;\n}\n\n.dsux-table td:last-child {\n  padding-right: 0;\n}\n\n.dsux-row:hover {\n  background: var(--dsux-surface-muted);\n}\n\n.dsux-title-cell a {\n  color: var(--dsux-accent-strong);\n  font-weight: 700;\n  overflow-wrap: anywhere;\n  text-decoration: underline;\n  text-decoration-thickness: 0.08em;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-title-cell a:hover {\n  color: var(--dsux-accent);\n}\n\n.dsux-row-meta {\n  margin-top: 0.15rem;\n  color: var(--dsux-muted);\n  font-size: 0.76rem;\n}\n\n.dsux-subtitle {\n  margin: 0.25rem 0;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n}\n\n.dsux-date-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  white-space: nowrap;\n}\n\n.dsux-count-cell {\n  color: var(--dsux-muted);\n  font-variant-numeric: tabular-nums;\n  text-align: right;\n}\n\n.dsux-status-cell {\n  color: var(--dsux-success);\n  font-size: 0.88rem;\n  font-weight: 700;\n  text-align: center;\n}\n\n.dsux-progress {\n  height: 0.35rem;\n  margin-top: 0.45rem;\n  overflow: hidden;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-progress span {\n  display: block;\n  width: 0;\n  height: 100%;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-actions-cell {\n  white-space: nowrap;\n  text-align: center;\n}\n\n.dsux-row-actions {\n  display: flex;\n  flex-wrap: nowrap;\n  justify-content: center;\n  gap: 0.35rem;\n}\n\n.dsux-icon-button {\n  display: inline-grid;\n  width: 2rem;\n  height: 2rem;\n  box-sizing: border-box;\n  place-items: center;\n  padding: 0;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 1.1rem;\n  line-height: 1;\n}\n\n.dsux-icon-button:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-icon-button[aria-pressed=\"true\"] {\n  border-color: var(--dsux-accent-strong);\n  background: #dcebf9;\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.25rem;\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  font-size: inherit;\n  font-weight: inherit;\n  letter-spacing: inherit;\n  text-align: inherit;\n  text-transform: inherit;\n  white-space: nowrap;\n}\n\n.dsux-table-sort[data-direction=\"ascending\"],\n.dsux-table-sort[data-direction=\"descending\"] {\n  color: var(--dsux-accent-strong);\n}\n\n.dsux-table-sort[data-direction=\"ascending\"]::after {\n  content: \"↑\";\n}\n\n.dsux-table-sort[data-direction=\"descending\"]::after {\n  content: \"↓\";\n}\n\n.dsux-empty td {\n  padding: 1rem 0;\n  color: var(--dsux-muted);\n}\n\n.dsux-help {\n  padding-top: 0.8rem;\n  border-top: 1px solid var(--dsux-border);\n  color: var(--dsux-muted);\n  font-size: 0.84rem;\n}\n\n.dsux-help strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.5rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-actions button,\n.dsux-actions label {\n  min-height: 2.35rem;\n  box-sizing: border-box;\n  padding: 0.45rem 0.7rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.9rem;\n}\n\n.dsux-actions label {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n}\n\n.dsux-actions button:hover,\n.dsux-actions label:hover {\n  border-color: var(--dsux-accent);\n  background: #eaf2fb;\n}\n\n.dsux-actions button:disabled {\n  cursor: not-allowed;\n  opacity: 0.55;\n}\n\n.dsux-actions input[type=\"file\"] {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  overflow: hidden;\n  clip: rect(0 0 0 0);\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.dsux-article-title {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 1.2rem;\n  line-height: 1.25;\n}\n\n.dsux-reading-controls {\n  display: grid;\n  grid-template-columns: auto minmax(5rem, 1fr) auto;\n  align-items: center;\n  gap: 0.65rem;\n  margin-top: 0.65rem;\n}\n\n.dsux-article-status {\n  margin: 0;\n  color: var(--dsux-ink);\n  font-size: 0.9rem;\n  font-weight: 700;\n  white-space: nowrap;\n}\n\n.dsux-panel .dsux-article-progress {\n  height: 0.7rem;\n  min-height: 0.7rem;\n  margin: 0;\n  overflow: hidden;\n  border: 1px solid #78818a;\n  border-radius: 999px;\n  background: #d9dde1;\n}\n\n.dsux-panel .dsux-article-progress span {\n  display: block;\n  width: 0;\n  min-width: 0.2rem;\n  height: 0.7rem;\n  box-sizing: border-box;\n  border-radius: inherit;\n  background: var(--dsux-success);\n}\n\n.dsux-reading-controls .dsux-actions {\n  flex-wrap: nowrap;\n  margin: 0;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button {\n  border-color: var(--dsux-accent-strong);\n  background: var(--dsux-accent);\n  color: var(--dsux-accent-contrast);\n  font-weight: 700;\n}\n\n.dsux-panel .dsux-article-progress + .dsux-actions > button:hover {\n  background: var(--dsux-accent-strong);\n}\n.dsux-comment-controls {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 0.5rem 0.65rem;\n  margin-top: 0.75rem;\n}\n\n.dsux-comment-controls label {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.45rem;\n  color: var(--dsux-ink);\n  font-size: 0.82rem;\n  font-weight: 700;\n}\n\n.dsux-comment-sort {\n  min-height: 2rem;\n  box-sizing: border-box;\n  padding: 0.3rem 0.5rem;\n  border: 1px solid var(--dsux-border-strong);\n  border-radius: 0.25rem;\n  background: var(--dsux-surface);\n  color: var(--dsux-ink);\n  cursor: pointer;\n  font: inherit;\n  font-size: 0.82rem;\n}\n\n.dsux-comment-sort:hover {\n  border-color: var(--dsux-accent);\n}\n\n.dsux-comment-status {\n  margin: 0 0 0 auto;\n  color: var(--dsux-muted);\n  font-size: 0.82rem;\n  font-variant-numeric: tabular-nums;\n}\n\n\n.dsux-outline {\n  margin-top: 1rem;\n  padding-top: 0.75rem;\n  border-top: 1px solid var(--dsux-border);\n}\n\n.dsux-outline > strong {\n  color: var(--dsux-ink);\n}\n\n.dsux-outline ol,\n.dsux-outline ul {\n  margin: 0.45rem 0 0;\n  padding-left: 1.4rem;\n}\n\n.dsux-outline ul {\n  margin-top: 0.15rem;\n  list-style-type: circle;\n}\n\n.dsux-outline li {\n  margin: 0.2rem 0;\n}\n\n.dsux-outline button {\n  padding: 0;\n  border: 0;\n  background: transparent;\n  color: var(--dsux-accent-strong);\n  cursor: pointer;\n  font: inherit;\n  overflow-wrap: anywhere;\n  text-align: left;\n  text-decoration: underline;\n  text-underline-offset: 0.12em;\n}\n\n.dsux-toast {\n  position: fixed;\n  right: 5.25rem;\n  bottom: 1rem;\n  z-index: 2147483001;\n  max-width: min(31rem, calc(100vw - 6.5rem));\n  box-sizing: border-box;\n  padding: 0.65rem 0.8rem;\n  border: 1px solid #111;\n  border-radius: 0.35rem;\n  background: #202124;\n  color: #ffffff;\n  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 34%);\n  font: inherit;\n  font-size: 0.9rem;\n}\n.dsux-launcher:focus-visible,\n.dsux-panel button:focus-visible,\n.dsux-panel input:focus-visible,\n.dsux-panel select:focus-visible,\n.dsux-panel a:focus-visible,\n.dsux-panel label:focus-within {\n  outline: 3px solid var(--dsux-focus);\n  outline-offset: 2px;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .dsux-panel,\n  .dsux-launcher,\n  .dsux-toast {\n    scroll-behavior: auto;\n    transition: none;\n  }\n}\n\n@media (max-width: 38rem) {\n  .dsux-panel {\n    right: 0.4rem;\n    bottom: calc(0.75rem + 3.25rem + 0.6rem);\n    left: 0.4rem;\n    width: auto;\n    max-height: calc(100vh - 5.5rem);\n    padding: 0.8rem;\n  }\n\n  .dsux-launcher {\n    right: 0.75rem;\n    bottom: 0.75rem;\n    width: 3.25rem;\n    height: 3.25rem;\n  }\n\n  .dsux-toast {\n    right: 4.75rem;\n    bottom: 0.75rem;\n    max-width: calc(100vw - 5.75rem);\n  }\n\n  .dsux-controls {\n    grid-template-columns: minmax(0, 1fr);\n  }\n\n  .dsux-table th:nth-child(2),\n  .dsux-table td:nth-child(2),\n  .dsux-table th:nth-child(4),\n  .dsux-table td:nth-child(4) {\n    display: none;\n  }\n\n  .dsux-table th:nth-child(3) {\n    width: 6rem;\n  }\n\n  .dsux-table th:nth-child(5) {\n    width: 4.5rem;\n  }\n\n  .dsux-table th,\n  .dsux-table td {\n    padding: 0.45rem 0.3rem;\n  }\n\n  .dsux-row-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions-cell .dsux-icon-button {\n    width: 100%;\n  }\n\n  .dsux-actions {\n    flex-direction: column;\n    align-items: stretch;\n  }\n\n  .dsux-actions button,\n  .dsux-actions label {\n    width: 100%;\n  }\n  .dsux-comment-controls {\n    align-items: stretch;\n  }\n\n  .dsux-comment-controls label {\n    flex: 1 1 100%;\n    align-items: stretch;\n    flex-direction: column;\n  }\n\n  .dsux-comment-status {\n    margin-left: 0;\n  }\n\n}\n\n@media (max-width: 24rem) {\n  .dsux-panel-header h2 {\n    font-size: 1.08rem;\n  }\n\n  .dsux-tabs button {\n    flex: 1 1 0;\n  }\n\n  .dsux-table th:nth-child(3),\n  .dsux-table td:nth-child(3) {\n    display: none;\n  }\n}\n"; }(typeof window !== "undefined" ? window : globalThis));
 
 (function () {
   "use strict";
@@ -983,6 +983,507 @@
 
 
 (function (global) {
+  'use strict';
+
+  if (!global) {
+    return;
+  }
+
+  var mode = 'native';
+  var changeHandler = null;
+  var documentObserver = null;
+  var shadowObservers = [];
+  var retryTimer = null;
+  var retryAttempts = 0;
+  var currentRecord = null;
+  var lastNotification = null;
+  var active = false;
+
+  function normalizeMode(value) {
+    return value === 'positive' || value === 'negative' || value === 'total'
+      ? value
+      : 'native';
+  }
+
+  function notify(count, available) {
+    var payload = {
+      count: count,
+      mode: mode,
+      available: available
+    };
+    var signature = String(count) + '|' + String(mode) + '|' + String(available);
+    if (signature === lastNotification) {
+      return;
+    }
+    lastNotification = signature;
+    if (typeof changeHandler === 'function') {
+      try {
+        changeHandler(payload);
+      } catch (_) {
+        // A consumer callback must not interfere with comment observation.
+      }
+    }
+  }
+
+  function parseRating(node, attribute) {
+    if (!node || typeof node.getAttribute !== 'function') {
+      return 0;
+    }
+    var raw;
+    try {
+      raw = node.getAttribute(attribute);
+    } catch (_) {
+      return 0;
+    }
+    if (typeof raw !== 'string') {
+      return 0;
+    }
+    raw = raw.trim();
+    if (!/^[+]?\d+$/.test(raw)) {
+      return 0;
+    }
+    var value = Number(raw);
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function visible(node) {
+    if (!node || typeof node.getAttribute !== 'function') {
+      return false;
+    }
+    try {
+      if (node.hidden || node.getAttribute('aria-hidden') === 'true') {
+        return false;
+      }
+      var style = node.getAttribute('style') || '';
+      if (/(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style)) {
+        return false;
+      }
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
+  function visibleRating(node, attribute) {
+    if (!node) {
+      return null;
+    }
+    var logs = [];
+    try {
+      if (typeof node.querySelectorAll === 'function') {
+        logs = Array.prototype.slice.call(node.querySelectorAll('dst-posting--ratinglog'));
+      } else if (typeof node.querySelector === 'function') {
+        var log = node.querySelector('dst-posting--ratinglog');
+        if (log) {
+          logs = [log];
+        }
+      }
+    } catch (_) {
+      return null;
+    }
+    for (var i = 0; i < logs.length; i += 1) {
+      if (!visible(logs[i])) {
+        continue;
+      }
+      var candidates = [logs[i]];
+      try {
+        var descendants = logs[i].querySelectorAll('[' + attribute + ']');
+        for (var j = 0; j < descendants.length; j += 1) {
+          candidates.push(descendants[j]);
+        }
+      } catch (_) {
+        // The rating log itself is still a valid candidate.
+      }
+      for (var k = 0; k < candidates.length; k += 1) {
+        if (!visible(candidates[k])) {
+          continue;
+        }
+        var raw = candidates[k].getAttribute(attribute);
+        if (typeof raw === 'string' && /^[+]?\d+$/.test(raw.trim())) {
+          var value = Number(raw.trim());
+          if (Number.isFinite(value)) {
+            return value;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function ratings(node) {
+    var positive = visibleRating(node, 'positiveratings');
+    var negative = visibleRating(node, 'negativeratings');
+    if (positive === null) {
+      positive = parseRating(node, 'positiveratings');
+    }
+    if (negative === null) {
+      negative = parseRating(node, 'negativeratings');
+    }
+    return {
+      positive: positive,
+      negative: negative,
+      total: positive + negative
+    };
+  }
+
+  function findMain(root) {
+    if (!root || typeof root.querySelector !== 'function') {
+      return null;
+    }
+    try {
+      return root.querySelector('section#forum main.forum--main');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function discoverMain() {
+    var doc = global.document;
+    if (!doc || typeof doc.querySelectorAll !== 'function') {
+      return null;
+    }
+
+    var hosts;
+    try {
+      hosts = doc.querySelectorAll('dst-forum');
+    } catch (_) {
+      return null;
+    }
+
+    for (var i = 0; i < hosts.length; i += 1) {
+      var shadow;
+      try {
+        shadow = hosts[i].shadowRoot;
+      } catch (_) {
+        shadow = null;
+      }
+      if (!shadow) {
+        continue;
+      }
+      attachShadowObserver(shadow);
+      var main = findMain(shadow);
+      if (main) {
+        return main;
+      }
+    }
+    return null;
+  }
+
+  function attachShadowObserver(shadow) {
+    for (var i = 0; i < shadowObservers.length; i += 1) {
+      if (shadowObservers[i].shadow === shadow) {
+        return;
+      }
+    }
+
+    if (typeof global.MutationObserver !== 'function') {
+      return;
+    }
+
+    var observer;
+    try {
+      observer = new global.MutationObserver(function () {
+        refresh();
+      });
+      observer.observe(shadow, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['positiveratings', 'negativeratings', 'style', 'hidden', 'aria-hidden']
+      });
+      shadowObservers.push({ shadow: shadow, observer: observer });
+    } catch (_) {
+      if (observer && typeof observer.disconnect === 'function') {
+        observer.disconnect();
+      }
+    }
+  }
+
+  function collectNodes(main) {
+    if (!main || typeof main.querySelectorAll !== 'function') {
+      return [];
+    }
+    try {
+      return Array.prototype.slice.call(
+        main.querySelectorAll("dst-posting[data-level='0']")
+      );
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function indexOfNode(nodes, node) {
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (nodes[i] === node) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function synchronizeNativeOrder(record, nodes, preserveBaseline) {
+    if (mode === 'native' && !preserveBaseline) {
+      record.nativeOrder = nodes.slice();
+      return;
+    }
+    var order = record.nativeOrder;
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (indexOfNode(order, nodes[i]) === -1) {
+        order.push(nodes[i]);
+      }
+    }
+  }
+
+  function compareNodes(a, b, sortMode) {
+    var ar = ratings(a.node);
+    var br = ratings(b.node);
+    var av = sortMode === 'positive' ? ar.positive : sortMode === 'negative' ? ar.negative : ar.total;
+    var bv = sortMode === 'positive' ? br.positive : sortMode === 'negative' ? br.negative : br.total;
+    if (av !== bv) {
+      return bv - av;
+    }
+    var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+    var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+    if (ai !== bi) {
+      return ai - bi;
+    }
+    return a.position - b.position;
+  }
+
+  function reorderGroup(parent, nodes, desired) {
+    var unchanged = true;
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (nodes[i] !== desired[i]) {
+        unchanged = false;
+        break;
+      }
+    }
+    if (unchanged || !parent || typeof parent.insertBefore !== 'function') {
+      return;
+    }
+
+    // Keep non-posting children in their exact slots while replacing the posting slots.
+    var children = Array.prototype.slice.call(parent.childNodes || []);
+    var postingSet = [];
+    for (var j = 0; j < nodes.length; j += 1) {
+      postingSet.push(nodes[j]);
+    }
+    var anchors = [];
+    var nextNonPosting = null;
+    for (var k = children.length - 1; k >= 0; k -= 1) {
+      if (indexOfNode(postingSet, children[k]) === -1) {
+        nextNonPosting = children[k];
+      } else {
+        anchors[k] = nextNonPosting;
+      }
+    }
+
+    var fragment;
+    var doc = global.document;
+    if (doc && typeof doc.createDocumentFragment === 'function') {
+      fragment = doc.createDocumentFragment();
+      for (var m = 0; m < nodes.length; m += 1) {
+        fragment.appendChild(nodes[m]);
+      }
+    } else {
+      for (var n = 0; n < nodes.length; n += 1) {
+        parent.removeChild(nodes[n]);
+      }
+    }
+
+    var targetIndex = 0;
+    for (var p = 0; p < children.length; p += 1) {
+      if (indexOfNode(postingSet, children[p]) !== -1) {
+        parent.insertBefore(desired[targetIndex], anchors[p] || null);
+        targetIndex += 1;
+      }
+    }
+  }
+
+  function applyOrder(record, nodes, requestedMode) {
+    if (!record || !nodes.length) {
+      return;
+    }
+
+    var orderMode = requestedMode || mode;
+    var entries = [];
+    for (var i = 0; i < nodes.length; i += 1) {
+      entries.push({
+        node: nodes[i],
+        nativeIndex: indexOfNode(record.nativeOrder, nodes[i]),
+        position: i
+      });
+    }
+
+    var groups = [];
+    for (var j = 0; j < entries.length; j += 1) {
+      var parent = entries[j].node.parentNode;
+      if (!parent) {
+        continue;
+      }
+      var group = null;
+      for (var g = 0; g < groups.length; g += 1) {
+        if (groups[g].parent === parent) {
+          group = groups[g];
+          break;
+        }
+      }
+      if (!group) {
+        group = { parent: parent, entries: [] };
+        groups.push(group);
+      }
+      group.entries.push(entries[j]);
+    }
+
+    for (var h = 0; h < groups.length; h += 1) {
+      var groupEntries = groups[h].entries;
+      var current = [];
+      for (var c = 0; c < groupEntries.length; c += 1) {
+        current.push(groupEntries[c].node);
+      }
+      var desired = groupEntries.slice().sort(function (a, b) {
+        if (orderMode === 'native') {
+          var ai = a.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : a.nativeIndex;
+          var bi = b.nativeIndex < 0 ? Number.MAX_SAFE_INTEGER : b.nativeIndex;
+          return ai - bi || a.position - b.position;
+        }
+        return compareNodes(a, b, orderMode);
+      }).map(function (entry) {
+        return entry.node;
+      });
+      // The selector returns document order, which is the native/current order.
+      reorderGroup(groups[h].parent, current, desired);
+    }
+  }
+
+  function restoreNativeOrder(record) {
+    if (!record || !record.main) {
+      return;
+    }
+    applyOrder(record, collectNodes(record.main), 'native');
+  }
+
+
+  function scheduleRetry() {
+    if (
+      !active ||
+      currentRecord ||
+      retryTimer !== null ||
+      retryAttempts >= 40 ||
+      typeof global.setTimeout !== 'function'
+    ) {
+      return;
+    }
+    retryAttempts += 1;
+    retryTimer = global.setTimeout(function () {
+      retryTimer = null;
+      refresh();
+      if (active && !currentRecord) {
+        scheduleRetry();
+      }
+    }, 250);
+  }
+
+  function refresh(preserveBaseline) {
+    if (!active) {
+      return;
+    }
+    var main = discoverMain();
+    if (main !== (currentRecord && currentRecord.main)) {
+      currentRecord = main ? { main: main, nativeOrder: [] } : null;
+    }
+
+    if (!currentRecord) {
+      notify(0, false);
+      scheduleRetry();
+      return;
+    }
+
+    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+      global.clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+    var nodes = collectNodes(currentRecord.main);
+    synchronizeNativeOrder(currentRecord, nodes, preserveBaseline);
+    applyOrder(currentRecord, nodes);
+    notify(nodes.length, true);
+  }
+
+  function init(onChange) {
+    disconnect();
+    active = true;
+    retryAttempts = 0;
+    changeHandler = typeof onChange === 'function' ? onChange : null;
+    lastNotification = null;
+    var doc = global.document;
+    if (doc && typeof global.MutationObserver === 'function') {
+      try {
+        documentObserver = new global.MutationObserver(function () {
+          refresh();
+        });
+        documentObserver.observe(doc.documentElement || doc, {
+          childList: true,
+          subtree: true
+        });
+      } catch (_) {
+        documentObserver = null;
+      }
+    }
+    refresh();
+  }
+
+  function sort(nextMode) {
+    var previousMode = mode;
+    mode = normalizeMode(nextMode);
+    if (active) {
+      refresh(mode === 'native' && previousMode !== 'native');
+    }
+    return mode;
+  }
+
+  function currentMode() {
+    return mode;
+  }
+
+  function disconnect() {
+    if (currentRecord) {
+      try {
+        restoreNativeOrder(currentRecord);
+      } catch (_) {
+        // A detached or partially torn-down forum must not block cleanup.
+      }
+    }
+    if (documentObserver && typeof documentObserver.disconnect === 'function') {
+      documentObserver.disconnect();
+    }
+    documentObserver = null;
+    for (var j = 0; j < shadowObservers.length; j += 1) {
+      if (shadowObservers[j].observer && typeof shadowObservers[j].observer.disconnect === 'function') {
+        shadowObservers[j].observer.disconnect();
+      }
+    }
+    shadowObservers = [];
+    if (retryTimer !== null && typeof global.clearTimeout === 'function') {
+      global.clearTimeout(retryTimer);
+    }
+    retryTimer = null;
+    retryAttempts = 0;
+    currentRecord = null;
+    active = false;
+    changeHandler = null;
+    lastNotification = null;
+  }
+
+  global.DSUXComments = {
+    init: init,
+    sort: sort,
+    currentMode: currentMode,
+    disconnect: disconnect
+  };
+}(typeof window !== 'undefined' ? window : null));
+
+
+(function (global) {
   "use strict";
 
   if (!global || !global.document || !global.document.documentElement) return;
@@ -991,7 +1492,8 @@
   var doc = global.document;
   var storage = global.DSUXStorage;
   var site = global.DSUXSite;
-  if (!storage || !site) return;
+  var comments = global.DSUXComments;
+  if (!storage || !site || !comments) return;
 
   global.__DSUXEnhancerController = true;
 
@@ -1022,6 +1524,10 @@
     routePollTimer: null,
     observer: null,
     unsubscribe: null,
+    commentsActive: false,
+    commentsIdentity: "",
+    commentAvailable: false,
+    commentCount: 0,
     lastError: "",
     destroyed: false
   };
@@ -1097,11 +1603,16 @@
     };
   }
 
+  function normalizeCommentMode(value) {
+    return value === "positive" || value === "negative" || value === "total" ? value : "native";
+  }
+
   function applySortPreference(snapshot) {
     var prefs = snapshot && snapshot.prefs || {};
     var sort = prefs.discoverySort;
     model.sort = sort === "date" || sort === "comments" ? sort : "";
     model.sortAscending = !!model.sort && prefs.discoverySortAscending === true;
+    model.commentSort = normalizeCommentMode(prefs.commentSort);
   }
 
   model.snapshot = storage.load();
@@ -1156,6 +1667,7 @@
   var fallbackStyle = ":host{all:initial}.dsux-launcher,.dsux-panel,.dsux-toast{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}.dsux-launcher{position:fixed;z-index:2147483000;right:1rem;bottom:1rem;width:3.5rem;height:3.5rem;border:0;border-radius:50%;background:#1b1b1b;color:#fff;cursor:pointer;font-size:1.7rem;line-height:1}.dsux-panel{position:fixed;z-index:2147482999;right:1rem;bottom:5.25rem;width:min(96vw,68rem);max-height:min(84vh,52rem);overflow:auto;padding:1rem;border:1px solid #555;background:#fff;color:#1b1b1b;box-shadow:0 5px 30px #0005}.dsux-panel-header{display:flex;align-items:center;justify-content:space-between}.dsux-panel-header h2{margin:0}.dsux-tabs,.dsux-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}.dsux-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,auto);gap:.5rem}.dsux-controls input,.dsux-controls select,.dsux-actions button,.dsux-tabs button{font:inherit;padding:.4rem}.dsux-table{width:100%;border-collapse:collapse}.dsux-table th,.dsux-table td{padding:.45rem;border-bottom:1px solid #ccc;text-align:left;vertical-align:top}.dsux-actions-cell{display:flex;gap:.3rem}.dsux-progress{height:.25rem;margin-top:.35rem;background:#ddd;border-radius:99px;overflow:hidden}.dsux-progress span{display:block;height:100%;background:#17621b}.dsux-toast{position:fixed;z-index:2147483001;right:1rem;bottom:1rem;padding:.65rem .8rem;background:#222;color:#fff}.dsux-empty,.dsux-status{color:#555}.dsux-outline ol{padding-left:1.5rem}.dsux-outline button{border:0;background:transparent;color:#0645ad;cursor:pointer;text-align:left}.dsux-panel button:focus-visible,.dsux-panel input:focus-visible,.dsux-panel select:focus-visible,.dsux-launcher:focus-visible{outline:3px solid #005fcc;outline-offset:2px}@media (max-width:38rem){.dsux-panel{right:.4rem;left:.4rem;width:auto}.dsux-table th:nth-child(2),.dsux-table td:nth-child(2){display:none}}";
   fallbackStyle += ".dsux-actions-cell{display:table-cell}.dsux-row-actions{display:flex;flex-wrap:nowrap;justify-content:center;gap:.35rem}.dsux-table-sort{display:inline-flex;align-items:center;gap:.25rem;white-space:nowrap}.dsux-table-sort[data-direction=ascending]::after{content:'↑'}.dsux-table-sort[data-direction=descending]::after{content:'↓'}.dsux-outline{margin-top:1rem}";
   fallbackStyle += ".dsux-reading-controls{display:grid;grid-template-columns:auto minmax(5rem,1fr) auto;align-items:center;gap:.65rem;margin-top:.65rem}.dsux-reading-controls .dsux-actions,.dsux-article-status,.dsux-panel .dsux-article-progress{margin:0}";
+  fallbackStyle += ".dsux-comment-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.75rem}.dsux-comment-controls label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:700}.dsux-comment-sort{min-height:2rem;padding:.25rem .45rem}.dsux-comment-status{margin:0 0 0 auto;font-size:.82rem}";
 
   var host = doc.createElement("div");
   var shadow;
@@ -1292,6 +1804,22 @@
   articleActions.appendChild(resumeButton);
   readingControls.appendChild(articleActions);
   articleView.appendChild(readingControls);
+  var commentControls = make("div", "dsux-comment-controls");
+  var commentLabel = make("label");
+  commentLabel.appendChild(make("span", "", "Kommentare sortieren"));
+  var commentSortSelect = make("select", "dsux-comment-sort");
+  [["native", "Originalreihenfolge"], ["positive", "Meiste positive Bewertungen"], ["negative", "Meiste negative Bewertungen"], ["total", "Meiste Bewertungen insgesamt"]].forEach(function (entry) {
+    var option = make("option", "", entry[1]);
+    option.value = entry[0];
+    commentSortSelect.appendChild(option);
+  });
+  commentLabel.appendChild(commentSortSelect);
+  commentControls.appendChild(commentLabel);
+  var commentStatus = make("p", "dsux-comment-status");
+  commentStatus.setAttribute("role", "status");
+  commentStatus.setAttribute("aria-live", "polite");
+  commentControls.appendChild(commentStatus);
+  articleView.appendChild(commentControls);
   var outline = make("section", "dsux-outline");
   outline.appendChild(make("strong", "", "Übersicht"));
   var outlineList = make("ol");
@@ -1513,6 +2041,56 @@
     discoverView.hidden = model.activeTab !== "discover";
     articleView.hidden = model.activeTab !== "article";
   }
+  function renderComments() {
+    var article = currentArticle();
+    commentControls.hidden = !article;
+    if (!article) return;
+    commentSortSelect.value = model.commentSort;
+    if (!model.commentAvailable) {
+      commentStatus.textContent = "Kommentare derzeit nicht verfügbar.";
+      return;
+    }
+    commentStatus.textContent = model.commentCount === 1
+      ? "1 Kommentar verfügbar."
+      : model.commentCount + " Kommentare verfügbar.";
+  }
+
+  function stopComments() {
+    if (!model.commentsActive) return;
+    model.commentsActive = false;
+    model.commentsIdentity = "";
+    model.commentAvailable = false;
+    model.commentCount = 0;
+    comments.disconnect();
+  }
+
+  function onCommentsChange(payload, identity) {
+    if (model.destroyed || !model.commentsActive || model.commentsIdentity !== identity || model.routeIdentity !== identity || !currentArticle()) return;
+    var state = payload && typeof payload === "object" ? payload : {};
+    model.commentAvailable = state.available === true;
+    model.commentCount = finite(state.count) === null ? 0 : Math.max(0, Math.floor(state.count));
+    if (model.panelOpen && model.activeTab === "article") renderComments();
+  }
+
+  function syncCommentsLifecycle() {
+    var article = currentArticle();
+    if (!article) {
+      stopComments();
+      return;
+    }
+    var identity = model.routeIdentity;
+    if (model.commentsActive && model.commentsIdentity === identity) return;
+    stopComments();
+    model.commentsActive = true;
+    model.commentsIdentity = identity;
+    model.commentAvailable = false;
+    model.commentCount = 0;
+    comments.sort(model.commentSort);
+    comments.init(function (payload) {
+      onCommentsChange(payload, identity);
+    });
+  }
+
 
   function outlineEntries() {
     model.outline = [];
@@ -1570,6 +2148,7 @@
       articleProgress.hidden = true;
       articleActions.hidden = true;
       outline.hidden = true;
+      commentControls.hidden = true;
       return;
     }
     articleTitle.textContent = article.title || "Artikel";
@@ -1583,6 +2162,7 @@
     var target = model.resumeKey === key ? model.resumeValue : 0;
     resumeButton.disabled = !(target > 0.01 && target < 0.99);
     resumeButton.setAttribute("aria-label", resumeButton.disabled ? "Kein gespeicherter Fortsetzpunkt" : "Fortsetzen");
+    renderComments();
     renderOutline();
   }
 
@@ -1714,6 +2294,7 @@
     model.generation += 1;
     clearProgressTimer();
     if (changed) {
+      stopComments();
       model.routeEntry += 1;
       model.pageArticle = null;
       model.pageItems = [];
@@ -1771,6 +2352,7 @@
       model.resumeValue = progressFor(key);
       model.resumeEntry = model.routeEntry;
     }
+    syncCommentsLifecycle();
     markCurrentVisited();
     updateTabs();
     if (model.panelOpen) render();
@@ -1795,8 +2377,10 @@
   function onStorageChange(next) {
     if (model.destroyed) return;
     if (!next || typeof next !== "object") return;
+    var previousCommentSort = model.commentSort;
     model.snapshot = next;
     applySortPreference(model.snapshot);
+    if (model.commentsActive && model.commentSort !== previousCommentSort) comments.sort(model.commentSort);
     if (model.panelOpen) render();
   }
 
@@ -1825,6 +2409,27 @@
   function onDateSort() { cycleSort("date"); }
   function onCommentSort() { cycleSort("comments"); }
   function onResumeClick() { resumeReading(); }
+  function onCommentOrderChange() {
+    var previousMode = model.commentSort;
+    var mode = normalizeCommentMode(commentSortSelect.value);
+    try {
+      mode = normalizeCommentMode(comments.sort(mode));
+    } catch (_) {
+      commentSortSelect.value = previousMode;
+      showToast("Kommentarsortierung nicht verfügbar");
+      return;
+    }
+    model.commentSort = mode;
+    commentSortSelect.value = mode;
+    var result = storage.setPreferences({ commentSort: mode });
+    if (!applyMutationResult(result, null, "Kommentarsortierung konnte nicht gespeichert werden.")) {
+      model.commentSort = normalizeCommentMode(model.snapshot && model.snapshot.prefs && model.snapshot.prefs.commentSort);
+      comments.sort(model.commentSort);
+      commentSortSelect.value = model.commentSort;
+    }
+    renderComments();
+  }
+
 
   function onExportClick() {
     if (typeof global.Blob !== "function" || !global.URL || typeof global.URL.createObjectURL !== "function") {
@@ -1916,6 +2521,7 @@
     if (model.routePollTimer !== null) global.clearTimeout(model.routePollTimer);
     if (model.observer && typeof model.observer.disconnect === "function") model.observer.disconnect();
     if (typeof model.unsubscribe === "function") model.unsubscribe();
+    stopComments();
     if (typeof storage.disconnect === "function") storage.disconnect();
     launcher.removeEventListener("click", onLauncherClick);
     closeButton.removeEventListener("click", onCloseClick);
@@ -1926,6 +2532,7 @@
     dateSort.removeEventListener("click", onDateSort);
     commentSort.removeEventListener("click", onCommentSort);
     resumeButton.removeEventListener("click", onResumeClick);
+    commentSortSelect.removeEventListener("change", onCommentOrderChange);
     exportButton.removeEventListener("click", onExportClick);
     importInput.removeEventListener("change", onImportChange);
     clearButton.removeEventListener("click", onClearClick);
@@ -1947,6 +2554,7 @@
   dateSort.addEventListener("click", onDateSort);
   commentSort.addEventListener("click", onCommentSort);
   resumeButton.addEventListener("click", onResumeClick);
+  commentSortSelect.addEventListener("change", onCommentOrderChange);
   exportButton.addEventListener("click", onExportClick);
   importInput.addEventListener("change", onImportChange);
   clearButton.addEventListener("click", onClearClick);

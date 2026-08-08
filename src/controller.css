@@ -480,6 +480,47 @@
 .dsux-panel .dsux-article-progress + .dsux-actions > button:hover {
   background: var(--dsux-accent-strong);
 }
+.dsux-comment-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.dsux-comment-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--dsux-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.dsux-comment-sort {
+  min-height: 2rem;
+  box-sizing: border-box;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--dsux-border-strong);
+  border-radius: 0.25rem;
+  background: var(--dsux-surface);
+  color: var(--dsux-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.dsux-comment-sort:hover {
+  border-color: var(--dsux-accent);
+}
+
+.dsux-comment-status {
+  margin: 0 0 0 auto;
+  color: var(--dsux-muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
 
 .dsux-outline {
   margin-top: 1rem;
@@ -619,6 +660,20 @@
   .dsux-actions label {
     width: 100%;
   }
+  .dsux-comment-controls {
+    align-items: stretch;
+  }
+
+  .dsux-comment-controls label {
+    flex: 1 1 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dsux-comment-status {
+    margin-left: 0;
+  }
+
 }
 
 @media (max-width: 24rem) {

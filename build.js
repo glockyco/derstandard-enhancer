@@ -15,6 +15,7 @@ const header = `// ==UserScript==
 const modules = [
   "src/site.js",
   "src/storage.js",
+  "src/comments.js",
   "src/controller.js",
 ];
 

@@ -3,7 +3,7 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 const GENERATED_PATH = path.join(ROOT, "derstandard-enhancer.user.js");
-const SOURCE_PATHS = ["src/site.js", "src/storage.js", "src/controller.js"].map((file) => path.join(ROOT, file));
+const SOURCE_PATHS = ["src/site.js", "src/storage.js", "src/comments.js", "src/controller.js"].map((file) => path.join(ROOT, file));
 
 const FIXTURE_HTML = `<!doctype html>
 <html lang="de">
@@ -48,6 +48,35 @@ const ARTICLE_HTML = `<!doctype html>
     </article>
   </body>
 </html>`;
+const COMMENT_ARTICLE_HTML = `<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <link rel="canonical" href="${ARTICLE_URL}">
+  </head>
+  <body>
+    <article class="story-article">
+      <h1 class="article-title">Forum-Leseprobe</h1>
+      <p>Artikeltext mit Forum.</p>
+    </article>
+    <div id="publisher-controls">Publisher controls</div>
+    <dst-forum id="fixture-forum"></dst-forum>
+    <script>
+      const forum = document.getElementById("fixture-forum");
+      const root = forum.attachShadow({ mode: "open" });
+      root.innerHTML = \`
+        <section id="forum">
+          <main class="forum--main">
+            <div id="publisher-slot-before">Publisher slot before</div>
+            <dst-posting id="low" data-level="0" positiveratings="1" negativeratings="0">Low</dst-posting>
+            <div id="publisher-slot-middle">Publisher slot middle</div>
+            <dst-posting id="high" data-level="0" positiveratings="9" negativeratings="1">High</dst-posting>
+            <dst-posting id="medium" data-level="0" positiveratings="5" negativeratings="0">Medium</dst-posting>
+          </main>
+        </section>\`;
+    </script>
+  </body>
+</html>`;
 
 const HOME_URL = "https://www.derstandard.at/";
 
@@ -60,6 +89,7 @@ async function fixture(page, { html = FIXTURE_HTML, url = HOME_URL } = {}) {
       body: html,
     });
   });
+
   await page.goto(url);
 }
 
@@ -74,6 +104,79 @@ async function installEnhancer(page, useGenerated = false) {
 function host(page) {
   return page.locator("html > div").first();
 }
+test("generated comments module sorts an article forum inside the enhancer panel and restores native order", async ({ page }) => {
+  await fixture(page, { html: COMMENT_ARTICLE_HTML, url: ARTICLE_URL });
+  await page.evaluate(() => window.localStorage.clear());
+  await installEnhancer(page, true);
+
+  expect(await page.evaluate(() => typeof window.DSUXComments)).toBe("object");
+  const nativeOrder = async () => page.evaluate(() => {
+    const forum = document.querySelector("#fixture-forum");
+    const main = forum && forum.shadowRoot && forum.shadowRoot.querySelector("section#forum main.forum--main");
+    return main ? Array.from(main.querySelectorAll("dst-posting[data-level='0']")).map((node) => node.id) : [];
+  });
+  const forumMainChildSequence = async () => page.evaluate(() => {
+    const forum = document.querySelector("#fixture-forum");
+    const main = forum && forum.shadowRoot && forum.shadowRoot.querySelector("section#forum main.forum--main");
+    return main ? Array.from(main.childNodes).map((node) => ({
+      nodeType: node.nodeType,
+      nodeName: node.nodeName,
+      value: node.nodeType === Node.ELEMENT_NODE ? node.outerHTML : node.nodeValue,
+    })) : [];
+  });
+  await expect.poll(nativeOrder).toEqual(["low", "high", "medium"]);
+  const nativeChildren = await forumMainChildSequence();
+
+  const enhancer = host(page);
+  await enhancer.locator(".dsux-launcher").click();
+  await expect(enhancer.locator(".dsux-comment-sort")).toBeHidden();
+  await enhancer.locator('[data-tab="article"]').click();
+  const select = enhancer.locator(".dsux-comment-sort");
+  await expect(select).toHaveCount(1);
+  await expect(enhancer.locator(".dsux-comment-status")).toContainText("3");
+  expect(await page.evaluate(() => {
+    const forum = document.querySelector("#fixture-forum");
+    const enhancerShadow = document.querySelector("html > div")?.shadowRoot;
+    const controls = ".dsux-comment-sort, .dsux-comment-status";
+    return {
+      pageLightDom: document.querySelectorAll(controls).length,
+      forumShadowRoot: forum?.shadowRoot?.querySelectorAll(controls).length || 0,
+      enhancerSort: enhancerShadow?.querySelectorAll(".dsux-comment-sort").length || 0,
+      enhancerStatus: enhancerShadow?.querySelectorAll(".dsux-comment-status").length || 0,
+    };
+  })).toEqual({
+    pageLightDom: 0,
+    forumShadowRoot: 0,
+    enhancerSort: 1,
+    enhancerStatus: 1,
+  });
+
+  await select.selectOption("positive");
+  await expect.poll(nativeOrder).toEqual(["high", "medium", "low"]);
+  await expect.poll(async () => page.evaluate(() => {
+    const state = JSON.parse(window.localStorage.getItem("derstandard-enhancer-state") || "{}");
+    return state.prefs && state.prefs.commentSort;
+  })).toBe("positive");
+
+  await page.evaluate(() => window.DSUXEnhancerTeardown());
+  await expect(page.locator("html > div")).toHaveCount(0);
+  await expect.poll(nativeOrder).toEqual(["low", "high", "medium"]);
+  await expect.poll(forumMainChildSequence).toEqual(nativeChildren);
+  expect(await page.evaluate(() => window.DSUXComments.currentMode())).toBe("positive");
+
+  await installEnhancer(page, true);
+  const reinjectedEnhancer = host(page);
+  await reinjectedEnhancer.locator(".dsux-launcher").click();
+  await reinjectedEnhancer.locator('[data-tab="article"]').click();
+  const persistedSelect = reinjectedEnhancer.locator(".dsux-comment-sort");
+  await expect(persistedSelect).toHaveValue("positive");
+  await expect.poll(nativeOrder).toEqual(["high", "medium", "low"]);
+
+  await page.evaluate(() => window.DSUXEnhancerTeardown());
+  await expect(page.locator("html > div")).toHaveCount(0);
+  await expect.poll(nativeOrder).toEqual(["low", "high", "medium"]);
+  await expect.poll(forumMainChildSequence).toEqual(nativeChildren);
+});
 
 test("generated distribution renders one shadow host and default discovery", async ({ page }) => {
   await fixture(page);
@@ -91,6 +194,7 @@ test("generated distribution renders one shadow host and default discovery", asy
 test("source modules open, close, and restore focus through Escape", async ({ page }) => {
   await fixture(page);
   await installEnhancer(page);
+  expect(await page.evaluate(() => typeof window.DSUXComments)).toBe("object");
 
   const enhancer = host(page);
   const launcher = enhancer.locator(".dsux-launcher");
